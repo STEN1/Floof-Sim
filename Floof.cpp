@@ -1,7 +1,10 @@
 ﻿#include <iostream>
 #include <vulkan/vulkan.h>
 
-int main()
+#include "Floof.h"
+#include "Utils/Utils.h"
+
+int main() 
 {
-	std::cout << "FLOOOOOF!\n";
+	SuperUsefullFunction();
 }
