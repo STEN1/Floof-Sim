@@ -1,26 +1,64 @@
 #pragma once
-#include <vulkan/vulkan.h>
+#define VK_USE_PLATFORM_WIN32_KHR
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 #include <vector>
 
 namespace FLOOF {
 class VulkanRenderer {
 public:
-	VulkanRenderer();
+	VulkanRenderer(GLFWwindow* window);
 	~VulkanRenderer();
 private:
+	GLFWwindow* m_Window;
+
+	void InitSurface();
 	void InitInstance();
 	void InitDevice();
+	void InitSwapChain();
+	void InitImageViews();
+
+	VkSurfaceFormatKHR GetSurfaceFormat(VkFormat format, VkColorSpaceKHR colorSpace);
+	VkPresentModeKHR GetPresentMode(VkPresentModeKHR presentMode);
+	VkExtent2D GetWindowExtent();
+
+	VkSurfaceKHR m_Surface;
 	VkInstance m_Instance;
 	VkPhysicalDevice m_PhysicalDevice;
 	VkDevice m_LogicalDevice;
+	VkSwapchainKHR m_SwapChain = VK_NULL_HANDLE;
+
 	VkQueue m_GraphicsQueue;
+	VkQueue m_PresentQueue;
+
+	std::vector<VkImage> m_SwapChainImages;
+	VkFormat m_SwapChainImageFormat;
+	VkExtent2D m_SwapChainExtent;
+
+	std::vector<VkImageView> m_SwapChainImageViews;
+
+	const std::vector<const char*> m_RequiredDeviceExtentions = {
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
 	struct QueueFamilyIndices {
 		int Graphics = -1;
 		int Compute = -1;
 		int Transfer = -1;
 		int SparseBinding = -1;
+		int PresentIndex = -1;
 	};
-	QueueFamilyIndices m_QueueFamilyIndices{};
+	QueueFamilyIndices m_QFIndices{};
+
+	struct SwapChainSupportDetails {
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
+	};
+	SwapChainSupportDetails m_SwapChainSupport;
+
 	// Validation layers for debug builds.
 #ifndef NDEBUG
 	const std::vector<const char*> m_ValidationLayers = {
