@@ -25,6 +25,7 @@ private:
 	void InitSwapChain();
 	void InitImageViews();
 
+	void InitRenderPass();
 	void InitGraphicsPipeline();
 	VkShaderModule MakeShaderModule(const char* path);
 
@@ -52,6 +53,10 @@ private:
 	VkSurfaceFormatKHR m_SwapChainImageFormat;
 	VkPresentModeKHR m_PresentMode;
 	VkExtent2D m_SwapChainExtent;
+
+	VkRenderPass m_RenderPass;
+	VkPipelineLayout m_PipelineLayout;
+	VkPipeline m_GraphicsPipeline;
 
 	std::vector<VkImageView> m_SwapChainImageViews;
 
