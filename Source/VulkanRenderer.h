@@ -17,8 +17,18 @@ private:
 	void InitSurface();
 	void InitInstance();
 	void InitDevice();
+
+	void InitPhysicalDevice();
+	void InitLogicalDevice();
+
 	void InitSwapChain();
 	void InitImageViews();
+
+	VkImageViewCreateInfo MakeImageViewCreateInfo(int i);
+	VkSwapchainCreateInfoKHR MakeSwapchainCreateInfo();
+
+	void ValidatePhysicalDeviceExtentions();
+	void ValidatePhysicalDeviceSurfaceCapabilities();
 
 	VkSurfaceFormatKHR GetSurfaceFormat(VkFormat format, VkColorSpaceKHR colorSpace);
 	VkPresentModeKHR GetPresentMode(VkPresentModeKHR presentMode);
@@ -29,12 +39,14 @@ private:
 	VkPhysicalDevice m_PhysicalDevice;
 	VkDevice m_LogicalDevice;
 	VkSwapchainKHR m_SwapChain = VK_NULL_HANDLE;
+	VkPhysicalDeviceFeatures m_PhysicalDeviceFeatures;
 
 	VkQueue m_GraphicsQueue;
 	VkQueue m_PresentQueue;
 
 	std::vector<VkImage> m_SwapChainImages;
-	VkFormat m_SwapChainImageFormat;
+	VkSurfaceFormatKHR m_SwapChainImageFormat;
+	VkPresentModeKHR m_PresentMode;
 	VkExtent2D m_SwapChainExtent;
 
 	std::vector<VkImageView> m_SwapChainImageViews;
@@ -51,6 +63,7 @@ private:
 		int PresentIndex = -1;
 	};
 	QueueFamilyIndices m_QFIndices{};
+	void PopulateQueueFamilyIndices(QueueFamilyIndices& QFI);
 
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;
