@@ -24,6 +24,8 @@ private:
 	void InitSwapChain();
 	void InitImageViews();
 
+	void InitGraphicsPipeline();
+
 	VkImageViewCreateInfo MakeImageViewCreateInfo(int i);
 	VkSwapchainCreateInfoKHR MakeSwapchainCreateInfo();
 

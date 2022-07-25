@@ -149,6 +149,10 @@ void VulkanRenderer::InitImageViews() {
     }
 }
 
+void VulkanRenderer::InitGraphicsPipeline() {
+
+}
+
 VkImageViewCreateInfo VulkanRenderer::MakeImageViewCreateInfo(int SwapChainImageIndex) {
     VkImageViewCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

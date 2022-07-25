@@ -19,3 +19,6 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_subdirectory("Libs/glfw")
 target_link_libraries(Floof glfw)
+
+exec_program("$ENV{VULKAN_SDK}/Bin/glslc.exe ${CMAKE_CURRENT_LIST_DIR}/Shaders/Basic.vert -o ${CMAKE_CURRENT_LIST_DIR}/Shaders/Basic.vert.spv")
+exec_program("$ENV{VULKAN_SDK}/Bin/glslc.exe ${CMAKE_CURRENT_LIST_DIR}/Shaders/Basic.vert -o ${CMAKE_CURRENT_LIST_DIR}/Shaders/Basic.frag.spv")
