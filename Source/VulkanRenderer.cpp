@@ -23,42 +23,42 @@ VulkanRenderer::VulkanRenderer(GLFWwindow* window)
 }
 
 VulkanRenderer::~VulkanRenderer() {
-    vkDestroySemaphore(m_LogicalDevice, m_ImageAvailableSemaphore, nullptr);
-    vkDestroySemaphore(m_LogicalDevice, m_RenderFinishedSemaphore, nullptr);
-    vkDestroyFence(m_LogicalDevice, m_InFlightFence, nullptr);
-    vkDestroyCommandPool(m_LogicalDevice, m_CommandPool, nullptr);
-    for (auto framebuffer : m_SwapChainFramebuffers) {
-        vkDestroyFramebuffer(m_LogicalDevice, framebuffer, nullptr);
+    CleanupSwapChain();
+
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroySemaphore(m_LogicalDevice, m_ImageAvailableSemaphores[i], nullptr);
+        vkDestroySemaphore(m_LogicalDevice, m_RenderFinishedSemaphores[i], nullptr);
+        vkDestroyFence(m_LogicalDevice, m_InFlightFences[i], nullptr);
     }
+    vkDestroyCommandPool(m_LogicalDevice, m_CommandPool, nullptr);
+
     vkDestroyPipeline(m_LogicalDevice, m_GraphicsPipeline, nullptr);
     vkDestroyPipelineLayout(m_LogicalDevice, m_PipelineLayout, nullptr);
     vkDestroyRenderPass(m_LogicalDevice, m_RenderPass, nullptr);
-    for (auto& imageView : m_SwapChainImageViews) {
-        vkDestroyImageView(m_LogicalDevice, imageView, nullptr);
-    }
-    vkDestroySwapchainKHR(m_LogicalDevice, m_SwapChain, nullptr);
+
     vkDestroyDevice(m_LogicalDevice, nullptr);
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     vkDestroyInstance(m_Instance, nullptr);
 }
 
-void VulkanRenderer::WaitForFences() {
-    vkWaitForFences(m_LogicalDevice, 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(m_LogicalDevice, 1, &m_InFlightFence);
-}
-
 void VulkanRenderer::Draw() {
-    WaitForFences();
+    vkWaitForFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-    ASSERT(result == VK_SUCCESS, "Could not aquire next image in swap chain.");
+    VkResult result = vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        RecreateSwapChain();
+        return;
+    }
+    ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Could not aquire next image in swap chain.");
 
-    vkResetCommandBuffer(m_CommandBuffer, 0);
-    RecordCommandBuffer(m_CommandBuffer, imageIndex);
+    vkResetFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame]);
 
-    VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
-    VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+    vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
+    RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], imageIndex);
+
+    VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame]};
+    VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame]};
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
     VkSubmitInfo submitInfo{};
@@ -67,11 +67,11 @@ void VulkanRenderer::Draw() {
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_CommandBuffer;
+    submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    result = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFence);
+    result = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]);
     ASSERT(result == VK_SUCCESS, "Could not submit to graphics queue.");
 
     VkPresentInfoKHR presentInfo{};
@@ -86,7 +86,14 @@ void VulkanRenderer::Draw() {
     presentInfo.pResults = nullptr; // Optional
 
     result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
-    ASSERT(result == VK_SUCCESS, "Cant present.");
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        RecreateSwapChain();
+    }
+    ASSERT(result == VK_SUCCESS ||
+        result == VK_ERROR_OUT_OF_DATE_KHR ||
+        result == VK_SUBOPTIMAL_KHR, "Cant present.");
+
+    m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void VulkanRenderer::Finish() {
@@ -434,18 +441,23 @@ void VulkanRenderer::InitCommandPool() {
 }
 
 void VulkanRenderer::InitCommandBuffer() {
+    m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = m_CommandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = 1;
+    allocInfo.commandBufferCount = (uint32_t)m_CommandBuffers.size();
 
-    VkResult result = vkAllocateCommandBuffers(m_LogicalDevice, &allocInfo, &m_CommandBuffer);
+    VkResult result = vkAllocateCommandBuffers(m_LogicalDevice, &allocInfo, m_CommandBuffers.data());
     ASSERT(result == VK_SUCCESS, "Cant allocate command buffers.");
     LOG("Command buffer created.\n");
 }
 
 void VulkanRenderer::InitSyncObjects() {
+    m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -453,12 +465,15 @@ void VulkanRenderer::InitSyncObjects() {
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    VkResult result = vkCreateSemaphore(m_LogicalDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore);
-    ASSERT(result == VK_SUCCESS, "Failed to create sync object.");
-    result = vkCreateSemaphore(m_LogicalDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore);
-    ASSERT(result == VK_SUCCESS, "Failed to create sync object.");
-    result = vkCreateFence(m_LogicalDevice, &fenceInfo, nullptr, &m_InFlightFence);
-    ASSERT(result == VK_SUCCESS, "Failed to create sync object.");
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        VkResult result = vkCreateSemaphore(m_LogicalDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]);
+        ASSERT(result == VK_SUCCESS, "Failed to create sync object.");
+        result = vkCreateSemaphore(m_LogicalDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]);
+        ASSERT(result == VK_SUCCESS, "Failed to create sync object.");
+        result = vkCreateFence(m_LogicalDevice, &fenceInfo, nullptr, &m_InFlightFences[i]);
+        ASSERT(result == VK_SUCCESS, "Failed to create sync object.");
+    }
+
     LOG("Sync objects created.\n");
 }
 
@@ -504,6 +519,40 @@ void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
 
     VkResult endResult = vkEndCommandBuffer(commandBuffer);
     ASSERT(endResult == VK_SUCCESS, "Failed to record command buffer.");
+}
+
+void VulkanRenderer::CleanupSwapChain() {
+    for (size_t i = 0; i < m_SwapChainFramebuffers.size(); i++) {
+        vkDestroyFramebuffer(m_LogicalDevice, m_SwapChainFramebuffers[i], nullptr);
+    }
+
+    for (size_t i = 0; i < m_SwapChainImageViews.size(); i++) {
+        vkDestroyImageView(m_LogicalDevice, m_SwapChainImageViews[i], nullptr);
+    }
+
+    vkDestroySwapchainKHR(m_LogicalDevice, m_SwapChain, nullptr);
+}
+
+void VulkanRenderer::RecreateSwapChain() {
+    WaitWhileMinimized();
+
+    vkDeviceWaitIdle(m_LogicalDevice);
+
+    CleanupSwapChain();
+
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_PhysicalDevice, m_Surface, &m_SwapChainSupport.capabilities);
+    InitSwapChain();
+    InitImageViews();
+    InitFramebuffers();
+}
+
+void VulkanRenderer::WaitWhileMinimized() {
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(m_Window, &width, &height);
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(m_Window, &width, &height);
+        glfwWaitEvents();
+    }
 }
 
 VkShaderModule VulkanRenderer::MakeShaderModule(const char* path) {
@@ -578,7 +627,7 @@ VkSwapchainCreateInfoKHR VulkanRenderer::MakeSwapchainCreateInfo() {
     createInfo.presentMode = m_PresentMode;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.clipped = VK_TRUE;
-    createInfo.oldSwapchain = m_SwapChain;
+    createInfo.oldSwapchain = VK_NULL_HANDLE;
     return createInfo;
 }
 

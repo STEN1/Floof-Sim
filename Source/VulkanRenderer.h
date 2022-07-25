@@ -16,7 +16,6 @@ public:
 	void Draw();
 	void Finish();
 private:
-	void WaitForFences();
 
 	GLFWwindow* m_Window;
 
@@ -40,6 +39,10 @@ private:
 	void InitSyncObjects();
 
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
+	void CleanupSwapChain();
+	void RecreateSwapChain();
+	void WaitWhileMinimized();
 
 	VkShaderModule MakeShaderModule(const char* path);
 
@@ -72,14 +75,17 @@ private:
 	VkPipelineLayout m_PipelineLayout;
 	VkPipeline m_GraphicsPipeline;
 	VkCommandPool m_CommandPool;
-	VkCommandBuffer m_CommandBuffer;
+	std::vector<VkCommandBuffer> m_CommandBuffers;
 
 	std::vector<VkImageView> m_SwapChainImageViews;
 	std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 
-	VkSemaphore m_ImageAvailableSemaphore;
-	VkSemaphore m_RenderFinishedSemaphore;
-	VkFence m_InFlightFence;
+	std::vector<VkSemaphore> m_ImageAvailableSemaphores;
+	std::vector<VkSemaphore> m_RenderFinishedSemaphores;
+	std::vector<VkFence> m_InFlightFences;
+
+	const int MAX_FRAMES_IN_FLIGHT = 2;
+	uint32_t m_CurrentFrame = 0;
 
 	const std::vector<const char*> m_RequiredDeviceExtentions = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
