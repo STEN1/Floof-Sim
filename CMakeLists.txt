@@ -7,7 +7,7 @@ add_executable(Floof
 	"Source/Floof.h"
 	"Source/VulkanRenderer.h"
 	"Source/VulkanRenderer.cpp"
- "Source/Application.h" "Source/Application.cpp")
+ "Source/Application.h" "Source/Application.cpp" "Source/Timer.h")
 
 find_package(Vulkan REQUIRED)
 target_include_directories(Floof PUBLIC ${Vulkan_INCLUDE_DIRS})

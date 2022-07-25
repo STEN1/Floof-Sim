@@ -10,5 +10,6 @@ public:
 private:
 	GLFWwindow* m_Window;
 	VulkanRenderer* m_Renderer;
+
 };
 }

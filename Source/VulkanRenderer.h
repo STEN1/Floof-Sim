@@ -12,7 +12,12 @@ class VulkanRenderer {
 public:
 	VulkanRenderer(GLFWwindow* window);
 	~VulkanRenderer();
+
+	void Draw();
+	void Finish();
 private:
+	void WaitForFences();
+
 	GLFWwindow* m_Window;
 
 	void InitSurface();
@@ -27,6 +32,15 @@ private:
 
 	void InitRenderPass();
 	void InitGraphicsPipeline();
+
+	void InitFramebuffers();
+	void InitCommandPool();
+	void InitCommandBuffer();
+
+	void InitSyncObjects();
+
+	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
 	VkShaderModule MakeShaderModule(const char* path);
 
 	VkImageViewCreateInfo MakeImageViewCreateInfo(int i);
@@ -57,8 +71,15 @@ private:
 	VkRenderPass m_RenderPass;
 	VkPipelineLayout m_PipelineLayout;
 	VkPipeline m_GraphicsPipeline;
+	VkCommandPool m_CommandPool;
+	VkCommandBuffer m_CommandBuffer;
 
 	std::vector<VkImageView> m_SwapChainImageViews;
+	std::vector<VkFramebuffer> m_SwapChainFramebuffers;
+
+	VkSemaphore m_ImageAvailableSemaphore;
+	VkSemaphore m_RenderFinishedSemaphore;
+	VkFence m_InFlightFence;
 
 	const std::vector<const char*> m_RequiredDeviceExtentions = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -71,7 +92,7 @@ private:
 		int SparseBinding = -1;
 		int PresentIndex = -1;
 	};
-	QueueFamilyIndices m_QFIndices{};
+	QueueFamilyIndices m_QueueFamilyIndices{};
 	void PopulateQueueFamilyIndices(QueueFamilyIndices& QFI);
 
 	struct SwapChainSupportDetails {
