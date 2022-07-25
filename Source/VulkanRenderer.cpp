@@ -4,6 +4,7 @@
 #undef max
 #include <limits>
 #include <algorithm>
+#include <fstream>
 
 namespace FLOOF {
 VulkanRenderer::VulkanRenderer(GLFWwindow* window)
@@ -13,6 +14,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow* window)
     InitDevice();
     InitSwapChain();
     InitImageViews();
+    InitGraphicsPipeline();
 }
 
 VulkanRenderer::~VulkanRenderer() {
@@ -150,7 +152,45 @@ void VulkanRenderer::InitImageViews() {
 }
 
 void VulkanRenderer::InitGraphicsPipeline() {
+    auto BasicVert = MakeShaderModule("Shaders/Basic.vert.spv");
+    auto BasicFrag = MakeShaderModule("Shaders/Basic.frag.spv");
 
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShaderStageInfo.module = BasicVert;
+    vertShaderStageInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShaderStageInfo.module = BasicFrag;
+    fragShaderStageInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+
+    vkDestroyShaderModule(m_LogicalDevice, BasicVert, nullptr);
+    vkDestroyShaderModule(m_LogicalDevice, BasicFrag, nullptr);
+}
+
+VkShaderModule VulkanRenderer::MakeShaderModule(const char* path) {
+    std::ifstream f(path, std::ios::ate | std::ios::binary);
+    ASSERT(f.is_open(), "Cant open file: {}", path);
+    std::size_t size = f.tellg();
+    std::vector<char> buffer(size);
+    f.seekg(0);
+    f.read(buffer.data(), size);
+
+    VkShaderModuleCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = buffer.size();
+    createInfo.pCode = reinterpret_cast<const uint32_t*>(buffer.data());
+
+    VkShaderModule shaderModule;
+    VkResult result = vkCreateShaderModule(m_LogicalDevice, &createInfo, nullptr, &shaderModule);
+    ASSERT(result == VK_SUCCESS, "Cant create shader module from {}", path);
+
+    return shaderModule;
 }
 
 VkImageViewCreateInfo VulkanRenderer::MakeImageViewCreateInfo(int SwapChainImageIndex) {

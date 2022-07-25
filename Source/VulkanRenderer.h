@@ -6,6 +6,7 @@
 #include <GLFW/glfw3native.h>
 #include <vector>
 
+
 namespace FLOOF {
 class VulkanRenderer {
 public:
@@ -25,6 +26,7 @@ private:
 	void InitImageViews();
 
 	void InitGraphicsPipeline();
+	VkShaderModule MakeShaderModule(const char* path);
 
 	VkImageViewCreateInfo MakeImageViewCreateInfo(int i);
 	VkSwapchainCreateInfoKHR MakeSwapchainCreateInfo();
