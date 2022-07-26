@@ -206,6 +206,22 @@ void VulkanRenderer::InitLogicalDevice() {
     vkGetDeviceQueue(m_LogicalDevice, m_QueueFamilyIndices.PresentIndex, 0, &m_PresentQueue);
 }
 
+void VulkanRenderer::InitVulkanAllocator() {
+    VmaVulkanFunctions vulkanFunctions = {};
+    vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
+    vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+
+    VmaAllocatorCreateInfo allocatorCreateInfo = {};
+    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+    allocatorCreateInfo.physicalDevice = m_PhysicalDevice;
+    allocatorCreateInfo.device = m_LogicalDevice;
+    allocatorCreateInfo.instance = m_Instance;
+    allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+
+    VkResult result = vmaCreateAllocator(&allocatorCreateInfo, &m_Allocator);
+    ASSERT(result == VK_SUCCESS, "Cant create vulkan allocator.");
+}
+
 void VulkanRenderer::InitSwapChain() {
     auto createInfo = MakeSwapchainCreateInfo();
 

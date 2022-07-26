@@ -8,6 +8,9 @@
 #include <array>
 
 #include <glm/glm.hpp>
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+#include <vma/vk_mem_alloc.h>
 
 namespace FLOOF {
 
@@ -64,6 +67,8 @@ private:
 	void InitPhysicalDevice();
 	void InitLogicalDevice();
 
+	void InitVulkanAllocator();
+
 	void InitSwapChain();
 	void InitImageViews();
 
@@ -100,6 +105,7 @@ private:
 	VkDevice m_LogicalDevice;
 	VkSwapchainKHR m_SwapChain = VK_NULL_HANDLE;
 	VkPhysicalDeviceFeatures m_PhysicalDeviceFeatures;
+	VmaAllocator m_Allocator;
 
 	VkQueue m_GraphicsQueue;
 	VkQueue m_PresentQueue;
