@@ -12,6 +12,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow* window)
     InitInstance();
     InitSurface();
     InitDevice();
+    InitVulkanAllocator();
     InitSwapChain();
     InitImageViews();
     InitRenderPass();
@@ -20,9 +21,15 @@ VulkanRenderer::VulkanRenderer(GLFWwindow* window)
     InitCommandPool();
     InitCommandBuffer();
     InitSyncObjects();
+    BindVertexBuffer(vertices);
+    BindVertexBuffer(vertices2);
+    BindVertexBuffer(vertices3);
 }
 
 VulkanRenderer::~VulkanRenderer() {
+
+    CleanupVertexBuffers();
+    vmaDestroyAllocator(m_Allocator);
     CleanupSwapChain();
 
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -98,6 +105,77 @@ void VulkanRenderer::Draw() {
 
 void VulkanRenderer::Finish() {
     vkDeviceWaitIdle(m_LogicalDevice);
+}
+
+void VulkanRenderer::BindVertexBuffer(const std::vector<Vertex>& vertices) {
+    std::size_t size = sizeof(Vertex) * vertices.size();
+    VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+    bufferInfo.size = size;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+    allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+        VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+    VertexBufferDetails stagingBuffer{};
+    vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
+        &stagingBuffer.Buffer, &stagingBuffer.Allocation, &stagingBuffer.AllocationInfo);
+
+    memcpy(stagingBuffer.AllocationInfo.pMappedData, vertices.data(), size);
+    // No need to flush stagingVertexBuffer memory because CPU_ONLY memory is always HOST_COHERENT.
+
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    allocInfo.flags = 0;
+    VertexBufferDetails vertexBuffer{};
+    vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
+        &vertexBuffer.Buffer, &vertexBuffer.Allocation, &vertexBuffer.AllocationInfo);
+
+    CopyBuffer(stagingBuffer.Buffer, vertexBuffer.Buffer, size);
+
+    vmaDestroyBuffer(m_Allocator, stagingBuffer.Buffer, stagingBuffer.Allocation);
+
+    m_VertexBuffers.push_back(vertexBuffer);
+}
+
+void VulkanRenderer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size) {
+    VkCommandBufferAllocateInfo commandAllocInfo{};
+    commandAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    commandAllocInfo.commandPool = m_CommandPool;
+    commandAllocInfo.commandBufferCount = 1;
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(m_LogicalDevice, &commandAllocInfo, &commandBuffer);
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0; // Optional
+    copyRegion.dstOffset = 0; // Optional
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, src, dst, 1, &copyRegion);
+
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(m_GraphicsQueue);
+
+    vkFreeCommandBuffers(m_LogicalDevice, m_CommandPool, 1, &commandBuffer);
+}
+
+void VulkanRenderer::CleanupVertexBuffers() {
+    for (auto& details : m_VertexBuffers) {
+        vmaDestroyBuffer(m_Allocator, details.Buffer, details.Allocation);
+    }
+    m_VertexBuffers.clear();
 }
 
 void VulkanRenderer::InitSurface() {
@@ -516,6 +594,7 @@ void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
     renderPassInfo.pClearValues = &clearColor;
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
 
     VkViewport viewport{};
@@ -532,7 +611,11 @@ void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
     scissor.extent = m_SwapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    VkDeviceSize offset{ 0 };
+    for (auto& vertexBuffer : m_VertexBuffers) {
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer.Buffer, &offset);
+        vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    }
 
     vkCmdEndRenderPass(commandBuffer);
 

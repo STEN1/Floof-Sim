@@ -43,10 +43,26 @@ struct Vertex {
 	}
 };
 
+struct VertexBufferDetails {
+	VkBuffer Buffer;
+	VmaAllocation Allocation;
+	VmaAllocationInfo AllocationInfo;
+};
+
 const std::vector<Vertex> vertices = {
-	{{0.0f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}},
+	{{0.0f, -0.5f, 0.f}, {1.0f, 1.0f, 1.0f}},
 	{{0.5f, 0.5f, 0.f}, {0.0f, 1.0f, 0.0f}},
 	{{-0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}}
+};
+const std::vector<Vertex> vertices2 = {
+	{{0.0f, -0.5f, 0.f}, {1.0f, 1.0f, 1.0f}},
+	{{-0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}},
+	{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}}
+};
+const std::vector<Vertex> vertices3 = {
+	{{0.0f, -0.5f, 0.f}, {1.0f, 1.0f, 1.0f}},
+	{{0.5f, -0.5f, 0.f}, {1.0f, 1.0f, 0.0f}},
+	{{0.5f, 0.5f, 0.f}, {0.0f, 1.0f, 0.0f}}
 };
 
 class VulkanRenderer {
@@ -57,6 +73,11 @@ public:
 	void Draw();
 	void Finish();
 private:
+
+	void BindVertexBuffer(const std::vector<Vertex>& vertices);
+	void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
+	void CleanupVertexBuffers();
+	std::vector<VertexBufferDetails> m_VertexBuffers;
 
 	GLFWwindow* m_Window;
 
