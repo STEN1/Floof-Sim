@@ -10,7 +10,9 @@ add_executable(Floof
 	"Source/VulkanAllocator.cpp"
 	"Source/Application.h"
 	"Source/Application.cpp"
-	"Source/Timer.h")
+	"Source/Timer.h"
+)
+
 
 find_package(Vulkan REQUIRED)
 target_include_directories(Floof PUBLIC ${Vulkan_INCLUDE_DIRS})
@@ -22,6 +24,7 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_subdirectory("Libs/glfw")
 target_link_libraries(Floof glfw)
+target_link_libraries(Floof EnTT)
 
 exec_program("$ENV{VULKAN_SDK}/Bin/glslc.exe ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.vert -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.vert.spv")
 exec_program("$ENV{VULKAN_SDK}/Bin/glslc.exe ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.frag -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.frag.spv")
