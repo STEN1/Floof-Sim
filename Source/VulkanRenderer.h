@@ -43,6 +43,10 @@ struct Vertex {
 	}
 };
 
+struct MeshPushConstants {
+	glm::mat4 mvp;
+};
+
 struct VertexBufferDetails {
 	VkBuffer Buffer;
 	VmaAllocation Allocation;

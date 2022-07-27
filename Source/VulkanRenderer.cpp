@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <fstream>
 
+#include <glm/gtx/transform.hpp>
+
 namespace FLOOF {
 VulkanRenderer::VulkanRenderer(GLFWwindow* window)
     : m_Window{ window } {
@@ -398,18 +400,6 @@ void VulkanRenderer::InitGraphicsPipeline() {
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-    //VkViewport viewport{};
-    //viewport.x = 0.0f;
-    //viewport.y = 0.0f;
-    //viewport.width = (float)m_SwapChainExtent.width;
-    //viewport.height = (float)m_SwapChainExtent.height;
-    //viewport.minDepth = 0.0f;
-    //viewport.maxDepth = 1.0f;
-
-    //VkRect2D scissor{};
-    //scissor.offset = { 0, 0 };
-    //scissor.extent = m_SwapChainExtent;
-
     std::vector<VkDynamicState> dynamicStates = {
     VK_DYNAMIC_STATE_VIEWPORT,
     VK_DYNAMIC_STATE_SCISSOR
@@ -468,12 +458,17 @@ void VulkanRenderer::InitGraphicsPipeline() {
     colorBlending.blendConstants[2] = 0.0f; // Optional
     colorBlending.blendConstants[3] = 0.0f; // Optional
 
+    VkPushConstantRange pushConstants{};
+    pushConstants.offset = 0;
+    pushConstants.size = sizeof(MeshPushConstants);
+    pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 0; // Optional
     pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-    pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-    pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+    pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstants; // Optional
 
     VkResult plResult = vkCreatePipelineLayout(m_LogicalDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
     ASSERT(plResult == VK_SUCCESS, "Cant create pipeline layout.");
@@ -610,6 +605,19 @@ void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
     scissor.offset = { 0, 0 };
     scissor.extent = m_SwapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    static float rotation = 0.f;
+    rotation += 0.01f;
+    glm::vec3 camPos = { 0.f, 0.f, -2.f };
+    glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
+    glm::mat4 projection = glm::perspective<float>(glm::radians(70.f),
+        m_SwapChainExtent.width / m_SwapChainExtent.height, 0.1f, 1000.f);
+    glm::mat4 model = glm::rotate(glm::radians(rotation), glm::vec3(0.f, 1.f, 0.f));
+    MeshPushConstants constants;
+    constants.mvp = projection * view * model;
+
+    vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+        0, sizeof(MeshPushConstants), &constants);
 
     VkDeviceSize offset{ 0 };
     for (auto& vertexBuffer : m_VertexBuffers) {

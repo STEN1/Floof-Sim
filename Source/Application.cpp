@@ -19,15 +19,23 @@ namespace FLOOF {
 
 	int Application::Run() {
 		Timer timer;
+		float titleBarUpdateTimer{};
+		float titlebarUpdateRate = 0.1f;
+		float frameCounter{};
 		while (!glfwWindowShouldClose(m_Window)) {
 			glfwPollEvents();
 			double deltaTime = timer.Delta();
-			double fps{};
-			if (deltaTime > 0.0) {
-				fps = 1.0 / deltaTime;
+			frameCounter++;
+			titleBarUpdateTimer += deltaTime;
+			if (titleBarUpdateTimer > titlebarUpdateRate) {
+				float avgDeltaTime = titleBarUpdateTimer / frameCounter;
+				float fps{};
+				fps = 1.0 / avgDeltaTime;
+				std::string title = "FPS: " + std::to_string(fps);
+				glfwSetWindowTitle(m_Window, title.c_str());
+				titleBarUpdateTimer = 0.f;
+				frameCounter = 0.f;
 			}
-			std::string title = "FPS: " + std::to_string(fps);
-			glfwSetWindowTitle(m_Window, title.c_str());
 			m_Renderer->Draw();
 		}
 		m_Renderer->Finish();
