@@ -66,10 +66,14 @@ private:
 
 	void InitSyncObjects();
 
+	void InitGlfwCallbacks();
+
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 	void CleanupSwapChain();
+public:
 	void RecreateSwapChain();
+private:
 	void WaitWhileMinimized();
 
 	VkShaderModule MakeShaderModule(const char* path);

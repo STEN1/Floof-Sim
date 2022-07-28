@@ -25,6 +25,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow* window)
     InitCommandPool();
     InitCommandBuffer();
     InitSyncObjects();
+    InitGlfwCallbacks();
 
     auto [vertexData, indexData] = ObjLoader("Assets/HappyTree.obj").GetIndexedData();
     CreateVertexBuffer(vertexData);
@@ -620,6 +621,15 @@ void VulkanRenderer::InitSyncObjects() {
     LOG("Sync objects created.\n");
 }
 
+void VulkanRenderer::InitGlfwCallbacks() {
+    glfwSetWindowUserPointer(m_Window, (void*)this);
+    glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height) {
+        VulkanRenderer* renderer = (VulkanRenderer*)glfwGetWindowUserPointer(window);
+        renderer->RecreateSwapChain();
+        LOG("Resize callback\n");
+        });
+}
+
 void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -662,7 +672,7 @@ void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
     glm::vec3 camPos = { 0.f, 0.f, -10.f };
     glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
     glm::mat4 projection = glm::perspective<float>(glm::radians(70.f),
-        m_SwapChainExtent.width / m_SwapChainExtent.height, 0.1f, 1000.f);
+        m_SwapChainExtent.width / (float)m_SwapChainExtent.height, 0.1f, 1000.f);
     glm::mat4 model = glm::translate(glm::vec3(0.f, -5.f, 0.f));
     model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.f, 1.f, 0.f));
     MeshPushConstants constants;
@@ -762,6 +772,7 @@ VkSwapchainCreateInfoKHR VulkanRenderer::MakeSwapchainCreateInfo() {
     m_SwapChainImageFormat = GetSurfaceFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
     m_PresentMode = GetPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
     m_SwapChainExtent = GetWindowExtent();
+    LOG("m_SwapChainExtent: x = {}, y = {}\n", m_SwapChainExtent.width, m_SwapChainExtent.height);
 
     uint32_t imageCount = m_SwapChainSupport.capabilities.minImageCount + 1;
     if (m_SwapChainSupport.capabilities.maxImageCount > 0 && imageCount > m_SwapChainSupport.capabilities.maxImageCount) {
