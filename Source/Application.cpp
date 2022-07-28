@@ -1,4 +1,5 @@
 #include "Application.h"
+
 #include "Timer.h"
 
 #include <string>
@@ -9,6 +10,8 @@ namespace FLOOF {
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		m_Window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
 		m_Renderer = new VulkanRenderer(m_Window);
+
+
 	}
 
 	Application::~Application() {
@@ -36,9 +39,13 @@ namespace FLOOF {
 				titleBarUpdateTimer = 0.f;
 				frameCounter = 0.f;
 			}
+			Update(deltaTime);
 			m_Renderer->Draw();
 		}
 		m_Renderer->Finish();
 		return 0;
+	}
+	void Application::Update(double deltaTime) {
+
 	}
 }

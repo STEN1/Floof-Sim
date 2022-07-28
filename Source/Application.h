@@ -1,6 +1,8 @@
 #pragma once
 #include "VulkanRenderer.h"
 
+#include <entt/entt.hpp>
+
 namespace FLOOF {
 class Application {
 public:
@@ -8,6 +10,8 @@ public:
 	~Application();
 	int Run();
 private:
+	void Update(double deltaTime);
+	entt::registry m_Registry;
 	GLFWwindow* m_Window;
 	VulkanRenderer* m_Renderer;
 
