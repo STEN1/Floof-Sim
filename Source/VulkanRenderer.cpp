@@ -8,6 +8,8 @@
 
 #include <glm/gtx/transform.hpp>
 
+#include "ObjLoader.h"
+
 namespace FLOOF {
 VulkanRenderer::VulkanRenderer(GLFWwindow* window)
     : m_Window{ window } {
@@ -23,14 +25,15 @@ VulkanRenderer::VulkanRenderer(GLFWwindow* window)
     InitCommandPool();
     InitCommandBuffer();
     InitSyncObjects();
-    BindVertexBuffer(vertices);
-    BindVertexBuffer(vertices2);
-    BindVertexBuffer(vertices3);
+
+    auto [vertexData, indexData] = ObjLoader("Assets/HappyTree.obj").GetIndexedData();
+    CreateVertexBuffer(vertexData);
+    CreateIndexBuffer(indexData);
 }
 
 VulkanRenderer::~VulkanRenderer() {
 
-    CleanupVertexBuffers();
+    CleanupBuffers();
     vmaDestroyAllocator(m_Allocator);
     CleanupSwapChain();
 
@@ -109,7 +112,7 @@ void VulkanRenderer::Finish() {
     vkDeviceWaitIdle(m_LogicalDevice);
 }
 
-void VulkanRenderer::BindVertexBuffer(const std::vector<Vertex>& vertices) {
+VulkanBuffer VulkanRenderer::CreateVertexBuffer(const std::vector<Vertex>& vertices) {
     std::size_t size = sizeof(Vertex) * vertices.size();
     VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
     bufferInfo.size = size;
@@ -121,16 +124,17 @@ void VulkanRenderer::BindVertexBuffer(const std::vector<Vertex>& vertices) {
     allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
         VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-    VertexBufferDetails stagingBuffer{};
+    VulkanBuffer stagingBuffer{};
     vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
         &stagingBuffer.Buffer, &stagingBuffer.Allocation, &stagingBuffer.AllocationInfo);
 
     memcpy(stagingBuffer.AllocationInfo.pMappedData, vertices.data(), size);
-    // No need to flush stagingVertexBuffer memory because CPU_ONLY memory is always HOST_COHERENT.
+    // No need to free stagingVertexBuffer memory because CPU_ONLY memory is always HOST_COHERENT.
+    // Gets deleted in vmaDestroyBuffer call.
 
     bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     allocInfo.flags = 0;
-    VertexBufferDetails vertexBuffer{};
+    VulkanBuffer vertexBuffer{};
     vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
         &vertexBuffer.Buffer, &vertexBuffer.Allocation, &vertexBuffer.AllocationInfo);
 
@@ -139,6 +143,41 @@ void VulkanRenderer::BindVertexBuffer(const std::vector<Vertex>& vertices) {
     vmaDestroyBuffer(m_Allocator, stagingBuffer.Buffer, stagingBuffer.Allocation);
 
     m_VertexBuffers.push_back(vertexBuffer);
+    return vertexBuffer;
+}
+
+VulkanBuffer VulkanRenderer::CreateIndexBuffer(const std::vector<uint32_t>& indices) {
+    std::size_t size = sizeof(uint32_t) * indices.size();
+    VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+    bufferInfo.size = size;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+    allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+        VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+    VulkanBuffer stagingBuffer{};
+    vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
+        &stagingBuffer.Buffer, &stagingBuffer.Allocation, &stagingBuffer.AllocationInfo);
+
+    memcpy(stagingBuffer.AllocationInfo.pMappedData, indices.data(), size);
+    // No need to free stagingVertexBuffer memory because CPU_ONLY memory is always HOST_COHERENT.
+    // Gets deleted in vmaDestroyBuffer call.
+
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    allocInfo.flags = 0;
+    VulkanBuffer indexBuffer{};
+    vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
+        &indexBuffer.Buffer, &indexBuffer.Allocation, &indexBuffer.AllocationInfo);
+
+    CopyBuffer(stagingBuffer.Buffer, indexBuffer.Buffer, size);
+
+    vmaDestroyBuffer(m_Allocator, stagingBuffer.Buffer, stagingBuffer.Allocation);
+
+    m_IndexBuffers.push_back(indexBuffer);
+    return indexBuffer;
 }
 
 void VulkanRenderer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size) {
@@ -174,10 +213,22 @@ void VulkanRenderer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size) {
 }
 
 void VulkanRenderer::CleanupVertexBuffers() {
-    for (auto& details : m_VertexBuffers) {
-        vmaDestroyBuffer(m_Allocator, details.Buffer, details.Allocation);
+    for (auto& buffer : m_VertexBuffers) {
+        vmaDestroyBuffer(m_Allocator, buffer.Buffer, buffer.Allocation);
     }
     m_VertexBuffers.clear();
+}
+
+void VulkanRenderer::CleanupIndexBuffers() {
+    for (auto& buffer : m_IndexBuffers) {
+        vmaDestroyBuffer(m_Allocator, buffer.Buffer, buffer.Allocation);
+    }
+    m_IndexBuffers.clear();
+}
+
+void VulkanRenderer::CleanupBuffers() {
+    CleanupVertexBuffers();
+    CleanupIndexBuffers();
 }
 
 void VulkanRenderer::InitSurface() {
@@ -392,7 +443,7 @@ void VulkanRenderer::InitGraphicsPipeline() {
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.vertexBindingDescriptionCount = 1;
     vertexInputInfo.pVertexBindingDescriptions = &bindDescription;
-    vertexInputInfo.vertexAttributeDescriptionCount = 2;
+    vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
     vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
@@ -422,7 +473,7 @@ void VulkanRenderer::InitGraphicsPipeline() {
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
     rasterizer.depthBiasConstantFactor = 0.0f; // Optional
     rasterizer.depthBiasClamp = 0.0f; // Optional
@@ -594,9 +645,9 @@ void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
 
     VkViewport viewport{};
     viewport.x = 0.0f;
-    viewport.y = 0.0f;
+    viewport.y = static_cast<float>(m_SwapChainExtent.height);
     viewport.width = static_cast<float>(m_SwapChainExtent.width);
-    viewport.height = static_cast<float>(m_SwapChainExtent.height);
+    viewport.height = -static_cast<float>(m_SwapChainExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -608,11 +659,12 @@ void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
 
     static float rotation = 0.f;
     rotation += 0.01f;
-    glm::vec3 camPos = { 0.f, 0.f, -2.f };
+    glm::vec3 camPos = { 0.f, 0.f, -10.f };
     glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
     glm::mat4 projection = glm::perspective<float>(glm::radians(70.f),
         m_SwapChainExtent.width / m_SwapChainExtent.height, 0.1f, 1000.f);
-    glm::mat4 model = glm::rotate(glm::radians(rotation), glm::vec3(0.f, 1.f, 0.f));
+    glm::mat4 model = glm::translate(glm::vec3(0.f, -5.f, 0.f));
+    model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.f, 1.f, 0.f));
     MeshPushConstants constants;
     constants.mvp = projection * view * model;
 
@@ -620,9 +672,12 @@ void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
         0, sizeof(MeshPushConstants), &constants);
 
     VkDeviceSize offset{ 0 };
-    for (auto& vertexBuffer : m_VertexBuffers) {
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer.Buffer, &offset);
-        vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    for (int i = 0; i < m_VertexBuffers.size(); i++) {
+        
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_VertexBuffers[i].Buffer, &offset);
+        vkCmdBindIndexBuffer(commandBuffer, m_IndexBuffers[i].Buffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(commandBuffer, m_IndexBuffers[i].AllocationInfo.size / sizeof(uint32_t),
+            1, 0, 0, 0);
     }
 
     vkCmdEndRenderPass(commandBuffer);

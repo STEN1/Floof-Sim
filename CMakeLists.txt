@@ -11,6 +11,9 @@ add_executable(Floof
 	"Source/Application.h"
 	"Source/Application.cpp"
 	"Source/Timer.h"
+	"Source/ObjLoader.h"
+	"Source/ObjLoader.cpp"
+	"Source/Vertex.h"
 )
 
 
@@ -34,4 +37,11 @@ exec_program("$ENV{VULKAN_SDK}/Bin/glslc.exe ${CMAKE_CURRENT_SOURCE_DIR}/Shaders
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/Shaders
-                ${CMAKE_CURRENT_BINARY_DIR}/Shaders)
+                ${CMAKE_CURRENT_BINARY_DIR}/Shaders
+)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_CURRENT_SOURCE_DIR}/Assets
+                ${CMAKE_CURRENT_BINARY_DIR}/Assets
+)

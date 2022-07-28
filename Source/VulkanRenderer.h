@@ -5,69 +5,25 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #include <vector>
-#include <array>
 
 #include <glm/glm.hpp>
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #include <vma/vk_mem_alloc.h>
+#include "Vertex.h"
 
 namespace FLOOF {
-
-struct Vertex {
-	glm::vec3 pos;
-	glm::vec3 normal;
-
-	static VkVertexInputBindingDescription GetBindingDescription() {
-		VkVertexInputBindingDescription bindingDescription{};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = sizeof(Vertex);
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-		return bindingDescription;
-	}
-
-	static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions() {
-		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
-		attributeDescriptions[0].binding = 0;
-		attributeDescriptions[0].location = 0;
-		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-		attributeDescriptions[1].binding = 0;
-		attributeDescriptions[1].location = 1;
-		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[1].offset = offsetof(Vertex, normal);
-
-		return attributeDescriptions;
-	}
-};
 
 struct MeshPushConstants {
 	glm::mat4 mvp;
 };
 
-struct VertexBufferDetails {
+struct VulkanBuffer {
 	VkBuffer Buffer;
 	VmaAllocation Allocation;
 	VmaAllocationInfo AllocationInfo;
 };
 
-const std::vector<Vertex> vertices = {
-	{{0.0f, -0.5f, 0.f}, {1.0f, 1.0f, 1.0f}},
-	{{0.5f, 0.5f, 0.f}, {0.0f, 1.0f, 0.0f}},
-	{{-0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}}
-};
-const std::vector<Vertex> vertices2 = {
-	{{0.0f, -0.5f, 0.f}, {1.0f, 1.0f, 1.0f}},
-	{{-0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}},
-	{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}}
-};
-const std::vector<Vertex> vertices3 = {
-	{{0.0f, -0.5f, 0.f}, {1.0f, 1.0f, 1.0f}},
-	{{0.5f, -0.5f, 0.f}, {1.0f, 1.0f, 0.0f}},
-	{{0.5f, 0.5f, 0.f}, {0.0f, 1.0f, 0.0f}}
-};
 
 class VulkanRenderer {
 public:
@@ -78,10 +34,14 @@ public:
 	void Finish();
 private:
 
-	void BindVertexBuffer(const std::vector<Vertex>& vertices);
+	VulkanBuffer CreateVertexBuffer(const std::vector<Vertex>& vertices);
+	VulkanBuffer CreateIndexBuffer(const std::vector<uint32_t>& vertices);
 	void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
 	void CleanupVertexBuffers();
-	std::vector<VertexBufferDetails> m_VertexBuffers;
+	void CleanupIndexBuffers();
+	void CleanupBuffers();
+	std::vector<VulkanBuffer> m_IndexBuffers;
+	std::vector<VulkanBuffer> m_VertexBuffers;
 
 	GLFWwindow* m_Window;
 
