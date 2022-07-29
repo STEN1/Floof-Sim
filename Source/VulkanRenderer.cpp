@@ -13,9 +13,18 @@
 namespace FLOOF {
 VulkanRenderer::VulkanRenderer(GLFWwindow* window)
     : m_Window{ window } {
+    s_Singleton = this;
     InitInstance();
     InitSurface();
     InitDevice();
+
+    // The push descriptor update function is part of an extension so it has to be manually loaded
+    this->vkCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(m_LogicalDevice, "vkCmdPushDescriptorSetKHR");
+    ASSERT(this->vkCmdPushDescriptorSetKHR != nullptr, "Could not load extention function pointer");
+    this->vkGetPhysicalDeviceProperties2KHR =
+        (PFN_vkGetPhysicalDeviceProperties2KHR)vkGetInstanceProcAddr(m_Instance, "vkGetPhysicalDeviceProperties2KHR");
+    ASSERT(this->vkGetPhysicalDeviceProperties2KHR != nullptr, "Could not load extention function pointer");
+
     InitVulkanAllocator();
     InitSwapChain();
     InitImageViews();
@@ -31,6 +40,8 @@ VulkanRenderer::VulkanRenderer(GLFWwindow* window)
     auto [vertexData, indexData] = ObjLoader("Assets/HappyTree.obj").GetIndexedData();
     CreateVertexBuffer(vertexData);
     CreateIndexBuffer(indexData);
+    m_Textures.emplace_back("Assets/HappyTree.png");
+
 }
 
 VulkanRenderer::~VulkanRenderer() {
@@ -55,6 +66,7 @@ VulkanRenderer::~VulkanRenderer() {
     vkDestroyDevice(m_LogicalDevice, nullptr);
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     vkDestroyInstance(m_Instance, nullptr);
+    s_Singleton = nullptr;
 }
 
 void VulkanRenderer::Draw() {
@@ -216,6 +228,79 @@ void VulkanRenderer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size) {
     vkFreeCommandBuffers(m_LogicalDevice, m_CommandPool, 1, &commandBuffer);
 }
 
+void VulkanRenderer::CopyBufferToImage(VkBuffer srcBuffer, VkImage dstImage, uint32_t sizeX, uint32_t sizeY) {
+    VkCommandBufferAllocateInfo commandAllocInfo{};
+    commandAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    commandAllocInfo.commandPool = m_CommandPool;
+    commandAllocInfo.commandBufferCount = 1;
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(m_LogicalDevice, &commandAllocInfo, &commandBuffer);
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    VkImageMemoryBarrier imgMemBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+    imgMemBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imgMemBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imgMemBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imgMemBarrier.subresourceRange.baseMipLevel = 0;
+    imgMemBarrier.subresourceRange.levelCount = 1;
+    imgMemBarrier.subresourceRange.baseArrayLayer = 0;
+    imgMemBarrier.subresourceRange.layerCount = 1;
+    imgMemBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imgMemBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    imgMemBarrier.image = dstImage;
+    imgMemBarrier.srcAccessMask = 0;
+    imgMemBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &imgMemBarrier);
+
+    VkBufferImageCopy region = {};
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.layerCount = 1;
+    region.imageExtent.width = sizeX;
+    region.imageExtent.height = sizeY;
+    region.imageExtent.depth = 1;
+
+    vkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+    imgMemBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    imgMemBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imgMemBarrier.image = dstImage;
+    imgMemBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    imgMemBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &imgMemBarrier);
+
+
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(m_GraphicsQueue);
+    vkFreeCommandBuffers(m_LogicalDevice, m_CommandPool, 1, &commandBuffer);
+}
+
 void VulkanRenderer::CleanupVertexBuffers() {
     for (auto& buffer : m_VertexBuffers) {
         vmaDestroyBuffer(m_Allocator, buffer.Buffer, buffer.Allocation);
@@ -233,6 +318,7 @@ void VulkanRenderer::CleanupIndexBuffers() {
 void VulkanRenderer::CleanupBuffers() {
     CleanupVertexBuffers();
     CleanupIndexBuffers();
+    m_Textures.clear();
 }
 
 void VulkanRenderer::InitSurface() {
@@ -259,11 +345,20 @@ void VulkanRenderer::InitInstance() {
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
+    std::vector<const char*> extentions(glfwExtensionCount);
+    for (int i = 0; i < glfwExtensionCount; i++) {
+        extentions[i] = glfwExtensions[i];
+    }
+
+    for (int i = 0; i < m_RequiredInstanceExtentions.size(); i++) {
+        extentions.push_back(m_RequiredInstanceExtentions[i]);
+    }
+
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
-    createInfo.enabledExtensionCount = glfwExtensionCount;
-    createInfo.ppEnabledExtensionNames = glfwExtensions;
+    createInfo.enabledExtensionCount = extentions.size();
+    createInfo.ppEnabledExtensionNames = extentions.data();
 
     // Enable validation layers in debug builds.
     // TODO: Make custom callback function for validation layer logging.
@@ -532,12 +627,26 @@ void VulkanRenderer::InitGraphicsPipeline() {
     pushConstants.size = sizeof(MeshPushConstants);
     pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
+    VkDescriptorSetLayoutBinding descriptorSetLayoutBinding{};
+    descriptorSetLayoutBinding.binding = 0;
+    descriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorSetLayoutBinding.descriptorCount = 1;
+    descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
+    descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    descriptorSetLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR;
+    descriptorSetLayoutCreateInfo.bindingCount = 1;
+    descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
+
+    vkCreateDescriptorSetLayout(m_LogicalDevice, &descriptorSetLayoutCreateInfo, nullptr, &m_DescriptorSetLayout);
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0; // Optional
-    pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-    pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
-    pipelineLayoutInfo.pPushConstantRanges = &pushConstants; // Optional
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &m_DescriptorSetLayout;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstants;
 
     VkResult plResult = vkCreatePipelineLayout(m_LogicalDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
     ASSERT(plResult == VK_SUCCESS, "Cant create pipeline layout.");
@@ -749,7 +858,7 @@ void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
 
     VkDeviceSize offset{ 0 };
     for (int i = 0; i < m_VertexBuffers.size(); i++) {
-        
+        m_Textures[0].Bind(commandBuffer);
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_VertexBuffers[i].Buffer, &offset);
         vkCmdBindIndexBuffer(commandBuffer, m_IndexBuffers[i].Buffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(commandBuffer, m_IndexBuffers[i].AllocationInfo.size / sizeof(uint32_t),

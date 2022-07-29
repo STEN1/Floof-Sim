@@ -14,7 +14,10 @@ add_executable(Floof
 	"Source/ObjLoader.h"
 	"Source/ObjLoader.cpp"
 	"Source/Vertex.h"
-)
+	"Source/stb_image.h"
+	"Source/stb_image.cpp"
+	"Source/Texture.h"
+	"Source/Texture.cpp")
 
 
 find_package(Vulkan REQUIRED)

@@ -12,6 +12,7 @@
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #include <vma/vk_mem_alloc.h>
 #include "Vertex.h"
+#include "Texture.h"
 
 namespace FLOOF {
 
@@ -33,22 +34,30 @@ struct VulkanImage {
 
 
 class VulkanRenderer {
+	friend class Texture;
 public:
 	VulkanRenderer(GLFWwindow* window);
 	~VulkanRenderer();
 
 	void Draw();
 	void Finish();
+
+	PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR;
+	PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
 private:
+	inline static VulkanRenderer* s_Singleton = nullptr;
+	static VulkanRenderer* Get() { return s_Singleton; }
 
 	VulkanBuffer CreateVertexBuffer(const std::vector<Vertex>& vertices);
 	VulkanBuffer CreateIndexBuffer(const std::vector<uint32_t>& vertices);
 	void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size);
+	void CopyBufferToImage(VkBuffer srcBuffer, VkImage dstImage, uint32_t sizeX, uint32_t sizeY);
 	void CleanupVertexBuffers();
 	void CleanupIndexBuffers();
 	void CleanupBuffers();
 	std::vector<VulkanBuffer> m_IndexBuffers;
 	std::vector<VulkanBuffer> m_VertexBuffers;
+	std::vector<Texture> m_Textures;
 
 	GLFWwindow* m_Window;
 
@@ -113,6 +122,8 @@ private:
 	VkPhysicalDeviceFeatures m_PhysicalDeviceFeatures;
 	VmaAllocator m_Allocator;
 
+	VkDescriptorSetLayout m_DescriptorSetLayout;
+
 	VkQueue m_GraphicsQueue;
 	VkQueue m_PresentQueue;
 
@@ -138,7 +149,13 @@ private:
 	uint32_t m_CurrentFrame = 0;
 
 	const std::vector<const char*> m_RequiredDeviceExtentions = {
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
+	};
+
+	const std::vector<const char*> m_RequiredInstanceExtentions = {
+		VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+		VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
 	};
 
 	struct QueueFamilyIndices {
