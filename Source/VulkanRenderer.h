@@ -6,6 +6,7 @@
 #include <GLFW/glfw3native.h>
 #include <vector>
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
@@ -20,6 +21,12 @@ struct MeshPushConstants {
 
 struct VulkanBuffer {
 	VkBuffer Buffer;
+	VmaAllocation Allocation;
+	VmaAllocationInfo AllocationInfo;
+};
+
+struct VulkanImage {
+	VkImage Image;
 	VmaAllocation Allocation;
 	VmaAllocationInfo AllocationInfo;
 };
@@ -61,6 +68,7 @@ private:
 	void InitGraphicsPipeline();
 
 	void InitFramebuffers();
+	void InitDepthBuffer();
 	void InitCommandPool();
 	void InitCommandBuffer();
 
@@ -87,6 +95,15 @@ private:
 	VkSurfaceFormatKHR GetSurfaceFormat(VkFormat format, VkColorSpaceKHR colorSpace);
 	VkPresentModeKHR GetPresentMode(VkPresentModeKHR presentMode);
 	VkExtent2D GetWindowExtent();
+
+	VkFormat FindDepthFormat();
+	VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates,
+		VkImageTiling tiling,
+		VkFormatFeatureFlags features);
+
+	VkFormat m_DepthFormat;
+	VulkanImage m_DepthBuffer;
+	VkImageView m_DepthBufferImageView;
 
 	VkSurfaceKHR m_Surface;
 	VkInstance m_Instance;

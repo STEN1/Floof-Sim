@@ -1,5 +1,3 @@
-Index buffers
-Depth buffering
 Textures
 	-Stb_image
 	-Texture class
