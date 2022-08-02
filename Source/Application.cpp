@@ -1,6 +1,7 @@
 #include "Application.h"
 
 #include "Timer.h"
+#include "Components.h"
 
 #include <string>
 
@@ -21,6 +22,11 @@ namespace FLOOF {
 	}
 
 	int Application::Run() {
+		const auto TreeEntiry = m_Registry.create();
+		m_Registry.emplace<TransformComponent>(TreeEntiry);
+		m_Registry.emplace<MeshComponent>(TreeEntiry, "Assets/HappyTree.obj");
+		m_Registry.emplace<TextureComponent>(TreeEntiry, "Assets/HappyTree.png");
+
 		Timer timer;
 		float titleBarUpdateTimer{};
 		float titlebarUpdateRate = 0.1f;
@@ -40,12 +46,42 @@ namespace FLOOF {
 				frameCounter = 0.f;
 			}
 			Update(deltaTime);
-			m_Renderer->Draw();
+			Draw();
 		}
-		m_Renderer->Finish();
+		m_Renderer->FinishAllFrames();
+		m_Registry.clear();
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
+		auto view = m_Registry.view<TransformComponent>();
+		for (auto [entiry, transform] : view.each()) {
+			transform.Rotation.y += deltaTime;
+		}
+	}
+	void Application::Draw() {
+		uint32_t imageIndex = m_Renderer->GetNextSwapchainImage();
+		auto commandBuffer = m_Renderer->StartRecording(imageIndex);
 
+		// camera
+		auto extent = m_Renderer->GetExtent();
+		glm::vec3 camPos = { 0.f, 5.f, -10.f };
+		glm::mat4 view = glm::translate(glm::mat4(1.f), camPos);
+		glm::mat4 projection = glm::perspective<float>(glm::radians(70.f),
+			extent.width / (float)extent.height, 0.1f, 1000.f);
+		glm::mat4 vp = projection * view;
+
+		// Geometry pass
+		auto geoPassView = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
+		for (auto [entity, transform, mesh, texture] : geoPassView.each()) {
+			MeshPushConstants constants;
+			constants.mvp = vp * transform.GetTransform();
+			vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT,
+				0, sizeof(MeshPushConstants), &constants);
+			texture.Bind(commandBuffer);
+			mesh.Draw(commandBuffer);
+		}
+
+		m_Renderer->EndRecording();
+		m_Renderer->SubmitAndPresent(imageIndex);
 	}
 }

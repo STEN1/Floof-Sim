@@ -10,6 +10,5 @@ namespace FLOOF {
 #else
 #define ASSERT(expr, msg, ...)
 #endif // !NDEBUG
-
 }
 

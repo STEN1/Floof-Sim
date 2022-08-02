@@ -1,14 +1,13 @@
-#include "Texture.h"
+#include "Components.h"
 
-#include "VulkanRenderer.h"
 #include "stb_image.h"
-#include "Floof.h"
+#include "ObjLoader.h"
 
 namespace FLOOF {
-	Texture::Texture(const std::string& path) {
+	TextureComponent::TextureComponent(const std::string& path) {
 		auto renderer = VulkanRenderer::Get();
 		// Load texture
-        int xWidth, yHeight, channels;
+		int xWidth, yHeight, channels;
 		stbi_set_flip_vertically_on_load(true);
 		auto* data = stbi_load(path.c_str(), &xWidth, &yHeight, &channels, 0);
 		uint32_t size = xWidth * yHeight * channels;
@@ -93,14 +92,14 @@ namespace FLOOF {
 		samplerInfo.maxLod = FLT_MAX;
 		vkCreateSampler(renderer->m_LogicalDevice, &samplerInfo, nullptr, &m_Sampler);
 	}
-	Texture::~Texture() {
+	TextureComponent::~TextureComponent() {
 		auto renderer = VulkanRenderer::Get();
 
 		vkDestroyImageView(renderer->m_LogicalDevice, m_ImageView, nullptr);
 		vmaDestroyImage(renderer->m_Allocator, m_Image, m_Allocation);
 		vkDestroySampler(renderer->m_LogicalDevice, m_Sampler, nullptr);
 	}
-	void Texture::Bind(VkCommandBuffer commandBuffer) {
+	void TextureComponent::Bind(VkCommandBuffer commandBuffer) {
 		auto renderer = VulkanRenderer::Get();
 
 		VkDescriptorImageInfo descriptorImageInfo{};
@@ -119,5 +118,24 @@ namespace FLOOF {
 
 		renderer->vkCmdPushDescriptorSetKHR(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			renderer->m_PipelineLayout, 0, 1, &writeDescriptorSet);
+	}
+	MeshComponent::MeshComponent(const std::string& path) {
+		auto* renderer = VulkanRenderer::Get();
+
+		auto [vertexData, indexData] = ObjLoader(path).GetIndexedData();
+		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		IndexBuffer = renderer->CreateIndexBuffer(indexData);
+	}
+	MeshComponent::~MeshComponent() {
+		auto* renderer = VulkanRenderer::Get();
+		vmaDestroyBuffer(renderer->m_Allocator, IndexBuffer.Buffer, IndexBuffer.Allocation);
+		vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
+	}
+	void MeshComponent::Draw(VkCommandBuffer commandBuffer) {
+		VkDeviceSize offset{ 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
+		vkCmdBindIndexBuffer(commandBuffer, IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexed(commandBuffer, IndexBuffer.AllocationInfo.size / sizeof(uint32_t),
+			1, 0, 0, 0);
 	}
 }

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
 #include <array>
+
+#include "Math.h"
 
 namespace FLOOF {
 	struct Vertex {

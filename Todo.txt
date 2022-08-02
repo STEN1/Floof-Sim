@@ -1,12 +1,6 @@
-Textures
-	-Stb_image
-	-Texture class
 Render pipeline abstraction.
 	-Settings struct for creation
 	-Shader class
-TransformComponent
-MeshComponent
-	-asimp
 CameraComponent
 Lights
 	-Directional
