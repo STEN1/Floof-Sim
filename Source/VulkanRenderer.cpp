@@ -426,15 +426,16 @@ namespace FLOOF {
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(m_Instance, &deviceCount, devices.data());
         LOG("Available devices:\n");
-        for (auto& device : devices) {
+        int deviceIndex = 0;
+        for (int i = 0; i < devices.size(); i++) {
             VkPhysicalDeviceProperties deviceProperties;
-            vkGetPhysicalDeviceProperties(device, &deviceProperties);
+            vkGetPhysicalDeviceProperties(devices[i], &deviceProperties);
+            if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+                deviceIndex = i;
             LOG("\t{}\n", deviceProperties.deviceName);
         }
-        // Simply select first device. Then validate that it works.
-        // Might want to select d-gpu for laptops.
         ASSERT(deviceCount > 0, "Device count: {}", deviceCount);
-        m_PhysicalDevice = devices[0];
+        m_PhysicalDevice = devices[deviceIndex];
 
         PopulateQueueFamilyIndices(m_QueueFamilyIndices);
         ValidatePhysicalDeviceExtentions();
@@ -956,11 +957,17 @@ namespace FLOOF {
         vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
         uint32_t requiredExtentionsFound{};
-        for (auto& availableEx : availableExtensions) {
-            for (auto requiredEx : m_RequiredDeviceExtentions) {
+        for (auto& requiredEx : m_RequiredDeviceExtentions) {
+            bool extentionFound = false;
+            for (auto availableEx : availableExtensions) {
                 if (strcmp(availableEx.extensionName, requiredEx) == 0) {
                     requiredExtentionsFound++;
+                    extentionFound = true;
+                    break;
                 }
+            }
+            if (!extentionFound) {
+                LOG("Extention not found: {}\n", requiredEx);
             }
         }
         ASSERT(requiredExtentionsFound == m_RequiredDeviceExtentions.size(), "All required device extentions not found.");
