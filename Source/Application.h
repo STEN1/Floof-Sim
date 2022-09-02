@@ -11,6 +11,7 @@ namespace FLOOF {
 		int Run();
 	private:
 		void Update(double deltaTime);
+		void Simulate(double deltaTime);
 		void Draw();
 		entt::registry m_Registry;
 		GLFWwindow* m_Window;

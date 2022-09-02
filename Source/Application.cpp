@@ -22,10 +22,10 @@ namespace FLOOF {
 	}
 
 	int Application::Run() {
-		const auto TreeEntiry = m_Registry.create();
-		m_Registry.emplace<TransformComponent>(TreeEntiry);
-		m_Registry.emplace<MeshComponent>(TreeEntiry, "Assets/HappyTree.obj");
-		m_Registry.emplace<TextureComponent>(TreeEntiry, "Assets/HappyTree.png");
+		const auto TreeEntity = m_Registry.create();
+		m_Registry.emplace<TransformComponent>(TreeEntity);
+		m_Registry.emplace<MeshComponent>(TreeEntity, "Assets/HappyTree.obj");
+		m_Registry.emplace<TextureComponent>(TreeEntity, "Assets/HappyTree.png");
 
 		Timer timer;
 		float titleBarUpdateTimer{};
@@ -46,6 +46,7 @@ namespace FLOOF {
 				frameCounter = 0.f;
 			}
 			Update(deltaTime);
+			Simulate(deltaTime);
 			Draw();
 		}
 		m_Renderer->FinishAllFrames();
@@ -57,6 +58,9 @@ namespace FLOOF {
 		for (auto [entiry, transform] : view.each()) {
 			transform.Rotation.y += deltaTime;
 		}
+	}
+	void Application::Simulate(double deltaTime) {
+
 	}
 	void Application::Draw() {
 		uint32_t imageIndex = m_Renderer->GetNextSwapchainImage();
