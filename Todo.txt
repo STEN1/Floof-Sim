@@ -1,12 +1,18 @@
-Render pipeline abstraction.
-	-Settings struct for creation
-	-Shader class
-CameraComponent
+Ball simulator
+	-Heightmap
+	-Barycentric coord utils
+	-Sim
+
 Lights
 	-Directional
 	-Point
 	-Spot
 	-Forward+
+
+Render pipeline abstraction.
+	-Settings struct for creation
+	-Shader class
+CameraComponent
 Physics system
 Editor
 	-ImGui

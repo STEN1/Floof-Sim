@@ -39,6 +39,7 @@ namespace FLOOF {
             vkDestroySemaphore(m_LogicalDevice, m_RenderFinishedSemaphores[i], nullptr);
             vkDestroyFence(m_LogicalDevice, m_InFlightFences[i], nullptr);
         }
+        vkDestroyDescriptorPool(m_LogicalDevice, m_TextureDescriptorPool, nullptr);
         vkDestroyCommandPool(m_LogicalDevice, m_CommandPool, nullptr);
         vkDestroyDescriptorSetLayout(m_LogicalDevice, m_DescriptorSetLayout, nullptr);
         vkDestroyPipeline(m_LogicalDevice, m_GraphicsPipeline, nullptr);
@@ -347,12 +348,20 @@ namespace FLOOF {
     }
 
     void VulkanRenderer::InitSurface() {
+#ifdef VK_USE_PLATFORM_WIN32_KHR
         VkWin32SurfaceCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
         createInfo.hwnd = glfwGetWin32Window(m_Window);
         createInfo.hinstance = GetModuleHandle(nullptr);
-
         VkResult result = vkCreateWin32SurfaceKHR(m_Instance, &createInfo, nullptr, &m_Surface);
+#endif // VK_USE_PLATFORM_WIN32_KHR
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+        // TODO: Implement macOS support. need extra flags in instance creation for support.
+        //VkMacOSSurfaceCreateInfoMVK createInfo{};
+        //createInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+        //VkResult result = vkCreateMacOSSurfaceMVK()
+#endif // VK_USE_PLATFORM_MACOS_MVK
+
         ASSERT(result == VK_SUCCESS, "Failed to create surface.");
         LOG("Vulkan surface created.\n");
     }
