@@ -39,5 +39,7 @@ namespace FLOOF {
 		VmaAllocation m_Allocation = VK_NULL_HANDLE;
 
 		VmaAllocationInfo m_AllocationInfo{};
+
+		VkDescriptorSet DesctriptorSet{};
 	};
 }

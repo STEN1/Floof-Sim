@@ -49,8 +49,6 @@ namespace FLOOF {
 
 		void FinishAllFrames();
 
-		PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR;
-		PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
 		static VulkanRenderer* Get() { return s_Singleton; }
 		VulkanBuffer CreateVertexBuffer(const std::vector<Vertex>& vertices);
 		VulkanBuffer CreateIndexBuffer(const std::vector<uint32_t>& indices);
@@ -82,6 +80,8 @@ namespace FLOOF {
 		void InitDepthBuffer();
 		void InitCommandPool();
 		void InitCommandBuffer();
+
+		void InitDescriptorPools();
 
 		void InitSyncObjects();
 
@@ -138,6 +138,12 @@ namespace FLOOF {
 		VkCommandPool m_CommandPool;
 		std::vector<VkCommandBuffer> m_CommandBuffers;
 
+	public:
+		VkDescriptorSet AllocateTextureDescriptorSet();
+		void FreeTextureDescriptorSet(VkDescriptorSet desctriptorSet);
+	private:
+		VkDescriptorPool m_TextureDescriptorPool;
+
 		std::vector<VkImageView> m_SwapChainImageViews;
 		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 
@@ -149,13 +155,11 @@ namespace FLOOF {
 		uint32_t m_CurrentFrame = 0;
 
 		const std::vector<const char*> m_RequiredDeviceExtentions = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 
 		const std::vector<const char*> m_RequiredInstanceExtentions = {
-			VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-			VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
+			VK_EXT_DEBUG_UTILS_EXTENSION_NAME
 		};
 
 		struct QueueFamilyIndices {

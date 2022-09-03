@@ -14,19 +14,13 @@ namespace FLOOF {
         InitSurface();
         InitDevice();
 
-        // The push descriptor update function is part of an extension so it has to be manually loaded
-        this->vkCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(m_LogicalDevice, "vkCmdPushDescriptorSetKHR");
-        ASSERT(this->vkCmdPushDescriptorSetKHR != nullptr, "Could not load extention function pointer");
-        this->vkGetPhysicalDeviceProperties2KHR =
-            (PFN_vkGetPhysicalDeviceProperties2KHR)vkGetInstanceProcAddr(m_Instance, "vkGetPhysicalDeviceProperties2KHR");
-        ASSERT(this->vkGetPhysicalDeviceProperties2KHR != nullptr, "Could not load extention function pointer");
-
         InitVulkanAllocator();
         InitSwapChain();
         InitImageViews();
         InitDepthBuffer();
         InitRenderPass();
         InitGraphicsPipeline();
+        InitDescriptorPools();
         InitFramebuffers();
         InitCommandPool();
         InitCommandBuffer();
@@ -667,7 +661,7 @@ namespace FLOOF {
 
         VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
         descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        descriptorSetLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR;
+        descriptorSetLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
         descriptorSetLayoutCreateInfo.bindingCount = 1;
         descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
 
@@ -800,6 +794,18 @@ namespace FLOOF {
         VkResult result = vkAllocateCommandBuffers(m_LogicalDevice, &allocInfo, m_CommandBuffers.data());
         ASSERT(result == VK_SUCCESS, "Cant allocate command buffers.");
         LOG("Command buffer created.\n");
+    }
+
+    void VulkanRenderer::InitDescriptorPools() {
+        {   // Create texture descriptor pool.
+            VkDescriptorPoolCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT | 
+                VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
+            createInfo.maxSets = 1024;
+            VkResult result = vkCreateDescriptorPool(m_LogicalDevice, &createInfo, nullptr, &m_TextureDescriptorPool);
+            ASSERT(result == VK_SUCCESS, "Could not create pool.");
+        }
     }
 
     void VulkanRenderer::InitSyncObjects() {
@@ -1062,6 +1068,22 @@ namespace FLOOF {
             }
         }
         return VK_FORMAT_UNDEFINED;
+    }
+
+    VkDescriptorSet VulkanRenderer::AllocateTextureDescriptorSet() {
+        VkDescriptorSet textureDescriptorSet{};
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = m_TextureDescriptorPool;
+        allocInfo.descriptorSetCount = 1;
+        allocInfo.pSetLayouts = &m_DescriptorSetLayout; // should probably be gotten from pipeline abstraction.
+        VkResult result = vkAllocateDescriptorSets(m_LogicalDevice, &allocInfo, &textureDescriptorSet);
+        ASSERT(result == VK_SUCCESS, "Cant allocate texture descriptor set.");
+        return textureDescriptorSet;
+    }
+
+    void VulkanRenderer::FreeTextureDescriptorSet(VkDescriptorSet desctriptorSet) {
+        vkFreeDescriptorSets(m_LogicalDevice, m_TextureDescriptorPool, 1, &desctriptorSet);
     }
 
     void VulkanRenderer::PopulateQueueFamilyIndices(QueueFamilyIndices& QFI) {

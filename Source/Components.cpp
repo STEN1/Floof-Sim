@@ -91,10 +91,29 @@ namespace FLOOF {
 		samplerInfo.minLod = 0.f;
 		samplerInfo.maxLod = FLT_MAX;
 		vkCreateSampler(renderer->m_LogicalDevice, &samplerInfo, nullptr, &m_Sampler);
+
+		// Get descriptor set and point it to data.
+		DesctriptorSet = renderer->AllocateTextureDescriptorSet();
+
+		VkDescriptorImageInfo descriptorImageInfo{};
+		descriptorImageInfo.sampler = m_Sampler;
+		descriptorImageInfo.imageView = m_ImageView;
+		descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		VkWriteDescriptorSet writeDescriptorSet{};
+		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeDescriptorSet.dstSet = DesctriptorSet;
+		writeDescriptorSet.dstBinding = 0;
+		writeDescriptorSet.descriptorCount = 1;
+		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeDescriptorSet.pImageInfo = &descriptorImageInfo;
+
+		vkUpdateDescriptorSets(renderer->m_LogicalDevice, 1, &writeDescriptorSet, 0, nullptr);
 	}
 	TextureComponent::~TextureComponent() {
 		auto renderer = VulkanRenderer::Get();
 
+		renderer->FreeTextureDescriptorSet(DesctriptorSet);
 		vkDestroyImageView(renderer->m_LogicalDevice, m_ImageView, nullptr);
 		vmaDestroyImage(renderer->m_Allocator, m_Image, m_Allocation);
 		vkDestroySampler(renderer->m_LogicalDevice, m_Sampler, nullptr);
@@ -102,22 +121,8 @@ namespace FLOOF {
 	void TextureComponent::Bind(VkCommandBuffer commandBuffer) {
 		auto renderer = VulkanRenderer::Get();
 
-		VkDescriptorImageInfo descriptorImageInfo{};
-		descriptorImageInfo.sampler = m_Sampler;
-		descriptorImageInfo.imageView = m_ImageView;
-		descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-
-		VkWriteDescriptorSet writeDescriptorSet{};
-		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writeDescriptorSet.dstSet = 0;
-		writeDescriptorSet.dstBinding = 0;
-		writeDescriptorSet.descriptorCount = 1;
-		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		writeDescriptorSet.pImageInfo = &descriptorImageInfo;
-
-		renderer->vkCmdPushDescriptorSetKHR(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			renderer->m_PipelineLayout, 0, 1, &writeDescriptorSet);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->GetPipelineLayout(),
+			0, 1, &DesctriptorSet, 0, 0);
 	}
 	MeshComponent::MeshComponent(const std::string& path) {
 		auto* renderer = VulkanRenderer::Get();
