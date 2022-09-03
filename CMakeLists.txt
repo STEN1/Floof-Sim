@@ -17,7 +17,9 @@ add_executable(Floof
 	"Source/stb_image.h"
 	"Source/stb_image.cpp"
 	"Source/Components.h"
-	"Source/Math.h" "Source/Components.cpp")
+	"Source/Math.h"
+	"Source/Components.cpp"
+	"Source/Input.h")
 
 
 find_package(Vulkan REQUIRED)

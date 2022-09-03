@@ -3,6 +3,8 @@
 
 #include <entt/entt.hpp>
 
+#include <unordered_map>
+
 namespace FLOOF {
 	class Application {
 	public:
@@ -16,5 +18,6 @@ namespace FLOOF {
 		entt::registry m_Registry;
 		GLFWwindow* m_Window;
 		VulkanRenderer* m_Renderer;
+		entt::entity m_CameraEntity;
 	};
 }

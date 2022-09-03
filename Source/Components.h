@@ -42,4 +42,6 @@ namespace FLOOF {
 
 		VkDescriptorSet DesctriptorSet{};
 	};
+
+	struct CameraComponent {};
 }
