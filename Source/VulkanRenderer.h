@@ -10,6 +10,8 @@
 #include <vma/vk_mem_alloc.h>
 #include "Vertex.h"
 
+#include <unordered_map>
+
 namespace FLOOF {
 
 	struct MeshPushConstants {
@@ -36,6 +38,35 @@ namespace FLOOF {
 		VmaAllocationInfo AllocationInfo{};
 	};
 
+	enum RenderPipelineFlags : uint32_t {
+		None = 0,
+		AlphaBlend = 1 << 0,
+		DepthPass = 1 << 1,
+		MSAA = 1 << 2,
+	};
+
+	enum class RenderPipelineKeys : uint32_t {
+		None = 0,
+		Basic = 1,
+		Lines = 2,
+		Lit = 3,
+	};
+
+	inline RenderPipelineFlags operator | (RenderPipelineFlags lhs, RenderPipelineFlags rhs) {
+		return static_cast<RenderPipelineFlags>(static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs));
+	}
+
+	inline RenderPipelineFlags operator & (RenderPipelineFlags lhs, RenderPipelineFlags rhs) {
+		return static_cast<RenderPipelineFlags>(static_cast<uint32_t>(lhs) & static_cast<uint32_t>(rhs));
+	}
+
+	struct RenderPipelineParams {
+		RenderPipelineFlags Flags;
+		RenderPipelineKeys Key;
+		std::string FragmentPath;
+		std::string VertexPath;
+	};
+
 	class VulkanRenderer {
 		friend class TextureComponent;
 		friend class MeshComponent;
@@ -47,11 +78,12 @@ namespace FLOOF {
 		VkExtent2D GetExtent() { return m_SwapChainExtent; }
 		VkPipelineLayout GetPipelineLayout() { return m_PipelineLayout; }
 
-		VkCommandBuffer StartRecording(uint32_t imageIndex);
+		VkCommandBuffer StartRecording();
 		void EndRecording();
-		void SubmitAndPresent(uint32_t imageIndex);
+		void SubmitAndPresent();
 
 		void FinishAllFrames();
+		void BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key);
 
 		static VulkanRenderer* Get() { return s_Singleton; }
 		VulkanBuffer CreateVertexBuffer(const std::vector<Vertex>& vertices);
@@ -78,7 +110,7 @@ namespace FLOOF {
 		void InitImageViews();
 
 		void InitRenderPass();
-		void InitGraphicsPipeline();
+		void InitGraphicsPipeline(const RenderPipelineParams& params);
 
 		void InitFramebuffers();
 		void InitDepthBuffer();
@@ -138,7 +170,7 @@ namespace FLOOF {
 
 		VkRenderPass m_RenderPass;
 		VkPipelineLayout m_PipelineLayout;
-		VkPipeline m_GraphicsPipeline;
+		std::unordered_map<RenderPipelineKeys, VkPipeline> m_GraphicsPipelines;
 		VkCommandPool m_CommandPool;
 		std::vector<VkCommandBuffer> m_CommandBuffers;
 
@@ -157,6 +189,7 @@ namespace FLOOF {
 
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 		uint32_t m_CurrentFrame = 0;
+		uint32_t m_CurrentImageIndex = 0;
 
 		const std::vector<const char*> m_RequiredDeviceExtentions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,

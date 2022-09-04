@@ -100,10 +100,10 @@ namespace FLOOF {
 
 	}
 	void Application::Draw() {
-		uint32_t imageIndex = m_Renderer->GetNextSwapchainImage();
-		auto commandBuffer = m_Renderer->StartRecording(imageIndex);
+		auto* renderer = VulkanRenderer::Get();
+		auto commandBuffer = m_Renderer->StartRecording();
 
-		// camera
+		// Camera setup
 		auto extent = m_Renderer->GetExtent();
 		auto& cameraTransform = m_Registry.get<TransformComponent>(m_CameraEntity);
 		glm::mat4 view = glm::translate(glm::mat4(1.f), cameraTransform.Position);
@@ -111,18 +111,20 @@ namespace FLOOF {
 			extent.width / (float)extent.height, 0.1f, 1000.f);
 		glm::mat4 vp = projection * view;
 
-		// Geometry pass
-		auto geoPassView = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
-		for (auto [entity, transform, mesh, texture] : geoPassView.each()) {
-			MeshPushConstants constants;
-			constants.mvp = vp * transform.GetTransform();
-			vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT,
-				0, sizeof(MeshPushConstants), &constants);
-			texture.Bind(commandBuffer);
-			mesh.Draw(commandBuffer);
+		{	// Geometry pass
+			renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
+			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
+			for (auto [entity, transform, mesh, texture] : view.each()) {
+				MeshPushConstants constants;
+				constants.mvp = vp * transform.GetTransform();
+				vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT,
+					0, sizeof(MeshPushConstants), &constants);
+				texture.Bind(commandBuffer);
+				mesh.Draw(commandBuffer);
+			}
 		}
 
 		m_Renderer->EndRecording();
-		m_Renderer->SubmitAndPresent(imageIndex);
+		m_Renderer->SubmitAndPresent();
 	}
 }

@@ -18,7 +18,14 @@ namespace FLOOF {
         InitImageViews();
         InitDepthBuffer();
         InitRenderPass();
-        InitGraphicsPipeline();
+        {
+            RenderPipelineParams params;
+            params.Flags = RenderPipelineFlags::AlphaBlend | RenderPipelineFlags::DepthPass;
+            params.FragmentPath = "Shaders/Basic.frag.spv";
+            params.VertexPath = "Shaders/Basic.vert.spv";
+            params.Key = RenderPipelineKeys::Basic;
+            InitGraphicsPipeline(params);
+        }
         InitDescriptorPools();
         InitFramebuffers();
         InitCommandPool();
@@ -41,7 +48,9 @@ namespace FLOOF {
         vkDestroyDescriptorPool(m_LogicalDevice, m_TextureDescriptorPool, nullptr);
         vkDestroyCommandPool(m_LogicalDevice, m_CommandPool, nullptr);
         vkDestroyDescriptorSetLayout(m_LogicalDevice, m_DescriptorSetLayout, nullptr);
-        vkDestroyPipeline(m_LogicalDevice, m_GraphicsPipeline, nullptr);
+        for (auto& [key, val] : m_GraphicsPipelines) {
+            vkDestroyPipeline(m_LogicalDevice, val, nullptr);
+        }
         vkDestroyPipelineLayout(m_LogicalDevice, m_PipelineLayout, nullptr);
         vkDestroyRenderPass(m_LogicalDevice, m_RenderPass, nullptr);
 
@@ -67,7 +76,9 @@ namespace FLOOF {
         return imageIndex;
     }
 
-    VkCommandBuffer VulkanRenderer::StartRecording(uint32_t imageIndex) {
+    VkCommandBuffer VulkanRenderer::StartRecording() {
+        m_CurrentImageIndex = GetNextSwapchainImage();
+
         vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
 
         VkCommandBufferBeginInfo beginInfo{};
@@ -81,7 +92,7 @@ namespace FLOOF {
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_RenderPass;
-        renderPassInfo.framebuffer = m_SwapChainFramebuffers[imageIndex];
+        renderPassInfo.framebuffer = m_SwapChainFramebuffers[m_CurrentImageIndex];
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = m_SwapChainExtent;
         VkClearValue clearColor[2]{};
@@ -91,9 +102,6 @@ namespace FLOOF {
         renderPassInfo.pClearValues = clearColor;
 
         vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentFrame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        // TODO: this should not be here. remove once there is a pipeline abstraction.
-        vkCmdBindPipeline(m_CommandBuffers[m_CurrentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
 
         //VkViewport viewport{};
         //viewport.x = 0.0f;
@@ -127,7 +135,7 @@ namespace FLOOF {
         ASSERT(endResult == VK_SUCCESS, "Failed to record command buffer.");
     }
 
-    void VulkanRenderer::SubmitAndPresent(uint32_t imageIndex) {
+    void VulkanRenderer::SubmitAndPresent() {
         VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
         VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame] };
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -153,7 +161,7 @@ namespace FLOOF {
         VkSwapchainKHR swapChains[] = { m_SwapChain };
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
-        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pImageIndices = &m_CurrentImageIndex;
         presentInfo.pResults = nullptr; // Optional
 
         result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
@@ -169,6 +177,10 @@ namespace FLOOF {
 
     void VulkanRenderer::FinishAllFrames() {
         vkDeviceWaitIdle(m_LogicalDevice);
+    }
+
+    void VulkanRenderer::BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key) {
+        vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipelines[Key]);
     }
 
     VulkanBuffer VulkanRenderer::CreateVertexBuffer(const std::vector<Vertex>& vertices) {
@@ -553,9 +565,9 @@ namespace FLOOF {
         LOG("Render pass created.\n");
     }
 
-    void VulkanRenderer::InitGraphicsPipeline() {
-        auto BasicVert = MakeShaderModule("Shaders/Basic.vert.spv");
-        auto BasicFrag = MakeShaderModule("Shaders/Basic.frag.spv");
+    void VulkanRenderer::InitGraphicsPipeline(const RenderPipelineParams& params) {
+        auto BasicVert = MakeShaderModule(params.VertexPath.c_str());
+        auto BasicFrag = MakeShaderModule(params.FragmentPath.c_str());
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -625,7 +637,11 @@ namespace FLOOF {
 
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = VK_FALSE;
+        if (params.Flags & RenderPipelineFlags::AlphaBlend) {
+            colorBlendAttachment.blendEnable = VK_TRUE;
+        } else {
+            colorBlendAttachment.blendEnable = VK_FALSE;
+        }
         colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
         colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
         colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
@@ -698,7 +714,7 @@ namespace FLOOF {
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineInfo.basePipelineIndex = -1; // Optional
 
-        VkResult gplResult = vkCreateGraphicsPipelines(m_LogicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline);
+        VkResult gplResult = vkCreateGraphicsPipelines(m_LogicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipelines[params.Key]);
         ASSERT(gplResult == VK_SUCCESS, "Cant create graphics pipeline.");
 
         vkDestroyShaderModule(m_LogicalDevice, BasicVert, nullptr);
