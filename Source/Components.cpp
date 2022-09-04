@@ -137,6 +137,11 @@ namespace FLOOF {
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
 		IndexBuffer = renderer->CreateIndexBuffer(indexData);
 	}
+	MeshComponent::MeshComponent(const std::vector<Vertex>& vertexData)	{
+		auto* renderer = VulkanRenderer::Get();
+
+		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+	}
 	MeshComponent::~MeshComponent() {
 		auto* renderer = VulkanRenderer::Get();
 		vmaDestroyBuffer(renderer->m_Allocator, IndexBuffer.Buffer, IndexBuffer.Allocation);
@@ -145,8 +150,12 @@ namespace FLOOF {
 	void MeshComponent::Draw(VkCommandBuffer commandBuffer) {
 		VkDeviceSize offset{ 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
-		vkCmdBindIndexBuffer(commandBuffer, IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdDrawIndexed(commandBuffer, IndexBuffer.AllocationInfo.size / sizeof(uint32_t),
-			1, 0, 0, 0);
+		if (IndexBuffer.Buffer != VK_NULL_HANDLE) {
+			vkCmdBindIndexBuffer(commandBuffer, IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdDrawIndexed(commandBuffer, IndexBuffer.AllocationInfo.size / sizeof(uint32_t),
+				1, 0, 0, 0);
+		} else {
+			vkCmdDraw(commandBuffer, VertexBuffer.AllocationInfo.size / sizeof(Vertex), 1, 0, 0);
+		}
 	}
 }
