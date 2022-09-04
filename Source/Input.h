@@ -1,14 +1,22 @@
 #pragma once
 #include <glfw/glfw3.h>
 #include "Floof.h"
+#include "Math.h"
 
 namespace FLOOF {
 	class Input {
 	public:
-		static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-			LOG("Key pressed: {} with action: {}\n", scancode, action);
-			Keys[key] = action;
+		static int Key(int keyCode) {
+			return glfwGetKey(s_Window, keyCode);
 		}
-		inline static std::unordered_map<int, bool> Keys;
+		static int MouseButton(int button) {
+			return glfwGetMouseButton(s_Window, button);
+		}
+		static glm::vec2 MousePos() {
+			double x, y;
+			glfwGetCursorPos(s_Window, &x, &y);
+			return glm::vec2(x, y);
+		}
+		inline static GLFWwindow* s_Window = nullptr;
 	};
 }

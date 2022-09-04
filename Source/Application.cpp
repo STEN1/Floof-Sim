@@ -12,8 +12,7 @@ namespace FLOOF {
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		m_Window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
 		m_Renderer = new VulkanRenderer(m_Window);
-
-		glfwSetKeyCallback(m_Window, &Input::KeyCallback);
+		Input::s_Window = m_Window;
 	}
 
 	Application::~Application() {
@@ -71,22 +70,22 @@ namespace FLOOF {
 			auto view = m_Registry.view<TransformComponent, CameraComponent>();
 			for (auto [entity, transform] : view.each()) {
 				glm::vec3 dir{};
-				if (Input::Keys[GLFW_KEY_W] == GLFW_PRESS) {
+				if (Input::Key(GLFW_KEY_W) == GLFW_PRESS) {
 					dir.z += 1.f;
 				}
-				if (Input::Keys[GLFW_KEY_S] == GLFW_PRESS) {
+				if (Input::Key(GLFW_KEY_S) == GLFW_PRESS) {
 					dir.z -= 1.f;
 				}
-				if (Input::Keys[GLFW_KEY_D] == GLFW_PRESS) {
+				if (Input::Key(GLFW_KEY_D) == GLFW_PRESS) {
 					dir.x -= 1.f;
 				}
-				if (Input::Keys[GLFW_KEY_A] == GLFW_PRESS) {
+				if (Input::Key(GLFW_KEY_A) == GLFW_PRESS) {
 					dir.x += 1.f;
 				}
-				if (Input::Keys[GLFW_KEY_E] == GLFW_PRESS) {
+				if (Input::Key(GLFW_KEY_E) == GLFW_PRESS) {
 					dir.y += 1.f;
 				}
-				if (Input::Keys[GLFW_KEY_Q] == GLFW_PRESS) {
+				if (Input::Key(GLFW_KEY_Q) == GLFW_PRESS) {
 					dir.y -= 1.f;
 				}
 				if (dir.z != 0.f || dir.x != 0.f || dir.y != 0.f) {
