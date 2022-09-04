@@ -52,18 +52,18 @@ namespace FLOOF {
 		VmaAllocationCreateInfo imageAllocCreateInfo = {};
 		imageAllocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
-		vmaCreateImage(renderer->m_Allocator, &imageInfo, &imageAllocCreateInfo, &m_Image,
-			&m_Allocation, &m_AllocationInfo);
+		vmaCreateImage(renderer->m_Allocator, &imageInfo, &imageAllocCreateInfo, &CombinedTextureSampler.Image,
+			&CombinedTextureSampler.Allocation, &CombinedTextureSampler.AllocationInfo);
 
 		// copy image from staging buffer to image buffer(gpu only memory)
-		renderer->CopyBufferToImage(stagingBuffer, m_Image, xWidth, yHeight);
+		renderer->CopyBufferToImage(stagingBuffer, CombinedTextureSampler.Image, xWidth, yHeight);
 
 		// free staging buffer
 		vmaDestroyBuffer(renderer->m_Allocator, stagingBuffer, stagingBufferAlloc);
 
 		// create image view
 		VkImageViewCreateInfo textureImageViewInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-		textureImageViewInfo.image = m_Image;
+		textureImageViewInfo.image = CombinedTextureSampler.Image;
 		textureImageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		textureImageViewInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
 		textureImageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -71,7 +71,7 @@ namespace FLOOF {
 		textureImageViewInfo.subresourceRange.levelCount = 1;
 		textureImageViewInfo.subresourceRange.baseArrayLayer = 0;
 		textureImageViewInfo.subresourceRange.layerCount = 1;
-		vkCreateImageView(renderer->m_LogicalDevice, &textureImageViewInfo, nullptr, &m_ImageView);
+		vkCreateImageView(renderer->m_LogicalDevice, &textureImageViewInfo, nullptr, &CombinedTextureSampler.ImageView);
 
 		// sampler
 		VkSamplerCreateInfo samplerInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
@@ -90,14 +90,14 @@ namespace FLOOF {
 		samplerInfo.mipLodBias = 0.f;
 		samplerInfo.minLod = 0.f;
 		samplerInfo.maxLod = FLT_MAX;
-		vkCreateSampler(renderer->m_LogicalDevice, &samplerInfo, nullptr, &m_Sampler);
+		vkCreateSampler(renderer->m_LogicalDevice, &samplerInfo, nullptr, &CombinedTextureSampler.Sampler);
 
 		// Get descriptor set and point it to data.
 		DesctriptorSet = renderer->AllocateTextureDescriptorSet();
 
 		VkDescriptorImageInfo descriptorImageInfo{};
-		descriptorImageInfo.sampler = m_Sampler;
-		descriptorImageInfo.imageView = m_ImageView;
+		descriptorImageInfo.sampler = CombinedTextureSampler.Sampler;
+		descriptorImageInfo.imageView = CombinedTextureSampler.ImageView;
 		descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		VkWriteDescriptorSet writeDescriptorSet{};
@@ -114,9 +114,9 @@ namespace FLOOF {
 		auto renderer = VulkanRenderer::Get();
 
 		renderer->FreeTextureDescriptorSet(DesctriptorSet);
-		vkDestroyImageView(renderer->m_LogicalDevice, m_ImageView, nullptr);
-		vmaDestroyImage(renderer->m_Allocator, m_Image, m_Allocation);
-		vkDestroySampler(renderer->m_LogicalDevice, m_Sampler, nullptr);
+		vkDestroyImageView(renderer->m_LogicalDevice, CombinedTextureSampler.ImageView, nullptr);
+		vmaDestroyImage(renderer->m_Allocator, CombinedTextureSampler.Image, CombinedTextureSampler.Allocation);
+		vkDestroySampler(renderer->m_LogicalDevice, CombinedTextureSampler.Sampler, nullptr);
 	}
 	void TextureComponent::Bind(VkCommandBuffer commandBuffer) {
 		auto renderer = VulkanRenderer::Get();

@@ -31,6 +31,13 @@ namespace FLOOF {
 		VmaAllocationInfo AllocationInfo;
 	};
 
+	struct VulkanCombinedTextureSampler {
+		VkImage Image = VK_NULL_HANDLE;
+		VkImageView ImageView = VK_NULL_HANDLE;
+		VkSampler Sampler = VK_NULL_HANDLE;
+		VmaAllocation Allocation = VK_NULL_HANDLE;
+		VmaAllocationInfo AllocationInfo{};
+	};
 
 	class VulkanRenderer {
 		friend class TextureComponent;

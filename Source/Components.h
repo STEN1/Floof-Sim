@@ -32,15 +32,10 @@ namespace FLOOF {
 	struct TextureComponent {
 		TextureComponent(const std::string& path);
 		~TextureComponent();
+
 		void Bind(VkCommandBuffer commandBuffer);
 
-		VkImageView m_ImageView = VK_NULL_HANDLE;
-		VkImage m_Image = VK_NULL_HANDLE;
-		VkSampler m_Sampler = VK_NULL_HANDLE;
-		VmaAllocation m_Allocation = VK_NULL_HANDLE;
-
-		VmaAllocationInfo m_AllocationInfo{};
-
+		VulkanCombinedTextureSampler CombinedTextureSampler{};
 		VkDescriptorSet DesctriptorSet{};
 	};
 
