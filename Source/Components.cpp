@@ -131,6 +131,12 @@ namespace FLOOF {
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
 		IndexBuffer = renderer->CreateIndexBuffer(indexData);
 	}
+	MeshComponent::MeshComponent(const std::vector<Vertex>& vertexData, const std::vector<uint32_t>& indexData)	{
+		auto* renderer = VulkanRenderer::Get();
+
+		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		IndexBuffer = renderer->CreateIndexBuffer(indexData);
+	}
 	MeshComponent::~MeshComponent() {
 		auto* renderer = VulkanRenderer::Get();
 		vmaDestroyBuffer(renderer->m_Allocator, IndexBuffer.Buffer, IndexBuffer.Allocation);
