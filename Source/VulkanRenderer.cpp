@@ -1,7 +1,6 @@
 #include "VulkanRenderer.h"
 #include "Floof.h"
 
-#undef max
 #include <limits>
 #include <algorithm>
 #include <fstream>
