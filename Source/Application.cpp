@@ -22,16 +22,36 @@ namespace FLOOF {
 	}
 
 	int Application::Run() {
-		const auto treeEntity = m_Registry.create();
-		m_Registry.emplace<TransformComponent>(treeEntity);
-		m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
-		m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
+		{
+			const auto treeEntity = m_Registry.create();
+			m_Registry.emplace<TransformComponent>(treeEntity);
+			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
+			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
+		}
 
-		m_CameraEntity = m_Registry.create();
-		m_Registry.emplace<CameraComponent>(m_CameraEntity);
-		m_Registry.emplace<TransformComponent>(m_CameraEntity);
-		auto& cameraTransform = m_Registry.get<TransformComponent>(m_CameraEntity);
-		cameraTransform.Position = glm::vec3( 0.f, 5.f, -10.f);
+		{
+			const auto treeEntity = m_Registry.create();
+			auto& transform = m_Registry.emplace<TransformComponent>(treeEntity);
+			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
+			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
+			transform.Position.x += 6.f;
+		}
+
+		{
+			const auto treeEntity = m_Registry.create();
+			auto& transform = m_Registry.emplace<TransformComponent>(treeEntity);
+			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
+			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
+			transform.Position.x -= 6.f;
+		}
+
+		{
+			m_CameraEntity = m_Registry.create();
+			m_Registry.emplace<CameraComponent>(m_CameraEntity);
+			m_Registry.emplace<TransformComponent>(m_CameraEntity);
+			auto& cameraTransform = m_Registry.get<TransformComponent>(m_CameraEntity);
+			cameraTransform.Position = glm::vec3(0.f, 5.f, -10.f);
+		}
 
 		Timer timer;
 		float titleBarUpdateTimer{};
