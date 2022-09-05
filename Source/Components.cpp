@@ -1,5 +1,6 @@
 #include "Components.h"
 
+#include <cstring>
 #include "stb_image.h"
 #include "ObjLoader.h"
 
