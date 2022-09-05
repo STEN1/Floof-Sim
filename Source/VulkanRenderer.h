@@ -1,5 +1,6 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
+#define VK_ENABLE_BETA_EXTENSIONS
 #include <GLFW/glfw3.h>
 #include <vector>
 
@@ -195,11 +196,13 @@ namespace FLOOF {
 		const std::vector<const char*> m_RequiredDeviceExtentions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 			VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME
-		};
+        };
 
 		const std::vector<const char*> m_RequiredInstanceExtentions = {
-			VK_EXT_DEBUG_UTILS_EXTENSION_NAME
-		};
+			VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+            VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+            VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
+        };
 
 		struct QueueFamilyIndices {
 			int Graphics = -1;

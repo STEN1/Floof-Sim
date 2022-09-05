@@ -386,8 +386,9 @@ namespace FLOOF {
         for (int i = 0; i < m_RequiredInstanceExtentions.size(); i++) {
             extentions.push_back(m_RequiredInstanceExtentions[i]);
         }
-
+        
         VkInstanceCreateInfo createInfo{};
+        createInfo.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
         createInfo.enabledExtensionCount = extentions.size();
