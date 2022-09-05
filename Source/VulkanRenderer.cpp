@@ -815,7 +815,7 @@ namespace FLOOF {
     void VulkanRenderer::InitDescriptorPools() {
         VkDescriptorPoolSize poolSize{};
         poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        poolSize.descriptorCount = 1;
+        poolSize.descriptorCount = 256;
 
         // Create texture descriptor pool.
         VkDescriptorPoolCreateInfo createInfo{};
