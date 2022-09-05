@@ -411,7 +411,9 @@ namespace FLOOF {
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
         LOG("Available extensions:\n");
         for (auto& extension : extensions) {
-            LOG("\t{}\n", extension.extensionName);
+            LOG("\t");
+            LOG(extension.extensionName);
+            LOG("\n");
         }
         LOG("Vulkan instance created.\n");
     }
@@ -434,9 +436,11 @@ namespace FLOOF {
             vkGetPhysicalDeviceProperties(devices[i], &deviceProperties);
             if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
                 deviceIndex = i;
-            LOG("\t{}\n", deviceProperties.deviceName);
+            LOG("\t");
+            LOG(deviceProperties.deviceName);
+            LOG("\n");
         }
-        ASSERT(deviceCount > 0, "Device count: {}", deviceCount);
+        ASSERT(deviceCount > 0, "Device count: {}" + std::to_string(deviceCount));
         m_PhysicalDevice = devices[deviceIndex];
 
         PopulateQueueFamilyIndices(m_QueueFamilyIndices);
@@ -939,7 +943,7 @@ namespace FLOOF {
         m_SwapChainImageFormat = GetSurfaceFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
         m_PresentMode = GetPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
         m_SwapChainExtent = GetWindowExtent();
-        LOG("m_SwapChainExtent: x = {}, y = {}\n", m_SwapChainExtent.width, m_SwapChainExtent.height);
+        std::cout << "m_SwapChainExtent: x = " << m_SwapChainExtent.width << " y = " << m_SwapChainExtent.height << std::endl;
 
         uint32_t imageCount = m_SwapChainSupport.capabilities.minImageCount + 1;
         if (m_SwapChainSupport.capabilities.maxImageCount > 0 && imageCount > m_SwapChainSupport.capabilities.maxImageCount) {
@@ -991,7 +995,9 @@ namespace FLOOF {
                 }
             }
             if (!extentionFound) {
-                LOG("Extention not found: {}\n", requiredEx);
+                LOG("Extention not found: ");
+                LOG(requiredEx);
+                LOG("\n");
             }
         }
         ASSERT(requiredExtentionsFound == m_RequiredDeviceExtentions.size(), "All required device extentions not found.");
