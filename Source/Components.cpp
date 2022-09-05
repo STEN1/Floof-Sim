@@ -11,7 +11,7 @@ namespace FLOOF {
 		stbi_set_flip_vertically_on_load(true);
 		auto* data = stbi_load(path.c_str(), &xWidth, &yHeight, &channels, 0);
 		uint32_t size = xWidth * yHeight * channels;
-		ASSERT(channels == 4, "Texture is not RGBA");
+		ASSERT(channels == 4);
 
 		// staging buffer
 		VkBufferCreateInfo stagingCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
@@ -29,7 +29,7 @@ namespace FLOOF {
 		vmaCreateBuffer(renderer->m_Allocator, &stagingCreateInfo, &stagingBufAllocCreateInfo, &stagingBuffer,
 			&stagingBufferAlloc, &stagingBufferAllocInfo);
 
-		ASSERT(stagingBufferAllocInfo.pMappedData != nullptr, "Could not map memory.");
+		ASSERT(stagingBufferAllocInfo.pMappedData != nullptr);
 		memcpy(stagingBufferAllocInfo.pMappedData, data, size);
 		stbi_image_free(data);
 

@@ -69,7 +69,7 @@ namespace FLOOF {
             RecreateSwapChain();
             return GetNextSwapchainImage();
         }
-        ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Could not aquire next image in swap chain.");
+        ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR);
 
         vkResetFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame]);
 
@@ -87,7 +87,7 @@ namespace FLOOF {
         beginInfo.pInheritanceInfo = nullptr; // Optional
 
         VkResult beginResult = vkBeginCommandBuffer(m_CommandBuffers[m_CurrentFrame], &beginInfo);
-        ASSERT(beginResult == VK_SUCCESS, "Cant begin recording command buffer.");
+        ASSERT(beginResult == VK_SUCCESS);
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -132,7 +132,7 @@ namespace FLOOF {
     void VulkanRenderer::EndRecording() {
         vkCmdEndRenderPass(m_CommandBuffers[m_CurrentFrame]);
         VkResult endResult = vkEndCommandBuffer(m_CommandBuffers[m_CurrentFrame]);
-        ASSERT(endResult == VK_SUCCESS, "Failed to record command buffer.");
+        ASSERT(endResult == VK_SUCCESS);
     }
 
     void VulkanRenderer::SubmitAndPresent() {
@@ -151,7 +151,7 @@ namespace FLOOF {
         submitInfo.pSignalSemaphores = signalSemaphores;
 
         VkResult result = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]);
-        ASSERT(result == VK_SUCCESS, "Could not submit to graphics queue.");
+        ASSERT(result == VK_SUCCESS);
 
         VkPresentInfoKHR presentInfo{};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -170,7 +170,7 @@ namespace FLOOF {
         }
         ASSERT(result == VK_SUCCESS ||
             result == VK_ERROR_OUT_OF_DATE_KHR ||
-            result == VK_SUBOPTIMAL_KHR, "Cant present.");
+            result == VK_SUBOPTIMAL_KHR);
 
         m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
@@ -361,7 +361,7 @@ namespace FLOOF {
     void VulkanRenderer::InitSurface() {
         VkResult result = glfwCreateWindowSurface(m_Instance, m_Window, nullptr, &m_Surface);
 
-        ASSERT(result == VK_SUCCESS, "Failed to create surface.");
+        ASSERT(result == VK_SUCCESS);
         LOG("Vulkan surface created.\n");
     }
 
@@ -403,7 +403,7 @@ namespace FLOOF {
     #endif
 
         VkResult createInstanceResult = vkCreateInstance(&createInfo, nullptr, &m_Instance);
-        ASSERT(createInstanceResult == VK_SUCCESS, "Create instance failed with code: {}", (int)createInstanceResult);
+        ASSERT(createInstanceResult == VK_SUCCESS);
 
         uint32_t extensionCount{};
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -440,7 +440,7 @@ namespace FLOOF {
             LOG(deviceProperties.deviceName);
             LOG("\n");
         }
-        ASSERT(deviceCount > 0, "Device count: {}" + std::to_string(deviceCount));
+        ASSERT(deviceCount > 0);
         m_PhysicalDevice = devices[deviceIndex];
 
         PopulateQueueFamilyIndices(m_QueueFamilyIndices);
@@ -467,10 +467,10 @@ namespace FLOOF {
         dCreateInfo.enabledLayerCount = 0;
 
         VkResult deviceCreationResult = vkCreateDevice(m_PhysicalDevice, &dCreateInfo, nullptr, &m_LogicalDevice);
-        ASSERT(deviceCreationResult == VK_SUCCESS, "Failed to create device: {}", (int)deviceCreationResult);
-        ASSERT(m_QueueFamilyIndices.Graphics != -1, "Could not find queue with graphics support.");
+        ASSERT(deviceCreationResult == VK_SUCCESS);
+        ASSERT(m_QueueFamilyIndices.Graphics != -1);
         vkGetDeviceQueue(m_LogicalDevice, m_QueueFamilyIndices.Graphics, 0, &m_GraphicsQueue);
-        ASSERT(m_QueueFamilyIndices.PresentIndex != -1, "Could not find queue with present support.");
+        ASSERT(m_QueueFamilyIndices.PresentIndex != -1);
         vkGetDeviceQueue(m_LogicalDevice, m_QueueFamilyIndices.PresentIndex, 0, &m_PresentQueue);
     }
 
@@ -487,14 +487,14 @@ namespace FLOOF {
         allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
 
         VkResult result = vmaCreateAllocator(&allocatorCreateInfo, &m_Allocator);
-        ASSERT(result == VK_SUCCESS, "Cant create vulkan allocator.");
+        ASSERT(result == VK_SUCCESS);
     }
 
     void VulkanRenderer::InitSwapChain() {
         auto createInfo = MakeSwapchainCreateInfo();
 
         VkResult result = vkCreateSwapchainKHR(m_LogicalDevice, &createInfo, nullptr, &m_SwapChain);
-        ASSERT(result == VK_SUCCESS, "Cant create swapchain.");
+        ASSERT(result == VK_SUCCESS);
 
         uint32_t imageCount = 0;
         vkGetSwapchainImagesKHR(m_LogicalDevice, m_SwapChain, &imageCount, nullptr);
@@ -508,7 +508,7 @@ namespace FLOOF {
         for (size_t i = 0; i < m_SwapChainImages.size(); i++) {
             auto createInfo = MakeImageViewCreateInfo(i);
             VkResult result = vkCreateImageView(m_LogicalDevice, &createInfo, nullptr, &m_SwapChainImageViews[i]);
-            ASSERT(result == VK_SUCCESS, "Failed to create image view.");
+            ASSERT(result == VK_SUCCESS);
         }
         LOG("Image views created.\n");
     }
@@ -565,7 +565,7 @@ namespace FLOOF {
         renderPassInfo.pDependencies = &dependency;
 
         VkResult result = vkCreateRenderPass(m_LogicalDevice, &renderPassInfo, nullptr, &m_RenderPass);
-        ASSERT(result == VK_SUCCESS, "Cant create renderpass.");
+        ASSERT(result == VK_SUCCESS);
         LOG("Render pass created.\n");
     }
 
@@ -691,7 +691,7 @@ namespace FLOOF {
         pipelineLayoutInfo.pPushConstantRanges = &pushConstants;
 
         VkResult plResult = vkCreatePipelineLayout(m_LogicalDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
-        ASSERT(plResult == VK_SUCCESS, "Cant create pipeline layout.");
+        ASSERT(plResult == VK_SUCCESS);
 
         VkPipelineDepthStencilStateCreateInfo depthStencilStateInfo = { VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
         depthStencilStateInfo.depthTestEnable = VK_TRUE;
@@ -719,7 +719,7 @@ namespace FLOOF {
         pipelineInfo.basePipelineIndex = -1; // Optional
 
         VkResult gplResult = vkCreateGraphicsPipelines(m_LogicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipelines[params.Key]);
-        ASSERT(gplResult == VK_SUCCESS, "Cant create graphics pipeline.");
+        ASSERT(gplResult == VK_SUCCESS);
 
         vkDestroyShaderModule(m_LogicalDevice, BasicVert, nullptr);
         vkDestroyShaderModule(m_LogicalDevice, BasicFrag, nullptr);
@@ -744,14 +744,14 @@ namespace FLOOF {
             framebufferInfo.layers = 1;
 
             VkResult result = vkCreateFramebuffer(m_LogicalDevice, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]);
-            ASSERT(result == VK_SUCCESS, "Cant create framebuffer.");
+            ASSERT(result == VK_SUCCESS);
         }
         LOG("Framebuffers created.\n");
     }
 
     void VulkanRenderer::InitDepthBuffer() {
         m_DepthFormat = FindDepthFormat();
-        ASSERT(m_DepthFormat != VK_FORMAT_UNDEFINED, "Depth format undefined");
+        ASSERT(m_DepthFormat != VK_FORMAT_UNDEFINED);
 
         VkImageCreateInfo depthImageInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
         depthImageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -785,7 +785,7 @@ namespace FLOOF {
         depthImageViewInfo.subresourceRange.layerCount = 1;
 
         auto result = vkCreateImageView(m_LogicalDevice, &depthImageViewInfo, nullptr, &m_DepthBufferImageView);
-        ASSERT(result == VK_SUCCESS, "Cant create depth image view");
+        ASSERT(result == VK_SUCCESS);
     }
 
     void VulkanRenderer::InitCommandPool() {
@@ -795,7 +795,7 @@ namespace FLOOF {
         poolInfo.queueFamilyIndex = m_QueueFamilyIndices.Graphics;
 
         VkResult result = vkCreateCommandPool(m_LogicalDevice, &poolInfo, nullptr, &m_CommandPool);
-        ASSERT(result == VK_SUCCESS, "Cant create command pool.");
+        ASSERT(result == VK_SUCCESS);
         LOG("Command pool created.\n");
     }
 
@@ -808,7 +808,7 @@ namespace FLOOF {
         allocInfo.commandBufferCount = (uint32_t)m_CommandBuffers.size();
 
         VkResult result = vkAllocateCommandBuffers(m_LogicalDevice, &allocInfo, m_CommandBuffers.data());
-        ASSERT(result == VK_SUCCESS, "Cant allocate command buffers.");
+        ASSERT(result == VK_SUCCESS);
         LOG("Command buffer created.\n");
     }
 
@@ -826,7 +826,7 @@ namespace FLOOF {
         createInfo.pPoolSizes = &poolSize;
         createInfo.poolSizeCount = 1;
         VkResult result = vkCreateDescriptorPool(m_LogicalDevice, &createInfo, nullptr, &m_TextureDescriptorPool);
-        ASSERT(result == VK_SUCCESS, "Could not create pool.");
+        ASSERT(result == VK_SUCCESS);
         
     }
 
@@ -844,11 +844,11 @@ namespace FLOOF {
 
         for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             VkResult result = vkCreateSemaphore(m_LogicalDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]);
-            ASSERT(result == VK_SUCCESS, "Failed to create sync object.");
+            ASSERT(result == VK_SUCCESS);
             result = vkCreateSemaphore(m_LogicalDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]);
-            ASSERT(result == VK_SUCCESS, "Failed to create sync object.");
+            ASSERT(result == VK_SUCCESS);
             result = vkCreateFence(m_LogicalDevice, &fenceInfo, nullptr, &m_InFlightFences[i]);
-            ASSERT(result == VK_SUCCESS, "Failed to create sync object.");
+            ASSERT(result == VK_SUCCESS);
         }
 
         LOG("Sync objects created.\n");
@@ -903,7 +903,7 @@ namespace FLOOF {
 
     VkShaderModule VulkanRenderer::MakeShaderModule(const char* path) {
         std::ifstream f(path, std::ios::ate | std::ios::binary);
-        ASSERT(f.is_open(), "Cant open file: {}", path);
+        ASSERT(f.is_open());
         std::size_t size = f.tellg();
         std::vector<char> buffer(size);
         f.seekg(0);
@@ -916,7 +916,7 @@ namespace FLOOF {
 
         VkShaderModule shaderModule;
         VkResult result = vkCreateShaderModule(m_LogicalDevice, &createInfo, nullptr, &shaderModule);
-        ASSERT(result == VK_SUCCESS, "Cant create shader module from {}", path);
+        ASSERT(result == VK_SUCCESS);
 
         return shaderModule;
     }
@@ -1000,7 +1000,7 @@ namespace FLOOF {
                 LOG("\n");
             }
         }
-        ASSERT(requiredExtentionsFound == m_RequiredDeviceExtentions.size(), "All required device extentions not found.");
+        ASSERT(requiredExtentionsFound == m_RequiredDeviceExtentions.size());
     }
 
     void VulkanRenderer::ValidatePhysicalDeviceSurfaceCapabilities() {
@@ -1022,7 +1022,7 @@ namespace FLOOF {
 
         bool swapChainAdequate = false;
         swapChainAdequate = !m_SwapChainSupport.formats.empty() && !m_SwapChainSupport.presentModes.empty();
-        ASSERT(swapChainAdequate, "Swap chain has no formats or present modes");
+        ASSERT(swapChainAdequate);
     }
 
     VkSurfaceFormatKHR VulkanRenderer::GetSurfaceFormat(VkFormat format, VkColorSpaceKHR colorSpace) {
@@ -1102,7 +1102,7 @@ namespace FLOOF {
         allocInfo.descriptorSetCount = 1;
         allocInfo.pSetLayouts = &m_DescriptorSetLayout; // should probably be gotten from pipeline abstraction.
         VkResult result = vkAllocateDescriptorSets(m_LogicalDevice, &allocInfo, &textureDescriptorSet);
-        ASSERT(result == VK_SUCCESS, "Cant allocate texture descriptor set.");
+        ASSERT(result == VK_SUCCESS);
         return textureDescriptorSet;
     }
 
