@@ -131,17 +131,22 @@ namespace FLOOF {
 		auto [vertexData, indexData] = ObjLoader(path).GetIndexedData();
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
 		IndexBuffer = renderer->CreateIndexBuffer(indexData);
+		VertexCount = vertexData.size();
+		IndexCount = indexData.size();
 	}
 	MeshComponent::MeshComponent(const std::vector<Vertex>& vertexData, const std::vector<uint32_t>& indexData)	{
 		auto* renderer = VulkanRenderer::Get();
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
 		IndexBuffer = renderer->CreateIndexBuffer(indexData);
+		VertexCount = vertexData.size();
+		IndexCount = indexData.size();
 	}
 	MeshComponent::MeshComponent(const std::vector<Vertex>& vertexData)	{
 		auto* renderer = VulkanRenderer::Get();
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		VertexCount = vertexData.size();
 	}
 	MeshComponent::~MeshComponent() {
 		auto* renderer = VulkanRenderer::Get();
@@ -153,10 +158,10 @@ namespace FLOOF {
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
 		if (IndexBuffer.Buffer != VK_NULL_HANDLE) {
 			vkCmdBindIndexBuffer(commandBuffer, IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
-			vkCmdDrawIndexed(commandBuffer, IndexBuffer.AllocationInfo.size / sizeof(uint32_t),
+			vkCmdDrawIndexed(commandBuffer, IndexCount,
 				1, 0, 0, 0);
 		} else {
-			vkCmdDraw(commandBuffer, VertexBuffer.AllocationInfo.size / sizeof(Vertex), 1, 0, 0);
+			vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 		}
 	}
 }

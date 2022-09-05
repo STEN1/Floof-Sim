@@ -28,6 +28,8 @@ namespace FLOOF {
 
 		VulkanBuffer VertexBuffer{};
 		VulkanBuffer IndexBuffer{};
+		uint32_t VertexCount{};
+		uint32_t IndexCount{};
 	};
 
 	struct TextureComponent {
