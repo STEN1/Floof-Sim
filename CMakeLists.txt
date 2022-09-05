@@ -36,6 +36,8 @@ target_link_libraries(Floof glfw)
 add_subdirectory("Libs/entt")
 target_link_libraries(Floof EnTT)
 
+target_include_directories(Floof PUBLIC "Libs/HeaderOnly")
+
 exec_program("$ENV{VULKAN_SDK}/Bin/glslc.exe ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.vert -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.vert.spv")
 exec_program("$ENV{VULKAN_SDK}/Bin/glslc.exe ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.frag -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.frag.spv")
 
