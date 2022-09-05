@@ -25,7 +25,7 @@ ObjLoader::ObjLoader(const std::string& path)
 
 	if (!objFile.is_open())
 	{
-		LOG("Cant open file: {}", path);
+		std::cout << "Cant open file: " << path << std::endl;
 		return;
 	}
 
