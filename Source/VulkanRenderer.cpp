@@ -476,7 +476,7 @@ namespace FLOOF {
         vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
 
         VmaAllocatorCreateInfo allocatorCreateInfo = {};
-        allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+        allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_1;
         allocatorCreateInfo.physicalDevice = m_PhysicalDevice;
         allocatorCreateInfo.device = m_LogicalDevice;
         allocatorCreateInfo.instance = m_Instance;
