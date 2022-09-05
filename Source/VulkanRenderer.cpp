@@ -959,7 +959,7 @@ namespace FLOOF {
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        uint32_t queueFamilyIndices[] = { m_QueueFamilyIndices.Graphics, m_QueueFamilyIndices.PresentIndex };
+        uint32_t queueFamilyIndices[] = { (uint32_t)m_QueueFamilyIndices.Graphics, (uint32_t)m_QueueFamilyIndices.PresentIndex };
         if (m_QueueFamilyIndices.Graphics != m_QueueFamilyIndices.PresentIndex) {
             createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             createInfo.queueFamilyIndexCount = 2;
