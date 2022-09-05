@@ -378,21 +378,47 @@ namespace FLOOF {
         const char** glfwExtensions;
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-        std::vector<const char*> extentions(glfwExtensionCount);
+        // Assumes glfw knows what its doing. Might be footgun :)
+        std::vector<const char*> extensions(glfwExtensionCount);
         for (int i = 0; i < glfwExtensionCount; i++) {
-            extentions[i] = glfwExtensions[i];
+            extensions[i] = glfwExtensions[i];
         }
 
-        for (int i = 0; i < m_RequiredInstanceExtentions.size(); i++) {
-            extentions.push_back(m_RequiredInstanceExtentions[i]);
+        uint32_t extensionCount{};
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+        std::vector<VkExtensionProperties> enumeratedExtensions(extensionCount);
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, enumeratedExtensions.data());
+        LOG("Available extensions:\n");
+        for (auto& extension : enumeratedExtensions) {
+            LOG("\t");
+            LOG(extension.extensionName);
+            LOG("\n");
+        }
+
+        for (auto& reqExt : m_RequiredInstanceExtentions) {
+            bool foundReqExt = false;
+            for (auto& availableExt : enumeratedExtensions) {
+                if (strcmp(reqExt, availableExt.extensionName) == 0) {
+                    extensions.push_back(reqExt);
+                    foundReqExt = true;
+                }
+            }
+            if (foundReqExt == false) {
+                std::cout << "Could not find instance ext: " << reqExt << std::endl;
+            }
+        }
+
+        std::cout << "Enabled instance extentions:\n";
+        for (auto& ext : extensions) {
+            std::cout << "\t" << ext << "\n";
         }
         
         VkInstanceCreateInfo createInfo{};
-        createInfo.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        createInfo.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         createInfo.pApplicationInfo = &appInfo;
-        createInfo.enabledExtensionCount = extentions.size();
-        createInfo.ppEnabledExtensionNames = extentions.data();
+        createInfo.enabledExtensionCount = extensions.size();
+        createInfo.ppEnabledExtensionNames = extensions.data();
 
         // Enable validation layers in debug builds.
         // TODO: Make custom callback function for validation layer logging.
@@ -406,16 +432,7 @@ namespace FLOOF {
         VkResult createInstanceResult = vkCreateInstance(&createInfo, nullptr, &m_Instance);
         ASSERT(createInstanceResult == VK_SUCCESS);
 
-        uint32_t extensionCount{};
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-        std::vector<VkExtensionProperties> extensions(extensionCount);
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-        LOG("Available extensions:\n");
-        for (auto& extension : extensions) {
-            LOG("\t");
-            LOG(extension.extensionName);
-            LOG("\n");
-        }
+
         LOG("Vulkan instance created.\n");
     }
 
@@ -445,7 +462,7 @@ namespace FLOOF {
         m_PhysicalDevice = devices[deviceIndex];
 
         PopulateQueueFamilyIndices(m_QueueFamilyIndices);
-        ValidatePhysicalDeviceExtentions();
+        //ValidatePhysicalDeviceExtentions(); doing this in instance creation.
         ValidatePhysicalDeviceSurfaceCapabilities();
     }
 
@@ -458,13 +475,32 @@ namespace FLOOF {
         float queuePrio = 1.f;
         dqCreateInfo.pQueuePriorities = &queuePrio;
 
+        uint32_t extCount{};
+        vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extCount, nullptr);
+        std::vector<VkExtensionProperties> enumeratedExt(extCount);
+        vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extCount, enumeratedExt.data());
+
+        std::vector<const char*> foundExtentions;
+        for (auto& reqExt : m_RequiredDeviceExtentions) {
+            bool foundExt = false;
+            for (auto& ext : enumeratedExt) {
+                if (strcmp(reqExt, ext.extensionName) == 0) {
+                    foundExtentions.push_back(reqExt);
+                    foundExt = true;
+                }
+            }
+            if (foundExt == false) {
+                std::cout << "Could not find device ext: " << reqExt << std::endl;
+            }
+        }
+
         VkDeviceCreateInfo dCreateInfo{};
         dCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         dCreateInfo.pQueueCreateInfos = &dqCreateInfo;
         dCreateInfo.queueCreateInfoCount = 1;
         dCreateInfo.pEnabledFeatures = &m_PhysicalDeviceFeatures;
-        dCreateInfo.enabledExtensionCount = m_RequiredDeviceExtentions.size();
-        dCreateInfo.ppEnabledExtensionNames = m_RequiredDeviceExtentions.data();
+        dCreateInfo.enabledExtensionCount = foundExtentions.size();
+        dCreateInfo.ppEnabledExtensionNames = foundExtentions.data();
         dCreateInfo.enabledLayerCount = 0;
 
         VkResult deviceCreationResult = vkCreateDevice(m_PhysicalDevice, &dCreateInfo, nullptr, &m_LogicalDevice);
