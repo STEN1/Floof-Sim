@@ -809,15 +809,21 @@ namespace FLOOF {
     }
 
     void VulkanRenderer::InitDescriptorPools() {
-        {   // Create texture descriptor pool.
-            VkDescriptorPoolCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT | 
-                VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
-            createInfo.maxSets = 1024;
-            VkResult result = vkCreateDescriptorPool(m_LogicalDevice, &createInfo, nullptr, &m_TextureDescriptorPool);
-            ASSERT(result == VK_SUCCESS, "Could not create pool.");
-        }
+        VkDescriptorPoolSize poolSize{};
+        poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSize.descriptorCount = 1;
+
+        // Create texture descriptor pool.
+        VkDescriptorPoolCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT | 
+            VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
+        createInfo.maxSets = 256;
+        createInfo.pPoolSizes = &poolSize;
+        createInfo.poolSizeCount = 1;
+        VkResult result = vkCreateDescriptorPool(m_LogicalDevice, &createInfo, nullptr, &m_TextureDescriptorPool);
+        ASSERT(result == VK_SUCCESS, "Could not create pool.");
+        
     }
 
     void VulkanRenderer::InitSyncObjects() {
