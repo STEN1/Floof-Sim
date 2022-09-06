@@ -475,6 +475,23 @@ namespace FLOOF {
         float queuePrio = 1.f;
         dqCreateInfo.pQueuePriorities = &queuePrio;
 
+        std::vector<VkDeviceQueueCreateInfo> dqcreateInfos = { dqCreateInfo };
+
+        if (m_QueueFamilyIndices.Graphics != m_QueueFamilyIndices.PresentIndex) {
+            std::cout << "Graphics and present index are not the same. Creating from different queue families.\n";
+            std::cout << "Graphics queue index: " << m_QueueFamilyIndices.Graphics
+                << " Present queue index: " << m_QueueFamilyIndices.PresentIndex << std::endl;
+
+            VkDeviceQueueCreateInfo createInfoPresentQ{};
+            createInfoPresentQ.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            createInfoPresentQ.queueFamilyIndex = m_QueueFamilyIndices.PresentIndex;
+            createInfoPresentQ.queueCount = 1;
+            float queuePrio = 1.f;
+            createInfoPresentQ.pQueuePriorities = &queuePrio;
+
+            dqcreateInfos.push_back(createInfoPresentQ);
+        }
+
         uint32_t extCount{};
         vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extCount, nullptr);
         std::vector<VkExtensionProperties> enumeratedExt(extCount);
@@ -496,8 +513,8 @@ namespace FLOOF {
 
         VkDeviceCreateInfo dCreateInfo{};
         dCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        dCreateInfo.pQueueCreateInfos = &dqCreateInfo;
-        dCreateInfo.queueCreateInfoCount = 1;
+        dCreateInfo.pQueueCreateInfos = dqcreateInfos.data();
+        dCreateInfo.queueCreateInfoCount = dqcreateInfos.size();
         dCreateInfo.pEnabledFeatures = &m_PhysicalDeviceFeatures;
         dCreateInfo.enabledExtensionCount = foundExtentions.size();
         dCreateInfo.ppEnabledExtensionNames = foundExtentions.data();
