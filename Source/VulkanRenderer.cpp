@@ -545,12 +545,47 @@ namespace FLOOF {
     }
 
     void VulkanRenderer::InitSwapChain() {
-        auto createInfo = MakeSwapchainCreateInfo();
+        m_SwapChainImageFormat = GetSurfaceFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+        m_PresentMode = GetPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
+        m_SwapChainExtent = GetWindowExtent();
+        std::cout << "m_SwapChainExtent: x = " << m_SwapChainExtent.width << " y = " << m_SwapChainExtent.height << std::endl;
+
+        uint32_t imageCount = m_SwapChainSupport.capabilities.minImageCount + 1;
+        if (m_SwapChainSupport.capabilities.maxImageCount > 0 && imageCount > m_SwapChainSupport.capabilities.maxImageCount) {
+            imageCount = m_SwapChainSupport.capabilities.maxImageCount;
+        }
+        VkSwapchainCreateInfoKHR createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        createInfo.surface = m_Surface;
+        createInfo.minImageCount = imageCount;
+        createInfo.imageFormat = m_SwapChainImageFormat.format;
+        createInfo.imageColorSpace = m_SwapChainImageFormat.colorSpace;
+        createInfo.imageExtent = m_SwapChainExtent;
+        createInfo.imageArrayLayers = 1;
+        createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+
+        std::vector<uint32_t> queueFamilyIndices = { (uint32_t)m_QueueFamilyIndices.Graphics, (uint32_t)m_QueueFamilyIndices.PresentIndex };
+        if (m_QueueFamilyIndices.Graphics != m_QueueFamilyIndices.PresentIndex) {
+            createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+            createInfo.queueFamilyIndexCount = queueFamilyIndices.size();
+            createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
+        } else {
+            createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            createInfo.queueFamilyIndexCount = 0; // Optional
+            createInfo.pQueueFamilyIndices = nullptr; // Optional
+        }
+
+        createInfo.preTransform = m_SwapChainSupport.capabilities.currentTransform;
+        createInfo.presentMode = m_PresentMode;
+        createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        createInfo.clipped = VK_TRUE;
+        createInfo.oldSwapchain = VK_NULL_HANDLE;
 
         VkResult result = vkCreateSwapchainKHR(m_LogicalDevice, &createInfo, nullptr, &m_SwapChain);
         ASSERT(result == VK_SUCCESS);
 
-        uint32_t imageCount = 0;
+        imageCount = 0;
         vkGetSwapchainImagesKHR(m_LogicalDevice, m_SwapChain, &imageCount, nullptr);
         m_SwapChainImages.resize(imageCount);
         vkGetSwapchainImagesKHR(m_LogicalDevice, m_SwapChain, &imageCount, m_SwapChainImages.data());
@@ -993,45 +1028,6 @@ namespace FLOOF {
         return createInfo;
     }
 
-    VkSwapchainCreateInfoKHR VulkanRenderer::MakeSwapchainCreateInfo() {
-        m_SwapChainImageFormat = GetSurfaceFormat(VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
-        m_PresentMode = GetPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
-        m_SwapChainExtent = GetWindowExtent();
-        std::cout << "m_SwapChainExtent: x = " << m_SwapChainExtent.width << " y = " << m_SwapChainExtent.height << std::endl;
-
-        uint32_t imageCount = m_SwapChainSupport.capabilities.minImageCount + 1;
-        if (m_SwapChainSupport.capabilities.maxImageCount > 0 && imageCount > m_SwapChainSupport.capabilities.maxImageCount) {
-            imageCount = m_SwapChainSupport.capabilities.maxImageCount;
-        }
-        VkSwapchainCreateInfoKHR createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        createInfo.surface = m_Surface;
-        createInfo.minImageCount = imageCount;
-        createInfo.imageFormat = m_SwapChainImageFormat.format;
-        createInfo.imageColorSpace = m_SwapChainImageFormat.colorSpace;
-        createInfo.imageExtent = m_SwapChainExtent;
-        createInfo.imageArrayLayers = 1;
-        createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-        uint32_t queueFamilyIndices[] = { (uint32_t)m_QueueFamilyIndices.Graphics, (uint32_t)m_QueueFamilyIndices.PresentIndex };
-        if (m_QueueFamilyIndices.Graphics != m_QueueFamilyIndices.PresentIndex) {
-            createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            createInfo.queueFamilyIndexCount = 2;
-            createInfo.pQueueFamilyIndices = queueFamilyIndices;
-        } else {
-            createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            createInfo.queueFamilyIndexCount = 0; // Optional
-            createInfo.pQueueFamilyIndices = nullptr; // Optional
-        }
-
-        createInfo.preTransform = m_SwapChainSupport.capabilities.currentTransform;
-        createInfo.presentMode = m_PresentMode;
-        createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        createInfo.clipped = VK_TRUE;
-        createInfo.oldSwapchain = VK_NULL_HANDLE;
-        return createInfo;
-    }
-
     void VulkanRenderer::ValidatePhysicalDeviceExtentions() {
         uint32_t extensionCount;
         vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extensionCount, nullptr);
@@ -1166,21 +1162,24 @@ namespace FLOOF {
 
     void VulkanRenderer::PopulateQueueFamilyIndices(QueueFamilyIndices& QFI) {
         uint32_t queueFamilyCount{};
-        vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, nullptr);
-        std::vector<VkQueueFamilyProperties> qfp(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, qfp.data());
+        vkGetPhysicalDeviceQueueFamilyProperties2(m_PhysicalDevice, &queueFamilyCount, nullptr);
+        std::vector<VkQueueFamilyProperties2> qfp(queueFamilyCount);
+        for (auto& qp : qfp) {
+            qp.sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2;
+        }
+        vkGetPhysicalDeviceQueueFamilyProperties2(m_PhysicalDevice, &queueFamilyCount, qfp.data());
         VkBool32 presentSupport = false;
         for (int i = 0; i < qfp.size(); i++) {
-            if (qfp[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            if (qfp[i].queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 QFI.Graphics = i;
             }
-            if (qfp[i].queueFlags & VK_QUEUE_COMPUTE_BIT) {
+            if (qfp[i].queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
                 QFI.Compute = i;
             }
-            if (qfp[i].queueFlags & VK_QUEUE_TRANSFER_BIT) {
+            if (qfp[i].queueFamilyProperties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
                 QFI.Transfer = i;
             }
-            if (qfp[i].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
+            if (qfp[i].queueFamilyProperties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
                 QFI.SparseBinding = i;
             }
             vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, i, m_Surface, &presentSupport);

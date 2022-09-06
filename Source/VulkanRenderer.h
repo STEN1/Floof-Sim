@@ -134,7 +134,6 @@ namespace FLOOF {
 		VkShaderModule MakeShaderModule(const char* path);
 
 		VkImageViewCreateInfo MakeImageViewCreateInfo(int i);
-		VkSwapchainCreateInfoKHR MakeSwapchainCreateInfo();
 
 		void ValidatePhysicalDeviceExtentions();
 		void ValidatePhysicalDeviceSurfaceCapabilities();
