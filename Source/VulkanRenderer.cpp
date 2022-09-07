@@ -415,7 +415,9 @@ namespace FLOOF {
         
         VkInstanceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+#ifdef VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME
         createInfo.flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
         createInfo.pApplicationInfo = &appInfo;
         createInfo.enabledExtensionCount = extensions.size();
         createInfo.ppEnabledExtensionNames = extensions.data();
