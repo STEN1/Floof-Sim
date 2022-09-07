@@ -19,7 +19,9 @@ add_executable(Floof
 	"Source/Components.h"
 	"Source/Math.h"
 	"Source/Components.cpp"
-	"Source/Input.h")
+	"Source/Input.h" 
+	"Source/Utils.h" 
+	"Source/Utils.cpp")
 
 
 find_package(Vulkan REQUIRED)
