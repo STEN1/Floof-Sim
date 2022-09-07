@@ -89,7 +89,7 @@ CMakefiles/
 CMakeCache.txt
 Floof
 cmake_install.cmake
-CMakePresets.json
+#CMakePresets.json
 .cmake/
 
 #ninja
