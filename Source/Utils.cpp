@@ -6,31 +6,31 @@
 
 namespace FLOOF {
 	namespace Utils {
-		std::vector<Vertex> GetVisimVertexData(const std::string& path) {
+		std::pair<std::vector<Vertex>, std::vector<uint32_t>> GetVisimVertexData(const std::string& path) {
 			std::vector<Vertex> vertexData;
+			std::vector<uint32_t> indexData;
 
 			std::ifstream file(path);
 			if (!file.is_open()) {
 				std::cout << "Cant open file: " << path << std::endl;
-				return vertexData;
+				return { vertexData, indexData };
 			}
 
-			uint32_t vertexCount{}; // Throwaway variabel.
+			uint32_t vertexCount{};
 			file >> vertexCount;
+			uint32_t indexCount{};
+			file >> indexCount;
 
-			std::vector<float> tempVertexData;
-			while (!file.eof()) {
-				float temp;
-				file >> temp;
-				tempVertexData.push_back(temp);
+			vertexData.resize(vertexCount);
+			for (Vertex& vertex : vertexData) {
+				file >> vertex.pos.x;
+				file >> vertex.pos.y;
+				file >> vertex.pos.z;
 			}
 
-			for (uint32_t i = 2; i < tempVertexData.size(); i += 3) {
-				Vertex v{};
-				v.pos.x = tempVertexData[i - 2];
-				v.pos.y = tempVertexData[i - 1];
-				v.pos.z = tempVertexData[i - 0];
-				vertexData.push_back(v);
+			indexData.resize(indexCount);
+			for (uint32_t& i : indexData) {
+				file >> i;
 			}
 
 			for (uint32_t i = 2; i < vertexData.size(); i += 3) {
@@ -55,7 +55,7 @@ namespace FLOOF {
 				c.uv.y = c.pos.y;
 			}
 
-			return vertexData;
+			return { vertexData, indexData };
 		}
 	}
 }
