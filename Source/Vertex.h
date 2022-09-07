@@ -11,6 +11,10 @@ namespace FLOOF {
 		glm::vec3 normal;
 		glm::vec2 uv;
 
+		bool operator == (const Vertex& other) const {
+			return pos == other.pos && normal == other.normal && uv == other.uv;
+		}
+
 		static VkVertexInputBindingDescription GetBindingDescription() {
 			VkVertexInputBindingDescription bindingDescription{};
 			bindingDescription.binding = 0;

@@ -6,6 +6,6 @@
 
 namespace FLOOF {
 	namespace Utils {
-		
+		std::pair<std::vector<Vertex>, std::vector<uint32_t>> GetVisimVertexData(const std::string& path);
 	}
 }
