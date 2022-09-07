@@ -135,8 +135,8 @@ namespace FLOOF {
 			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
 			for (auto [entity, transform, mesh, texture] : view.each()) {
 				MeshPushConstants constants;
-				constants.mvp = vp * transform.GetTransform();
-                constants.imodel = glm::inverse(transform.GetTransform());
+				constants.MVP = vp * transform.GetTransform();
+                constants.InvModelMat = glm::inverse(transform.GetTransform());
 				vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(MeshPushConstants), &constants);
 				texture.Bind(commandBuffer);
