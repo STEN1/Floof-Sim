@@ -9,10 +9,12 @@ layout(location = 1) out vec2 fragUv;
 
 layout(push_constant) uniform PushConstants {
     mat4 mvp;
+    mat4 imodel;
 } pushConstants;
 
 void main() {
     gl_Position = pushConstants.mvp * vec4(pos, 1.0);
-    fragNormal = normal;
+    fragNormal = mat3(transpose(pushConstants.imodel))*normal;
+    //fragNormal = normal;
     fragUv = uv;
 }
