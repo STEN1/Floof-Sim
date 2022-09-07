@@ -19,13 +19,18 @@ namespace FLOOF {
 			uint32_t vertexCount{}; // Throwaway variabel.
 			file >> vertexCount;
 
+			std::vector<float> tempVertexData;
 			while (!file.eof()) {
-				Vertex v{};
-				file >> v.pos.x;
-				file >> v.pos.y;
-				file >> v.pos.z;
+				float temp;
+				file >> temp;
+				tempVertexData.push_back(temp);
+			}
 
-				vertexData.push_back(v);
+			for (uint32_t i = 2; i < tempVertexData.size(); i += 3) {
+				Vertex v{};
+				v.pos.z = tempVertexData[i - 2];
+				v.pos.y = tempVertexData[i - 1];
+				v.pos.x = tempVertexData[i - 0];
 			}
 
 			return { vertexData, indexData };
