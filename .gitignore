@@ -84,3 +84,9 @@ release/*
 *.aps
 *.h.cpp
 
+#cmake
+CMakefiles/
+CMakeCache.txt
+Floof
+cmake_install.cmake
+CMakePresets.json
