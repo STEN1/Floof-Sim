@@ -1,7 +1,7 @@
 .vs/
 out/
 build/
-
+cmake-build-debug/
 /.idea
 
 # C++ objects and libs
@@ -20,6 +20,7 @@ build/
 *.exe
 *.out
 *.app
+*.sh
 
 # Precompiled Headers
 *.gch
