@@ -90,8 +90,10 @@ CMakeCache.txt
 Floof
 cmake_install.cmake
 CMakePresets.json
+.cmake/
 
 #ninja
 .ninja_deps
 .ninja_log
 build.ninja
+Testing/temporary/
