@@ -96,4 +96,4 @@ CMakePresets.json
 .ninja_deps
 .ninja_log
 build.ninja
-Testing/temporary/
+Testing/Temporary/
