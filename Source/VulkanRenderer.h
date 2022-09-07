@@ -17,7 +17,8 @@
 namespace FLOOF {
 
 	struct MeshPushConstants {
-		glm::mat4 mvp;
+		glm::mat4 MVP;
+        glm::mat4 InvModelMat;
 	};
 
 	struct VulkanBuffer {
