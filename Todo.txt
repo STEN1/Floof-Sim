@@ -4,7 +4,7 @@ Ball simulator
 	-Sim
 
 Lights
-	-Directional CHECK
+	-DiretionalLight CHECK
 	-Point
 	-Spot
 	-Forward+
@@ -12,7 +12,7 @@ Lights
 Render pipeline abstraction.
 	-Settings struct for creation
 	-Shader class
-CameraComponent
+CameraComponent CHECK
 Physics system
 Editor
 	-ImGui
