@@ -129,7 +129,6 @@ namespace FLOOF {
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
 		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.1f, 1000.f);
 
-
         LOG_WARNING("Test of logging");
         LOG_ERROR("Test of logging");
         LOG_CRITICAL("Test of logging");
