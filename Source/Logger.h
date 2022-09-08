@@ -13,6 +13,7 @@ namespace FLOOF {
                ERROR,
                CRITICAL,
                };
+
            void log(LogType logtype, const char* message);
         private:
            const char* m_LogPath;
