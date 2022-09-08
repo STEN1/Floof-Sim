@@ -1,6 +1,8 @@
 Ball simulator
 	-Heightmap
 	-Barycentric coord utils
+	    - DONE: barycentric for single triangle
+	    - Barycentric for whole mesh
 	-Sim
 
 Lights

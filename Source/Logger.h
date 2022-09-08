@@ -14,7 +14,6 @@ public:
        WARNING = 0,
        ERROR,
        CRITICAL,
-
        };
    void  log(const char* message);
    void log(LogType logtype, const char* message);
