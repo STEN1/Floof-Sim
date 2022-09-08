@@ -4,6 +4,8 @@
 #include <entt/entt.hpp>
 
 #include <unordered_map>
+#include "Logger.h"
+#include <memory>
 
 namespace FLOOF {
 	class Application {
@@ -11,6 +13,7 @@ namespace FLOOF {
 		Application();
 		~Application();
 		int Run();
+       std::shared_ptr<Utils::Logger> logger;
 	private:
 		void Update(double deltaTime);
 		void Simulate(double deltaTime);

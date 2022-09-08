@@ -4,7 +4,7 @@ Ball simulator
 	-Sim
 
 Lights
-	-Directional
+	-Directional CHECK
 	-Point
 	-Spot
 	-Forward+
@@ -19,7 +19,7 @@ Editor
 	-Serialization/Deserialization
 	-Scene graph
 	-Sellection
-		-Component settings
+	-Component settings
 	-Prefabs
 GameGui
 	-Font rendering

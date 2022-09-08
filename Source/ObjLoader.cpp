@@ -13,8 +13,8 @@ o = objektnavn
 v = vertex
 vt = uv-koordinat
 vn = normal
-f = hvilken av v og vn og vt utgjør hvilken av linjene som er en vertex
-Og det er tre slike samlinger i hver f-linje, som da utgjør en trekant.
+f = hvilken av v og vn og vt utgjï¿½r hvilken av linjene som er en vertex
+Og det er tre slike samlinger i hver f-linje, som da utgjï¿½r en trekant.
 */
 
 
@@ -81,6 +81,7 @@ ObjLoader::ObjLoader(const std::string& path)
 			}
 		}
 	}
+
 	objFile.close();
 	//LOG("Obj loaded: " + Name);
 }

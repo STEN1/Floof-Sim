@@ -13,6 +13,8 @@ namespace FLOOF {
 		m_Window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
 		m_Renderer = new VulkanRenderer(m_Window);
 		Input::s_Window = m_Window;
+
+        logger = std::make_shared<Utils::Logger>("Floof.log");
 	}
 
 	Application::~Application() {
@@ -125,6 +127,7 @@ namespace FLOOF {
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
 		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.1f, 1000.f);
 
+        logger->log("test message");
 		{	// Geometry pass
 			renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
 			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
