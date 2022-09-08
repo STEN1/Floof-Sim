@@ -8,58 +8,59 @@
 #include "Logger.h"
 #include <sys/stat.h>
 #include <filesystem>
+
 namespace FLOOF{
-Utils::Logger::Logger(const char *logfile) :m_LogPath(logfile){
-    //Creating File
-    struct stat buffer;
-    if (stat("Logs", &buffer) != 0) {
-        std::filesystem::create_directory("Logs");
+    Utils::Logger::Logger(const char *logfile) :m_LogPath(logfile){
+        //Creating File
+        struct stat buffer;
+        if (stat("Logs", &buffer) != 0) {
+            std::filesystem::create_directory("Logs");
+        }
+        //clear file when starting program
+        std::string l{"Logs/"};
+        l.append(logfile);
+        std::ofstream clearfile(l, std::ios::trunc);
+        clearfile.close();
     }
-    //clear file when starting program
-    std::string l{"Logs/"};
-    l.append(logfile);
-    std::ofstream clearfile(l, std::ios::trunc);
-    clearfile.close();
-}
 
-Utils::Logger::~Logger() {
+    Utils::Logger::~Logger() {
 
-}
-
-void Utils::Logger::log(const char *message) {
-    log(LogType::WARNING, message);
-}
-
-void Utils::Logger::log(Utils::Logger::LogType logtype, const char *message) {
-    std::string output;
-
-    //time
-    std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    std::string s(30, '\0');
-    std::strftime(&s[0], s.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
-
-    output.append(s);
-    //logtype
-    switch (logtype) {
-        case LogType::WARNING:
-            output.append(" Warning");
-            break;
-        case LogType::ERROR:
-            output.append(" Error");
-            break;
-        case LogType::CRITICAL:
-            output.append(" Critical");
-            break;
     }
-    output.append("\t");
-    output.append(message);
 
-    std::string logpath = "Logs/";
-    logpath.append(m_LogPath);
-    std::ofstream stream(logpath,std::ios::out | std::ios::app);
-    if(stream.is_open()){
-        stream <<  output << "\n";
+    void Utils::Logger::log(const char *message) {
+        log(LogType::WARNING, message);
     }
-    stream.close();
-}
+
+    void Utils::Logger::log(Utils::Logger::LogType logtype, const char *message) {
+        std::string output;
+
+        //time
+        std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        std::string s(30, '\0');
+        std::strftime(&s[0], s.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+
+        output.append(s);
+        //logtype
+        switch (logtype) {
+            case LogType::WARNING:
+                output.append(" Warning");
+                break;
+            case LogType::ERROR:
+                output.append(" Error");
+                break;
+            case LogType::CRITICAL:
+                output.append(" Critical");
+                break;
+        }
+        output.append("\t");
+        output.append(message);
+
+        std::string logpath = "Logs/";
+        logpath.append(m_LogPath);
+        std::ofstream stream(logpath,std::ios::out | std::ios::app);
+        if(stream.is_open()){
+            stream <<  output << "\n";
+        }
+        stream.close();
+    }
 }

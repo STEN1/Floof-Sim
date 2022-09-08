@@ -19,6 +19,5 @@ namespace FLOOF {
 			return glm::vec2(x, y);
 		}
 		inline static GLFWwindow* s_Window = nullptr;
-        inline static Utils::Logger* s_Logger = nullptr;
 	};
 }
