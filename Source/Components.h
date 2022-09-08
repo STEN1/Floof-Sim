@@ -55,7 +55,7 @@ namespace FLOOF {
 	};
 
 	struct TerrainComponent {
-		TerrainComponent(const std::vector<Vertex>& vertexData, const std::vector<uint32_t>& indexData);
+		TerrainComponent(const std::vector<Vertex>& vertexData);
 		std::vector<Triangle> TerrainTriangles;
 	};
 }

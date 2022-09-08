@@ -166,8 +166,8 @@ namespace FLOOF {
 		}
 	}
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
-		Up = glm::vec3(0.f, 1.f, 0.f);
-		Forward = glm::vec3(0.f, 0.f, -1.f);
+		Up = glm::vec3(0.f, -1.f, 0.f);
+		Forward = glm::vec3(0.f, 0.f, 1.f);
 	}
 	glm::mat4 CameraComponent::GetVP(float fov, float aspect, float near, float far) {
 		glm::mat4 view = glm::lookAt(Position, Position + Forward, Up);
@@ -189,11 +189,9 @@ namespace FLOOF {
 	}
 	void CameraComponent::Yaw(float amount) {
 		if (amount == 0.f) return;
-		amount = -amount;
-		glm::mat4 rotation = glm::rotate(amount, Up);
+		glm::mat4 rotation = glm::rotate(-amount, Up);
 		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
 	}
-	TerrainComponent::TerrainComponent(const std::vector<Vertex>& vertexData, const std::vector<uint32_t>& indexData) {
-
+	TerrainComponent::TerrainComponent(const std::vector<Vertex>& vertexData) {
 	}
 }

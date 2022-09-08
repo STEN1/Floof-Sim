@@ -36,9 +36,9 @@ namespace FLOOF {
 		{
 			m_TerrainEntity = m_Registry.create();
 			m_Registry.emplace<TransformComponent>(m_TerrainEntity);
-			auto [vertexData, indexData] = Utils::GetVisimVertexData("Assets/SimTerrain.visim");
-			m_Registry.emplace<TerrainComponent>(m_TerrainEntity, vertexData, indexData);
-			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData, indexData);
+			auto vertexData = Utils::GetVisimVertexData("Assets/SimTerrain.visim");
+			m_Registry.emplace<TerrainComponent>(m_TerrainEntity, vertexData);
+			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
 		}
 
@@ -55,6 +55,7 @@ namespace FLOOF {
 			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
 			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
 			transform.Position.x += 6.f;
+			transform.Position.y += 10.f;
 		}
 
 		{
@@ -63,11 +64,12 @@ namespace FLOOF {
 			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
 			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
 			transform.Position.x -= 6.f;
+			transform.Position.y += 10.f;
 		}
 
 		{
 			m_CameraEntity = m_Registry.create();
-			glm::vec3 cameraPos(0.f, -5.f, 10.f);
+			glm::vec3 cameraPos(0.f, 10.f, -20.f);
 			m_Registry.emplace<CameraComponent>(m_CameraEntity, cameraPos);
 		}
 

@@ -11,20 +11,18 @@ namespace FLOOF {
 	namespace Utils {
         static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::Vertex> &vertexData);
         static void PushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::Vertex> &vertexData);
-		std::pair<std::vector<Vertex>, std::vector<uint32_t>> GetVisimVertexData(const std::string& path) {
+
+		std::vector<Vertex> GetVisimVertexData(const std::string& path) {
 			std::vector<Vertex> vertexData;
-			std::vector<uint32_t> indexData;
 
 			std::ifstream file(path);
 			if (!file.is_open()) {
 				std::cout << "Cant open file: " << path << std::endl;
-				return { vertexData, indexData };
+                return vertexData;
 			}
 
 			uint32_t vertexCount{};
 			file >> vertexCount;
-			uint32_t indexCount{};
-			file >> indexCount;
             std::string s;
             std::getline(file, s);
 			vertexData.resize(vertexCount);
@@ -37,11 +35,6 @@ namespace FLOOF {
 				ss >> vertex.pos.z;
 			}
 
-			indexData.resize(indexCount);
-			for (uint32_t& i : indexData) {
-				file >> i;
-			}
-
 			for (uint32_t i = 2; i < vertexData.size(); i += 3) {
 				Vertex& a = vertexData[i - 2];
 				Vertex& b = vertexData[i - 1];
@@ -50,7 +43,7 @@ namespace FLOOF {
 				glm::vec3 ab = b.pos - a.pos;
 				glm::vec3 ac = c.pos - a.pos;
 
-				glm::vec3 normal = glm::normalize(glm::cross(ab, ac));
+                glm::vec3 normal = glm::normalize(glm::cross(ab, ac));
 
 				a.normal = normal;
 				b.normal = normal;
@@ -64,7 +57,7 @@ namespace FLOOF {
 				c.uv.y = c.pos.y;
 			}
 
-			return { vertexData, indexData };
+            return vertexData;
 		}
 
         std::vector<Vertex> MakeBall(int recursions, int radius) {
@@ -125,7 +118,7 @@ namespace FLOOF {
             vertexData.push_back(v);
         }
 
-        static glm::vec3 CalcBarycentric(glm::vec3 position, const Triangle& triangle) {
+        glm::vec3 CalcBarycentric(glm::vec3 position, const Triangle& triangle) {
 
             glm::vec2 pos{ position.x, position.z };
     
