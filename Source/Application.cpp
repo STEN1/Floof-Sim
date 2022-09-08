@@ -15,6 +15,12 @@ namespace FLOOF {
 		m_Renderer = new VulkanRenderer(m_Window);
 		Input::s_Window = m_Window;
         Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
+
+        LOG_INFO("Test of logging");
+        LOG_WARNING("Test of logging");
+        LOG_ERROR("Test of logging");
+        LOG_CRITICAL("Test of logging");
+
 	}
 
 	Application::~Application() {
@@ -139,10 +145,6 @@ namespace FLOOF {
 		auto extent = m_Renderer->GetExtent();
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
 		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.1f, 1000.f);
-
-        LOG_WARNING("Test of logging");
-        LOG_ERROR("Test of logging");
-        LOG_CRITICAL("Test of logging");
 
 		{	// Geometry pass
 			renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);

@@ -8,6 +8,7 @@
 #include "Logger.h"
 #include <sys/stat.h>
 #include <filesystem>
+#include "LoggerMacros.h"
 
 namespace FLOOF{
     Utils::Logger::Logger(const char *logfile) :m_LogPath(logfile) {
@@ -26,6 +27,7 @@ namespace FLOOF{
         std::strftime(&s[0], s.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
         clearfile << s << "\n";
         clearfile.close();
+
     }
 
     Utils::Logger::~Logger() {
@@ -46,13 +48,13 @@ namespace FLOOF{
                 output.append(" Warning");
                 break;
             case LogType::ERROR:
-                output.append(" Error");
+                output.append(" Error\t");
                 break;
             case LogType::CRITICAL:
                 output.append(" Critical");
                 break;
             case LogType::INFO:
-                output.append(" INFO");
+                output.append(" Info\t");
                 break;
         }
         output.append("\t");
