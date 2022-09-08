@@ -5,7 +5,6 @@
 #ifndef FLOOF_LOGGERMACROS_H
 #define FLOOF_LOGGERMACROS_H
 
-#include "Application.h"
 #include "Logger.h"
 
 

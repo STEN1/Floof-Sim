@@ -23,7 +23,8 @@ add_executable(Floof
 	"Source/Utils.h" 
 	"Source/Utils.cpp"
 		Source/Logger.cpp
-		Source/Logger.h Source/LoggerMacros.h)
+		Source/Logger.h
+		Source/LoggerMacros.h)
 
 
 find_package(Vulkan REQUIRED)
