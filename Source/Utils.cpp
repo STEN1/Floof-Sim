@@ -3,6 +3,8 @@
 #include "Floof.h"
 
 #include <fstream>
+#include <string>
+#include <sstream>
 
 static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::Vertex> &vertexData);
 static void pushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::Vertex> &vertexData);
@@ -23,12 +25,16 @@ namespace FLOOF {
 			file >> vertexCount;
 			uint32_t indexCount{};
 			file >> indexCount;
-
+            std::string s;
+            std::getline(file, s);
 			vertexData.resize(vertexCount);
 			for (Vertex& vertex : vertexData) {
-				file >> vertex.pos.x;
-				file >> vertex.pos.y;
-				file >> vertex.pos.z;
+                std::string line;
+                std::getline(file, line);
+                std::stringstream ss(line);
+				ss >> vertex.pos.x;
+				ss >> vertex.pos.y;
+				ss >> vertex.pos.z;
 			}
 
 			indexData.resize(indexCount);

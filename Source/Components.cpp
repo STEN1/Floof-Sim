@@ -193,4 +193,7 @@ namespace FLOOF {
 		glm::mat4 rotation = glm::rotate(amount, Up);
 		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
 	}
+	TerrainComponent::TerrainComponent(const std::vector<Vertex>& vertexData, const std::vector<uint32_t>& indexData) {
+
+	}
 }
