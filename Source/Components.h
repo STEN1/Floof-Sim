@@ -53,4 +53,9 @@ namespace FLOOF {
 		glm::vec3 Up;
 		glm::vec3 Position;
 	};
+
+	struct TerrainComponent {
+		TerrainComponent(const std::vector<Vertex>& vertexData, const std::vector<uint32_t>& indexData);
+		std::vector<Triangle> TerrainTriangles;
+	};
 }

@@ -3,6 +3,7 @@
 #include "Timer.h"
 #include "Components.h"
 #include "Input.h"
+#include "Utils.h"
 
 #include <string>
 
@@ -26,6 +27,15 @@ namespace FLOOF {
 	}
 
 	int Application::Run() {
+		{
+			m_TerrainEntity = m_Registry.create();
+			m_Registry.emplace<TransformComponent>(m_TerrainEntity);
+			auto [vertexData, indexData] = Utils::GetVisimVertexData("Assets/SimTerrain.visim");
+			m_Registry.emplace<TerrainComponent>(m_TerrainEntity, vertexData, indexData);
+			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData, indexData);
+			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
+		}
+
 		{
 			const auto treeEntity = m_Registry.create();
 			m_Registry.emplace<TransformComponent>(treeEntity);
@@ -82,10 +92,11 @@ namespace FLOOF {
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
-		{	// Rotate all meshes.
+		{	// Rotate first mesh.
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
 			for (auto [entiry, transform, mesh] : view.each()) {
 				transform.Rotation.y += deltaTime;
+				break;
 			}
 		}
 		{	// Update camera.

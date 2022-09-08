@@ -44,4 +44,10 @@ namespace FLOOF {
 			return attributeDescriptions;
 		}
 	};
+
+	struct Triangle {
+		Vertex A;
+		Vertex B;
+		Vertex C;
+	};
 }
