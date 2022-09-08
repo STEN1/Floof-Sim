@@ -7,8 +7,9 @@
 #include "Input.h"
 #include "Logger.h"
 
-#define LOG_WARNING(message) FLOOF::Utils::Logger::s_Logger->log(message)
+#define LOG_WARNING(message) FLOOF::Utils::Logger::s_Logger->log(FLOOF::Utils::Logger::LogType::WARNING,message);
 #define LOG_ERROR(message) FLOOF::Utils::Logger::s_Logger->log(FLOOF::Utils::Logger::LogType::ERROR,message);
 #define LOG_CRITICAL(message) FLOOF::Utils::Logger::s_Logger->log(FLOOF::Utils::Logger::LogType::CRITICAL,message);
+#define LOG_INFO(message) FLOOF::Utils::Logger::s_Logger->log(FLOOF::Utils::Logger::LogType::INFO,message);
 
 #endif //FLOOF_LOGGERMACROS_H

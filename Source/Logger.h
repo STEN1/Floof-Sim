@@ -8,11 +8,11 @@ namespace FLOOF {
             Logger(const char* logfile);
            ~Logger();
            enum LogType{
-               WARNING = 0,
+               INFO = 0,
+               WARNING,
                ERROR,
                CRITICAL,
                };
-           void log(const char* message);
            void log(LogType logtype, const char* message);
         private:
            const char* m_LogPath;

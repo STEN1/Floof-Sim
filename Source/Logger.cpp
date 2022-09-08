@@ -20,25 +20,25 @@ namespace FLOOF{
         std::string l{"Logs/"};
         l.append(logfile);
         std::ofstream clearfile(l, std::ios::trunc);
+        //time
+        std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        std::string s(30, '\0');
+        std::strftime(&s[0], s.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+        clearfile << s << "\n";
         clearfile.close();
     }
 
     Utils::Logger::~Logger() {
 
     }
-
-    void Utils::Logger::log(const char *message) {
-        log(LogType::WARNING, message);
-    }
-
     void Utils::Logger::log(Utils::Logger::LogType logtype, const char *message) {
         std::string output;
 
         //time
         std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
         std::string s(30, '\0');
-        std::strftime(&s[0], s.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
-
+       // std::strftime(&s[0], s.size(), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+        std::strftime(&s[0], s.size(), "%H:%M:%S", std::localtime(&now));
         output.append(s);
         //logtype
         switch (logtype) {
@@ -51,6 +51,9 @@ namespace FLOOF{
             case LogType::CRITICAL:
                 output.append(" Critical");
                 break;
+            case LogType::INFO:
+                output.append(" INFO");
+                break;
         }
         output.append("\t");
         output.append(message);
@@ -61,6 +64,7 @@ namespace FLOOF{
         if(stream.is_open()) {
             stream <<  output << "\n";
         }
+        std::cout << output << "\n";
         stream.close();
     }
 }
