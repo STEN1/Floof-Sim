@@ -164,4 +164,32 @@ namespace FLOOF {
 			vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 		}
 	}
+	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
+		Up = glm::vec3(0.f, 1.f, 0.f);
+		Forward = glm::vec3(0.f, 0.f, -1.f);
+	}
+	glm::mat4 CameraComponent::GetVP(float fov, float aspect, float near, float far) {
+		glm::mat4 view = glm::lookAt(Position, Position + Forward, Up);
+		glm::mat4 projection = glm::perspective(fov, aspect, near, far);
+		return projection * view;
+	}
+	void CameraComponent::MoveForward(float amount)	{
+		Position += Forward * amount;
+	}
+	void CameraComponent::MoveRight(float amount) {
+		glm::vec3 right = glm::normalize(glm::cross(Forward, Up));
+		Position += right * amount;
+	}
+	void CameraComponent::Pitch(float amount) {
+		if (amount == 0.f) return;
+		glm::vec3 right = glm::normalize(glm::cross(Forward, Up));
+		glm::mat4 rotation = glm::rotate(amount, right);
+		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
+	}
+	void CameraComponent::Yaw(float amount) {
+		if (amount == 0.f) return;
+		amount = -amount;
+		glm::mat4 rotation = glm::rotate(amount, Up);
+		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
+	}
 }
