@@ -7,11 +7,11 @@ namespace FLOOF {
             inline static Logger* s_Logger = nullptr;
             Logger(const char* logfile);
            ~Logger();
-           enum LogType{
+           enum LogType {
                WARNING = 0,
                ERROR,
                CRITICAL,
-               };
+           };
            void log(const char* message);
            void log(LogType logtype, const char* message);
         private:
