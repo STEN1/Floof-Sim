@@ -10,7 +10,7 @@
 #include <filesystem>
 
 namespace FLOOF{
-    Utils::Logger::Logger(const char *logfile) :m_LogPath(logfile){
+    Utils::Logger::Logger(const char *logfile) :m_LogPath(logfile) {
         //Creating File
         struct stat buffer;
         if (stat("Logs", &buffer) != 0) {
@@ -58,7 +58,7 @@ namespace FLOOF{
         std::string logpath = "Logs/";
         logpath.append(m_LogPath);
         std::ofstream stream(logpath,std::ios::out | std::ios::app);
-        if(stream.is_open()){
+        if(stream.is_open()) {
             stream <<  output << "\n";
         }
         stream.close();
