@@ -4,7 +4,7 @@
 
 #ifndef FLOOF_LOGGER_H
 #define FLOOF_LOGGER_H
-
+namespace FLOOF{
 namespace Utils{
 class Logger {
 public:
@@ -22,5 +22,5 @@ private:
 
 };
 }
-
+}
 #endif //FLOOF_LOGGER_H

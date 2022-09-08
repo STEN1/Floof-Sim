@@ -14,7 +14,7 @@ namespace FLOOF {
 		m_Window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
 		m_Renderer = new VulkanRenderer(m_Window);
 		Input::s_Window = m_Window;
-        Input::s_Logger = new Utils::Logger("Floof.log");
+        Input::s_Logger = new  Utils::Logger("Floof.log");
 	}
 
 	Application::~Application() {

@@ -8,7 +8,7 @@
 #include "Logger.h"
 #include <sys/stat.h>
 #include <filesystem>
-
+namespace FLOOF{
 Utils::Logger::Logger(const char *logfile) :m_LogPath(logfile){
     //Creating File
     struct stat buffer;
@@ -61,4 +61,5 @@ void Utils::Logger::log(Utils::Logger::LogType logtype, const char *message) {
         stream <<  output << "\n";
     }
     stream.close();
+}
 }
