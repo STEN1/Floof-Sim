@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include "Floof.h"
 #include "Math.h"
+#include "Logger.h"
 
 namespace FLOOF {
 	class Input {
@@ -18,5 +19,6 @@ namespace FLOOF {
 			return glm::vec2(x, y);
 		}
 		inline static GLFWwindow* s_Window = nullptr;
+        inline static Utils::Logger* s_Logger = nullptr;
 	};
 }
