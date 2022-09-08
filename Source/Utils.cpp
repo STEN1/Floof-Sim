@@ -5,6 +5,7 @@
 #include <fstream>
 
 static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::Vertex> &vertexData);
+static void pushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::Vertex> &vertexData);
 
 namespace FLOOF {
 	namespace Utils {
@@ -96,20 +97,28 @@ static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, 
         SubDivide(b, v3, v1, recursions - 1, vertexData);
         SubDivide(v3, v2, v1, recursions - 1, vertexData);
     } else {
-        FLOOF::Vertex v{};
-        // TODO: Calculate normals
-        v.pos.x = a.x;
-        v.pos.y = a.y;
-        v.pos.z = a.z;
-        vertexData.push_back(v);
-        v.pos.x = b.x;
-        v.pos.y = b.y;
-        v.pos.z = b.z;
-        vertexData.push_back(v);
-        v.pos.x = c.x;
-        v.pos.y = c.y;
-        v.pos.z = c.z;
-        vertexData.push_back(v);
+
+        pushVerts(a,b,c,vertexData);
     }
 }
 
+static void pushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::Vertex> &vertexData) {
+
+    glm::vec3 normal = glm::cross(b - a, c - a);
+    normal = glm::normalize(normal);
+    FLOOF::Vertex v{};
+
+    v.pos = a;
+    v.normal = normal;
+    vertexData.push_back(v);
+
+    FLOOF::Vertex vertB{};
+    v.pos = b;
+    v.normal = normal;
+    vertexData.push_back(v);
+
+    FLOOF::Vertex vertC{};
+    v.pos = c;
+    v.normal = normal;
+    vertexData.push_back(v);
+}
