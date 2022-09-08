@@ -133,6 +133,7 @@ namespace FLOOF {
 		IndexBuffer = renderer->CreateIndexBuffer(indexData);
 		VertexCount = vertexData.size();
 		IndexCount = indexData.size();
+
 	}
 	MeshComponent::MeshComponent(const std::vector<Vertex>& vertexData, const std::vector<uint32_t>& indexData)	{
 		auto* renderer = VulkanRenderer::Get();
