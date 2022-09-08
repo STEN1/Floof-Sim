@@ -11,7 +11,7 @@ namespace FLOOF {
 	Application::Application() {
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		m_Window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+		m_Window = glfwCreateWindow(1600, 900, "Vulkan window", nullptr, nullptr);
 		m_Renderer = new VulkanRenderer(m_Window);
 		Input::s_Window = m_Window;
         Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
@@ -69,7 +69,7 @@ namespace FLOOF {
 
 		{
 			m_CameraEntity = m_Registry.create();
-			glm::vec3 cameraPos(0.f, 10.f, -20.f);
+			glm::vec3 cameraPos(0.f, 15.f, -40.f);
 			m_Registry.emplace<CameraComponent>(m_CameraEntity, cameraPos);
 		}
 
