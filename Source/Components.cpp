@@ -135,7 +135,7 @@ namespace FLOOF {
 		IndexCount = indexData.size();
 
 	}
-	MeshComponent::MeshComponent(const std::vector<Vertex>& vertexData, const std::vector<uint32_t>& indexData)	{
+	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData, const std::vector<uint32_t>& indexData)	{
 		auto* renderer = VulkanRenderer::Get();
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
@@ -143,7 +143,7 @@ namespace FLOOF {
 		VertexCount = vertexData.size();
 		IndexCount = indexData.size();
 	}
-	MeshComponent::MeshComponent(const std::vector<Vertex>& vertexData)	{
+	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData)	{
 		auto* renderer = VulkanRenderer::Get();
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
@@ -192,6 +192,6 @@ namespace FLOOF {
 		glm::mat4 rotation = glm::rotate(-amount, Up);
 		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
 	}
-	TerrainComponent::TerrainComponent(const std::vector<Vertex>& vertexData) {
+	TerrainComponent::TerrainComponent(const std::vector<MeshVertex>& vertexData) {
 	}
 }

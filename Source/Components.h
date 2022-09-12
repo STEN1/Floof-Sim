@@ -20,8 +20,8 @@ namespace FLOOF {
 
 	struct MeshComponent {
 		MeshComponent(const std::string& objPath);
-		MeshComponent(const std::vector<Vertex>& vertexData, const std::vector<uint32_t>& indexData);
-		MeshComponent(const std::vector<Vertex>& vertexData);
+		MeshComponent(const std::vector<MeshVertex>& vertexData, const std::vector<uint32_t>& indexData);
+		MeshComponent(const std::vector<MeshVertex>& vertexData);
 		~MeshComponent();
 
 		void Draw(VkCommandBuffer commandBuffer);
@@ -55,7 +55,7 @@ namespace FLOOF {
 	};
 
 	struct TerrainComponent {
-		TerrainComponent(const std::vector<Vertex>& vertexData);
+		TerrainComponent(const std::vector<MeshVertex>& vertexData);
 		std::vector<Triangle> TerrainTriangles;
 	};
 

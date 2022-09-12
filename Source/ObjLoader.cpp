@@ -111,11 +111,11 @@ std::pair<std::vector<float>, uint32_t> ObjLoader::GetVertexData()
 }
 
 
-std::pair<std::vector<FLOOF::Vertex>, std::vector<uint32_t>> ObjLoader::GetIndexedData()
+std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> ObjLoader::GetIndexedData()
 {
 	std::vector<ObjLoader::F> builtF;
 	int largestIndex{};
-	std::vector<FLOOF::Vertex> vertexData;
+	std::vector<FLOOF::MeshVertex> vertexData;
 	std::vector<uint32_t> indexData;
 	
 	for (int i = 0; i < m_f.size(); i++)
@@ -123,7 +123,7 @@ std::pair<std::vector<FLOOF::Vertex>, std::vector<uint32_t>> ObjLoader::GetIndex
 		int index = GetIndexFromF(m_f[i], builtF);
 		if (index == -1) // build vertex data and add index
 		{
-			FLOOF::Vertex vertex;
+			FLOOF::MeshVertex vertex;
 			vertex.Pos = glm::vec3(m_v[m_f[i].v * 3], m_v[m_f[i].v * 3 + 1], m_v[m_f[i].v * 3 + 2]);
 			vertex.Normal = glm::vec3(m_vn[m_f[i].vn * 3], m_vn[m_f[i].vn * 3 + 1], m_vn[m_f[i].vn * 3 + 2]);
 			vertex.UV = glm::vec2(m_vt[m_f[i].vt * 2], m_vt[m_f[i].vt * 2 + 1]);
