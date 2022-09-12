@@ -21,6 +21,10 @@ namespace FLOOF {
         glm::mat4 InvModelMat;
 	};
 
+	struct LinePushConstants {
+		glm::mat4 MVP;
+	};
+
 	struct VulkanBuffer {
 		VkBuffer Buffer = VK_NULL_HANDLE;
 		VmaAllocation Allocation = VK_NULL_HANDLE;
@@ -68,6 +72,7 @@ namespace FLOOF {
 		RenderPipelineKeys Key;
 		std::string FragmentPath;
 		std::string VertexPath;
+		VkPolygonMode PolygonMode;
 	};
 
 	class VulkanRenderer {
@@ -89,7 +94,7 @@ namespace FLOOF {
 		void BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key);
 
 		static VulkanRenderer* Get() { return s_Singleton; }
-		VulkanBuffer CreateVertexBuffer(const std::vector<Vertex>& vertices);
+		VulkanBuffer CreateVertexBuffer(const std::vector<MeshVertex>& vertices);
 		VulkanBuffer CreateIndexBuffer(const std::vector<uint32_t>& indices);
 		void DestroyVulkanBuffer(VulkanBuffer* buffer);
 	private:

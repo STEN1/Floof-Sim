@@ -9,11 +9,11 @@
 
 namespace FLOOF {
 	namespace Utils {
-        static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::Vertex> &vertexData);
-        static void PushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::Vertex> &vertexData);
+        static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::MeshVertex> &vertexData);
+        static void PushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::MeshVertex> &vertexData);
 
-		std::vector<Vertex> GetVisimVertexData(const std::string& path) {
-			std::vector<Vertex> vertexData;
+		std::vector<MeshVertex> GetVisimVertexData(const std::string& path) {
+			std::vector<MeshVertex> vertexData;
 
 			std::ifstream file(path);
 			if (!file.is_open()) {
@@ -26,7 +26,7 @@ namespace FLOOF {
             std::string s;
             std::getline(file, s);
 			vertexData.resize(vertexCount);
-			for (Vertex& vertex : vertexData) {
+			for (MeshVertex& vertex : vertexData) {
                 std::string line;
                 std::getline(file, line);
                 std::stringstream ss(line);
@@ -36,9 +36,9 @@ namespace FLOOF {
 			}
 
 			for (uint32_t i = 2; i < vertexData.size(); i += 3) {
-				Vertex& a = vertexData[i - 2];
-				Vertex& b = vertexData[i - 1];
-				Vertex& c = vertexData[i - 0];
+				MeshVertex& a = vertexData[i - 2];
+				MeshVertex& b = vertexData[i - 1];
+				MeshVertex& c = vertexData[i - 0];
 
 				glm::vec3 ab = b.Pos - a.Pos;
 				glm::vec3 ac = c.Pos - a.Pos;
@@ -60,9 +60,9 @@ namespace FLOOF {
             return vertexData;
 		}
 
-        std::vector<Vertex> MakeBall(int recursions, int radius) {
+        std::vector<MeshVertex> MakeBall(int recursions, int radius) {
             int r = radius;
-            std::vector<Vertex> vertexData;
+            std::vector<MeshVertex> vertexData;
 
             glm::vec3 v0{0,0,r};
             glm::vec3 v1{r,0,0};
@@ -82,7 +82,7 @@ namespace FLOOF {
 
             return { vertexData };
         }
-        static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::Vertex> &vertexData) {
+        static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::MeshVertex> &vertexData) {
             if (recursions > 0) {
                 glm::vec3 v1 = glm::normalize(a + b);
                 glm::vec3 v2 = glm::normalize(a + c);
@@ -98,21 +98,21 @@ namespace FLOOF {
             }
         }
 
-        static void PushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::Vertex> &vertexData) {
+        static void PushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::MeshVertex> &vertexData) {
             glm::vec3 normal = glm::cross(b - a, c - a);
             normal = glm::normalize(normal);
-            FLOOF::Vertex v{};
+            FLOOF::MeshVertex v{};
 
             v.Pos = a;
             v.Normal = normal;
             vertexData.push_back(v);
 
-            FLOOF::Vertex vertB{};
+            FLOOF::MeshVertex vertB{};
             v.Pos = b;
             v.Normal = normal;
             vertexData.push_back(v);
 
-            FLOOF::Vertex vertC{};
+            FLOOF::MeshVertex vertC{};
             v.Pos = c;
             v.Normal = normal;
             vertexData.push_back(v);

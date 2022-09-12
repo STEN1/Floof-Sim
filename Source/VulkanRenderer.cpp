@@ -24,6 +24,7 @@ namespace FLOOF {
             params.FragmentPath = "Shaders/Basic.frag.spv";
             params.VertexPath = "Shaders/Basic.vert.spv";
             params.Key = RenderPipelineKeys::Basic;
+            params.PolygonMode = VK_POLYGON_MODE_FILL;
             InitGraphicsPipeline(params);
         }
         InitDescriptorPools();
@@ -183,8 +184,8 @@ namespace FLOOF {
         vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipelines[Key]);
     }
 
-    VulkanBuffer VulkanRenderer::CreateVertexBuffer(const std::vector<Vertex>& vertices) {
-        std::size_t size = sizeof(Vertex) * vertices.size();
+    VulkanBuffer VulkanRenderer::CreateVertexBuffer(const std::vector<MeshVertex>& vertices) {
+        std::size_t size = sizeof(MeshVertex) * vertices.size();
         VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
         bufferInfo.size = size;
         bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -661,25 +662,25 @@ namespace FLOOF {
     }
 
     void VulkanRenderer::InitGraphicsPipeline(const RenderPipelineParams& params) {
-        auto BasicVert = MakeShaderModule(params.VertexPath.c_str());
-        auto BasicFrag = MakeShaderModule(params.FragmentPath.c_str());
+        auto vertShader = MakeShaderModule(params.VertexPath.c_str());
+        auto fragShader = MakeShaderModule(params.FragmentPath.c_str());
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = BasicVert;
+        vertShaderStageInfo.module = vertShader;
         vertShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
         fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = BasicFrag;
+        fragShaderStageInfo.module = fragShader;
         fragShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
-        auto bindDescription = Vertex::GetBindingDescription();
-        auto attributeDescriptions = Vertex::GetAttributeDescriptions();
+        auto bindDescription = MeshVertex::GetBindingDescription();
+        auto attributeDescriptions = MeshVertex::GetAttributeDescriptions();
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -712,7 +713,7 @@ namespace FLOOF {
         rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         rasterizer.depthClampEnable = VK_FALSE;
         rasterizer.rasterizerDiscardEnable = VK_FALSE;
-        rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizer.polygonMode = params.PolygonMode;
         rasterizer.lineWidth = 1.0f;
         rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
         rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
@@ -812,8 +813,8 @@ namespace FLOOF {
         VkResult gplResult = vkCreateGraphicsPipelines(m_LogicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipelines[params.Key]);
         ASSERT(gplResult == VK_SUCCESS);
 
-        vkDestroyShaderModule(m_LogicalDevice, BasicVert, nullptr);
-        vkDestroyShaderModule(m_LogicalDevice, BasicFrag, nullptr);
+        vkDestroyShaderModule(m_LogicalDevice, vertShader, nullptr);
+        vkDestroyShaderModule(m_LogicalDevice, fragShader, nullptr);
         LOG("Render pipeline created.\n");
     }
 

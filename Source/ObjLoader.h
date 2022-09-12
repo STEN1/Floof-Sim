@@ -12,7 +12,7 @@ public:
 	ObjLoader(const std::string& path);
 
 	std::pair<std::vector<float>, uint32_t> GetVertexData();
-	std::pair<std::vector<FLOOF::Vertex>, std::vector<uint32_t>> GetIndexedData();
+	std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> GetIndexedData();
 
 	std::string Name;
 private:

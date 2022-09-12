@@ -6,8 +6,8 @@
 
 namespace FLOOF {
 	namespace Utils {
-		std::vector<Vertex> GetVisimVertexData(const std::string& path);
-        std::vector<Vertex> MakeBall(int recursions, int radius);
+		std::vector<MeshVertex> GetVisimVertexData(const std::string& path);
+        std::vector<MeshVertex> MakeBall(int recursions, int radius);
 		glm::vec3 CalcBarycentric(glm::vec3 position, const Triangle& triangle);
     }
 }
