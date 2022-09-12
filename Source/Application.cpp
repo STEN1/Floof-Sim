@@ -174,6 +174,7 @@ namespace FLOOF {
 				mesh.Draw(commandBuffer);
 			}
             {
+                m_Renderer->BindGraphicsPipeline(commandBuffer,RenderPipelineKeys::Line);
                 auto view = m_Registry.view<TransformComponent, LineMeshComponent>();
                 for (auto [entity, transform,lineMesh] : view.each()) {
                     LinePushConstants constants;
