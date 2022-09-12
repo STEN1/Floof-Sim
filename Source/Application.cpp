@@ -164,7 +164,7 @@ namespace FLOOF {
 		{	// Update camera.
 			auto view = m_Registry.view<CameraComponent>();
 			for (auto [entity, camera] : view.each()) {
-				static constexpr float speed = 10.f;
+				static constexpr float speed = 20.f;
 				float moveAmount = speed * deltaTime;
 				if (Input::Key(GLFW_KEY_W) == GLFW_PRESS) {
 					camera.MoveForward(moveAmount);
@@ -183,7 +183,8 @@ namespace FLOOF {
 				glm::vec2 mouseDelta = mousePos - oldMousePos;
 				oldMousePos = mousePos;
 				static constexpr float mouseSpeed = 0.002f;
-				if (Input::MouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
+				if (Input::MouseButton(GLFW_MOUSE_BUTTON_2) == GLFW_PRESS
+					|| Input::Key(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
 					camera.Yaw(mouseDelta.x * mouseSpeed);
 					camera.Pitch(mouseDelta.y * mouseSpeed);
 				}
