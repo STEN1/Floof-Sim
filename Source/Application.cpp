@@ -99,7 +99,7 @@ namespace FLOOF {
         {
             const auto ballEntity = m_Registry.create();
             auto & transform = m_Registry.emplace<TransformComponent>(ballEntity);
-            auto & ball  = m_Registry.emplace<BallCompoonent>(ballEntity);
+            auto & ball  = m_Registry.emplace<BallComponent>(ballEntity);
             ball.Radius = 1.f;
             auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
             m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
@@ -184,16 +184,23 @@ namespace FLOOF {
             triangle.B = glm::vec3(0.0,0.0,1.0);
             triangle.C = glm::vec3(1.0,0.0,0.0);
             triangle.N = glm::cross(triangle.B-triangle.A,triangle.C-triangle.A);
-            auto view = m_Registry.view<TransformComponent, BallCompoonent,VelocityComponent>();
+            auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
             for (auto [entiry, transform, ball,velocity] : view.each()) {
                //TODO find triangle under ball
-                velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball.Radius,velocity.Velocity);
+                velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity);
                 break;
             }
             {
+                const float slowMotionModifier{200.f};
                 auto view = m_Registry.view<TransformComponent,VelocityComponent>();
                 for(auto [entity,transform,velocity] : view.each()){
-                    transform.Position += velocity.Velocity * static_cast<float>(deltaTime);
+                    transform.Position += velocity.Velocity * static_cast<float>(deltaTime)/slowMotionModifier;
+
+                    //teleport to top if falls under -20
+                    if(transform.Position.y < -20.f){
+                        transform.Position.y = 100.f;
+                    }
+
                 }
             }
         }
