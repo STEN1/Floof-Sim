@@ -58,4 +58,7 @@ namespace FLOOF {
 		TerrainComponent(const std::vector<Vertex>& vertexData);
 		std::vector<Triangle> TerrainTriangles;
 	};
+
+
 }
+

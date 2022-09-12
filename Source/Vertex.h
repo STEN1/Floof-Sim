@@ -44,10 +44,10 @@ namespace FLOOF {
 			return attributeDescriptions;
 		}
 	};
-
-	struct Triangle {
-		Vertex A;
-		Vertex B;
-		Vertex C;
-	};
+    struct Triangle{
+        glm::vec3 a;
+        glm::vec3 b;
+        glm::vec3 c;
+        glm::vec3 N;
+    };
 }

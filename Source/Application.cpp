@@ -138,6 +138,7 @@ namespace FLOOF {
 	}
 	void Application::Simulate(double deltaTime) {
 
+
 	}
 	void Application::Draw() {
 		auto* renderer = VulkanRenderer::Get();
