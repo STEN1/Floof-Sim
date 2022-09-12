@@ -211,5 +211,18 @@ namespace FLOOF {
 		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
 	}
 	TerrainComponent::TerrainComponent(const std::vector<MeshVertex>& vertexData) {
+		for (uint32_t i = 2; i < vertexData.size(); i++) {
+			Triangle tri;
+			tri.A = vertexData[i - 2].Pos;
+			tri.B = vertexData[i - 1].Pos;
+			tri.C = vertexData[i - 0].Pos;
+
+			glm::vec3 ab = tri.B - tri.A;
+			glm::vec3 ac = tri.C - tri.A;
+
+			tri.N = glm::normalize(glm::cross(ab, ac));
+
+			Triangles.push_back(tri);
+		}
 	}
 }

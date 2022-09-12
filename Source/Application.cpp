@@ -35,11 +35,25 @@ namespace FLOOF {
 	int Application::Run() {
 		{
 			m_TerrainEntity = m_Registry.create();
-			m_Registry.emplace<TransformComponent>(m_TerrainEntity);
+			auto& terrainTransform = m_Registry.emplace<TransformComponent>(m_TerrainEntity);
 			auto vertexData = Utils::GetVisimVertexData("Assets/SimTerrain.visim");
-			m_Registry.emplace<TerrainComponent>(m_TerrainEntity, vertexData);
+			auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
+
+			for (auto& tri : terrain.Triangles) {
+				const auto entity = m_Registry.create();
+				auto& transform = m_Registry.emplace<TransformComponent>(entity);
+				transform = terrainTransform;
+				std::vector<LineVertex> line(2);
+				LineVertex v;
+				v.Pos = (tri.A + tri.B + tri.C) / 3.f;
+				line[0] = v;
+				v.Pos += tri.N * 5.f;
+				line[1] = v;
+				auto& mesh = m_Registry.emplace<LineMeshComponent>(entity, line);
+				mesh.Color = glm::vec4(1.f, 0.f, 1.f, 1.f);
+			}
 		}
         {
             const auto entity = m_Registry.create();
