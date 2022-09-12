@@ -75,8 +75,11 @@ namespace FLOOF {
 		std::string FragmentPath;
 		std::string VertexPath;
 		VkPolygonMode PolygonMode;
+		VkPrimitiveTopology Topology;
 		VkVertexInputBindingDescription BindingDescription;
 		std::vector<VkVertexInputAttributeDescription> AttributeDescriptions;
+		uint32_t PushConstantSize;
+		std::vector<VkDescriptorSetLayoutBinding> DescriptorSetLayoutBindings;
 	};
 
 	class VulkanRenderer {
@@ -89,7 +92,7 @@ namespace FLOOF {
 
 		uint32_t GetNextSwapchainImage();
 		VkExtent2D GetExtent() { return m_SwapChainExtent; }
-		VkPipelineLayout GetPipelineLayout() { return m_PipelineLayout; }
+		VkPipelineLayout GetPipelineLayout(RenderPipelineKeys key) { return m_PipelineLayouts[key]; }
 
 		VkCommandBuffer StartRecording();
 		void EndRecording();
@@ -203,7 +206,7 @@ namespace FLOOF {
 		VkPhysicalDeviceFeatures m_PhysicalDeviceFeatures;
 		VmaAllocator m_Allocator;
 
-		VkDescriptorSetLayout m_DescriptorSetLayout;
+		std::unordered_map<RenderPipelineKeys, VkDescriptorSetLayout> m_DescriptorSetLayouts;
 
 		VkQueue m_GraphicsQueue;
 		VkQueue m_PresentQueue;
@@ -214,7 +217,7 @@ namespace FLOOF {
 		VkExtent2D m_SwapChainExtent;
 
 		VkRenderPass m_RenderPass;
-		VkPipelineLayout m_PipelineLayout;
+		std::unordered_map<RenderPipelineKeys, VkPipelineLayout> m_PipelineLayouts;
 		std::unordered_map<RenderPipelineKeys, VkPipeline> m_GraphicsPipelines;
 		VkCommandPool m_CommandPool;
 		std::vector<VkCommandBuffer> m_CommandBuffers;

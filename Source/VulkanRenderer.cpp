@@ -25,8 +25,15 @@ namespace FLOOF {
             params.VertexPath = "Shaders/Basic.vert.spv";
             params.Key = RenderPipelineKeys::Basic;
             params.PolygonMode = VK_POLYGON_MODE_FILL;
+            params.Topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             params.BindingDescription = MeshVertex::GetBindingDescription();
             params.AttributeDescriptions = MeshVertex::GetAttributeDescriptions();
+            params.PushConstantSize = sizeof(MeshPushConstants);
+            params.DescriptorSetLayoutBindings.resize(1);
+            params.DescriptorSetLayoutBindings[0].binding = 0;
+            params.DescriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            params.DescriptorSetLayoutBindings[0].descriptorCount = 1;
+            params.DescriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
             InitGraphicsPipeline(params);
         }
         {
@@ -36,8 +43,10 @@ namespace FLOOF {
             params.VertexPath = "Shaders/Line.vert.spv";
             params.Key = RenderPipelineKeys::Line;
             params.PolygonMode = VK_POLYGON_MODE_LINE;
+            params.Topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
             params.BindingDescription = LineVertex::GetBindingDescription();
             params.AttributeDescriptions = LineVertex::GetAttributeDescriptions();
+            params.PushConstantSize = sizeof(LinePushConstants);
             InitGraphicsPipeline(params);
         }
         InitDescriptorPools();
@@ -61,11 +70,15 @@ namespace FLOOF {
         }
         vkDestroyDescriptorPool(m_LogicalDevice, m_TextureDescriptorPool, nullptr);
         vkDestroyCommandPool(m_LogicalDevice, m_CommandPool, nullptr);
-        vkDestroyDescriptorSetLayout(m_LogicalDevice, m_DescriptorSetLayout, nullptr);
+        for (auto& [key, val] : m_DescriptorSetLayouts) {
+            vkDestroyDescriptorSetLayout(m_LogicalDevice, val, nullptr);
+        }
         for (auto& [key, val] : m_GraphicsPipelines) {
             vkDestroyPipeline(m_LogicalDevice, val, nullptr);
         }
-        vkDestroyPipelineLayout(m_LogicalDevice, m_PipelineLayout, nullptr);
+        for (auto& [key, val] : m_PipelineLayouts) {
+            vkDestroyPipelineLayout(m_LogicalDevice, val, nullptr);
+        }
         vkDestroyRenderPass(m_LogicalDevice, m_RenderPass, nullptr);
 
         vkDestroyDevice(m_LogicalDevice, nullptr);
@@ -668,7 +681,7 @@ namespace FLOOF {
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        inputAssembly.topology = params.Topology;
         inputAssembly.primitiveRestartEnable = VK_FALSE;
 
         std::vector<VkDynamicState> dynamicStates = {
@@ -735,31 +748,25 @@ namespace FLOOF {
 
         VkPushConstantRange pushConstants{};
         pushConstants.offset = 0;
-        pushConstants.size = sizeof(MeshPushConstants);
+        pushConstants.size = params.PushConstantSize;
         pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-        VkDescriptorSetLayoutBinding descriptorSetLayoutBinding{};
-        descriptorSetLayoutBinding.binding = 0;
-        descriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptorSetLayoutBinding.descriptorCount = 1;
-        descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
         descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         descriptorSetLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
-        descriptorSetLayoutCreateInfo.bindingCount = 1;
-        descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
+        descriptorSetLayoutCreateInfo.bindingCount = params.DescriptorSetLayoutBindings.size();
+        descriptorSetLayoutCreateInfo.pBindings = params.DescriptorSetLayoutBindings.data();
 
-        vkCreateDescriptorSetLayout(m_LogicalDevice, &descriptorSetLayoutCreateInfo, nullptr, &m_DescriptorSetLayout);
+        vkCreateDescriptorSetLayout(m_LogicalDevice, &descriptorSetLayoutCreateInfo, nullptr, &m_DescriptorSetLayouts[params.Key]);
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &m_DescriptorSetLayout;
+        pipelineLayoutInfo.pSetLayouts = &m_DescriptorSetLayouts[params.Key];
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = &pushConstants;
 
-        VkResult plResult = vkCreatePipelineLayout(m_LogicalDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
+        VkResult plResult = vkCreatePipelineLayout(m_LogicalDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayouts[params.Key]);
         ASSERT(plResult == VK_SUCCESS);
 
         VkPipelineDepthStencilStateCreateInfo depthStencilStateInfo = { VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
@@ -781,7 +788,7 @@ namespace FLOOF {
         pipelineInfo.pDepthStencilState = &depthStencilStateInfo;
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
-        pipelineInfo.layout = m_PipelineLayout;
+        pipelineInfo.layout = m_PipelineLayouts[params.Key];
         pipelineInfo.renderPass = m_RenderPass;
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
@@ -1130,7 +1137,7 @@ namespace FLOOF {
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = m_TextureDescriptorPool;
         allocInfo.descriptorSetCount = 1;
-        allocInfo.pSetLayouts = &m_DescriptorSetLayout; // should probably be gotten from pipeline abstraction.
+        allocInfo.pSetLayouts = &m_DescriptorSetLayouts[RenderPipelineKeys::Basic]; // should probably be gotten from pipeline abstraction.
         VkResult result = vkAllocateDescriptorSets(m_LogicalDevice, &allocInfo, &textureDescriptorSet);
         ASSERT(result == VK_SUCCESS);
         return textureDescriptorSet;

@@ -122,7 +122,7 @@ namespace FLOOF {
 	void TextureComponent::Bind(VkCommandBuffer commandBuffer) {
 		auto renderer = VulkanRenderer::Get();
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->GetPipelineLayout(),
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->GetPipelineLayout(RenderPipelineKeys::Basic),
 			0, 1, &DesctriptorSet, 0, 0);
 	}
 	MeshComponent::MeshComponent(const std::string& path) {
