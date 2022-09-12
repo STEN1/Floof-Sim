@@ -165,6 +165,22 @@ namespace FLOOF {
 			vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 		}
 	}
+	LineMeshComponent::LineMeshComponent(const std::vector<LineVertex>& vertexData) {
+		auto renderer = VulkanRenderer::Get();
+
+		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		VertexCount = vertexData.size();
+	}
+	LineMeshComponent::~LineMeshComponent() {
+		auto renderer = VulkanRenderer::Get();
+
+		vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
+	}
+	void LineMeshComponent::Draw(VkCommandBuffer commandBuffer) {
+		auto renderer = VulkanRenderer::Get();
+
+		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
+	}
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
 		Up = glm::vec3(0.f, -1.f, 0.f);
 		Forward = glm::vec3(0.f, 0.f, 1.f);

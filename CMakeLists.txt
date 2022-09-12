@@ -3,28 +3,31 @@ project (Floof)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Floof 
-	"Source/Floof.cpp"
-	"Source/Floof.h"
-	"Source/VulkanRenderer.h"
-	"Source/VulkanRenderer.cpp"
-	"Source/VulkanAllocator.cpp"
-	"Source/Application.h"
-	"Source/Application.cpp"
-	"Source/Timer.h"
-	"Source/ObjLoader.h"
-	"Source/ObjLoader.cpp"
-	"Source/Vertex.h"
-	"Source/stb_image.h"
-	"Source/stb_image.cpp"
-	"Source/Components.h"
-	"Source/Math.h"
-	"Source/Components.cpp"
-	"Source/Input.h" 
-	"Source/Utils.h" 
-	"Source/Utils.cpp"
-		Source/Logger.cpp
-		Source/Logger.h
-		Source/LoggerMacros.h Source/Physics/Physics.cpp Source/Physics/Physics.h)
+	Source/Floof.cpp
+	Source/Floof.h
+	Source/VulkanRenderer.h
+	Source/VulkanRenderer.cpp
+	Source/VulkanAllocator.cpp
+	Source/Application.h
+	Source/Application.cpp
+	Source/Timer.h
+	Source/ObjLoader.h
+	Source/ObjLoader.cpp
+	Source/Vertex.h
+	Source/stb_image.h
+	Source/stb_image.cpp
+	Source/Components.h
+	Source/Math.h
+	Source/Components.cpp
+	Source/Input.h
+	Source/Utils.h
+	Source/Utils.cpp
+	Source/Logger.cpp
+	Source/Logger.h
+	Source/LoggerMacros.h 
+	Source/Physics/Physics.cpp 
+	Source/Physics/Physics.h
+)
 
 
 find_package(Vulkan REQUIRED)
@@ -45,6 +48,8 @@ target_include_directories(Floof PUBLIC "Libs/HeaderOnly")
 
 exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.vert -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.vert.spv")
 exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.frag -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.frag.spv")
+exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Line.vert -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Line.vert.spv")
+exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Line.frag -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Line.frag.spv")
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

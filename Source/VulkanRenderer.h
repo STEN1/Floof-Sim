@@ -13,6 +13,7 @@
 #include "Vertex.h"
 
 #include <unordered_map>
+#include <memory>
 
 namespace FLOOF {
 
@@ -23,6 +24,7 @@ namespace FLOOF {
 
 	struct LinePushConstants {
 		glm::mat4 MVP;
+		glm::vec4 Color;
 	};
 
 	struct VulkanBuffer {
@@ -55,7 +57,7 @@ namespace FLOOF {
 	enum class RenderPipelineKeys : uint32_t {
 		None = 0,
 		Basic = 1,
-		Lines = 2,
+		Line = 2,
 		Lit = 3,
 	};
 
@@ -73,11 +75,14 @@ namespace FLOOF {
 		std::string FragmentPath;
 		std::string VertexPath;
 		VkPolygonMode PolygonMode;
+		VkVertexInputBindingDescription BindingDescription;
+		std::vector<VkVertexInputAttributeDescription> AttributeDescriptions;
 	};
 
 	class VulkanRenderer {
 		friend class TextureComponent;
 		friend class MeshComponent;
+		friend class LineMeshComponent;
 	public:
 		VulkanRenderer(GLFWwindow* window);
 		~VulkanRenderer();
@@ -94,7 +99,40 @@ namespace FLOOF {
 		void BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key);
 
 		static VulkanRenderer* Get() { return s_Singleton; }
-		VulkanBuffer CreateVertexBuffer(const std::vector<MeshVertex>& vertices);
+
+		template<typename VertexType>
+		VulkanBuffer CreateVertexBuffer(const std::vector<VertexType>& vertices) {
+			std::size_t size = sizeof(MeshVertex) * vertices.size();
+			VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+			bufferInfo.size = size;
+			bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+			VmaAllocationCreateInfo allocInfo = {};
+			allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+			allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+				VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+			VulkanBuffer stagingBuffer{};
+			vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
+				&stagingBuffer.Buffer, &stagingBuffer.Allocation, &stagingBuffer.AllocationInfo);
+
+			memcpy(stagingBuffer.AllocationInfo.pMappedData, vertices.data(), size);
+			// No need to free stagingVertexBuffer memory because CPU_ONLY memory is always HOST_COHERENT.
+			// Gets deleted in vmaDestroyBuffer call.
+
+			bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+			allocInfo.flags = 0;
+			VulkanBuffer vertexBuffer{};
+			vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
+				&vertexBuffer.Buffer, &vertexBuffer.Allocation, &vertexBuffer.AllocationInfo);
+
+			CopyBuffer(stagingBuffer.Buffer, vertexBuffer.Buffer, size);
+
+			vmaDestroyBuffer(m_Allocator, stagingBuffer.Buffer, stagingBuffer.Allocation);
+
+			return vertexBuffer;
+		}
 		VulkanBuffer CreateIndexBuffer(const std::vector<uint32_t>& indices);
 		void DestroyVulkanBuffer(VulkanBuffer* buffer);
 	private:

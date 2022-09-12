@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <array>
+#include <vector>
 
 #include "Math.h"
 
@@ -17,6 +17,7 @@ namespace FLOOF {
 
 		static VkVertexInputBindingDescription GetBindingDescription() {
 			VkVertexInputBindingDescription bindingDescription{};
+
 			bindingDescription.binding = 0;
 			bindingDescription.stride = sizeof(MeshVertex);
 			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -24,8 +25,9 @@ namespace FLOOF {
 			return bindingDescription;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions() {
-			std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+		static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions() {
+			std::vector<VkVertexInputAttributeDescription> attributeDescriptions(3);
+
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
 			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -44,6 +46,32 @@ namespace FLOOF {
 			return attributeDescriptions;
 		}
 	};
+
+	struct LineVertex {
+		glm::vec3 Pos;
+
+		static VkVertexInputBindingDescription GetBindingDescription() {
+			VkVertexInputBindingDescription bindingDescription{};
+
+			bindingDescription.binding = 0;
+			bindingDescription.stride = sizeof(LineVertex);
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+			return bindingDescription;
+		}
+
+		static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions() {
+			std::vector<VkVertexInputAttributeDescription> attributeDescriptions(1);
+
+			attributeDescriptions[0].binding = 0;
+			attributeDescriptions[0].location = 0;
+			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[0].offset = offsetof(LineVertex, Pos);
+
+			return attributeDescriptions;
+		}
+	};
+
     struct Triangle {
         glm::vec3 A;
         glm::vec3 B;

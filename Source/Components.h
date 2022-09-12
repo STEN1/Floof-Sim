@@ -32,6 +32,16 @@ namespace FLOOF {
 		uint32_t IndexCount{};
 	};
 
+	struct LineMeshComponent {
+		LineMeshComponent(const std::vector<LineVertex>& vertexData);
+		~LineMeshComponent();
+
+		void Draw(VkCommandBuffer commandBuffer);
+
+		VulkanBuffer VertexBuffer{};
+		uint32_t VertexCount{};
+	};
+
 	struct TextureComponent {
 		TextureComponent(const std::string& path);
 		~TextureComponent();

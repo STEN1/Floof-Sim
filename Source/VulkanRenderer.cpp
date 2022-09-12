@@ -25,6 +25,19 @@ namespace FLOOF {
             params.VertexPath = "Shaders/Basic.vert.spv";
             params.Key = RenderPipelineKeys::Basic;
             params.PolygonMode = VK_POLYGON_MODE_FILL;
+            params.BindingDescription = MeshVertex::GetBindingDescription();
+            params.AttributeDescriptions = MeshVertex::GetAttributeDescriptions();
+            InitGraphicsPipeline(params);
+        }
+        {
+            RenderPipelineParams params;
+            params.Flags = RenderPipelineFlags::AlphaBlend | RenderPipelineFlags::DepthPass;
+            params.FragmentPath = "Shaders/Line.frag.spv";
+            params.VertexPath = "Shaders/Line.vert.spv";
+            params.Key = RenderPipelineKeys::Line;
+            params.PolygonMode = VK_POLYGON_MODE_LINE;
+            params.BindingDescription = LineVertex::GetBindingDescription();
+            params.AttributeDescriptions = LineVertex::GetAttributeDescriptions();
             InitGraphicsPipeline(params);
         }
         InitDescriptorPools();
@@ -182,39 +195,6 @@ namespace FLOOF {
 
     void VulkanRenderer::BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key) {
         vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipelines[Key]);
-    }
-
-    VulkanBuffer VulkanRenderer::CreateVertexBuffer(const std::vector<MeshVertex>& vertices) {
-        std::size_t size = sizeof(MeshVertex) * vertices.size();
-        VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-        bufferInfo.size = size;
-        bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-        VmaAllocationCreateInfo allocInfo = {};
-        allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
-        allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
-            VMA_ALLOCATION_CREATE_MAPPED_BIT;
-
-        VulkanBuffer stagingBuffer{};
-        vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
-            &stagingBuffer.Buffer, &stagingBuffer.Allocation, &stagingBuffer.AllocationInfo);
-
-        memcpy(stagingBuffer.AllocationInfo.pMappedData, vertices.data(), size);
-        // No need to free stagingVertexBuffer memory because CPU_ONLY memory is always HOST_COHERENT.
-        // Gets deleted in vmaDestroyBuffer call.
-
-        bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        allocInfo.flags = 0;
-        VulkanBuffer vertexBuffer{};
-        vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo,
-            &vertexBuffer.Buffer, &vertexBuffer.Allocation, &vertexBuffer.AllocationInfo);
-
-        CopyBuffer(stagingBuffer.Buffer, vertexBuffer.Buffer, size);
-
-        vmaDestroyBuffer(m_Allocator, stagingBuffer.Buffer, stagingBuffer.Allocation);
-
-        return vertexBuffer;
     }
 
     VulkanBuffer VulkanRenderer::CreateIndexBuffer(const std::vector<uint32_t>& indices) {
@@ -679,15 +659,12 @@ namespace FLOOF {
 
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
-        auto bindDescription = MeshVertex::GetBindingDescription();
-        auto attributeDescriptions = MeshVertex::GetAttributeDescriptions();
-
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.pVertexBindingDescriptions = &bindDescription;
-        vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
-        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+        vertexInputInfo.pVertexBindingDescriptions = &params.BindingDescription;
+        vertexInputInfo.vertexAttributeDescriptionCount = params.AttributeDescriptions.size();
+        vertexInputInfo.pVertexAttributeDescriptions = params.AttributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
