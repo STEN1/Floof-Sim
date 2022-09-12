@@ -41,7 +41,19 @@ namespace FLOOF {
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
 		}
+        {
+            const auto entity = m_Registry.create();
+            m_Registry.emplace<TransformComponent>(entity);
 
+            //line mesh componenet
+            std::vector<LineVertex> lines;
+            LineVertex line;
+            line.Pos = glm::vec3();
+            lines.push_back(line);
+            line.Pos = glm::vec3(0.0,100.0,0.0);
+            lines.push_back(line);
+            m_Registry.emplace<LineMeshComponent>(entity, lines);
+        }
 		{
 			const auto treeEntity = m_Registry.create();
 			m_Registry.emplace<TransformComponent>(treeEntity);
@@ -161,6 +173,17 @@ namespace FLOOF {
 				texture.Bind(commandBuffer);
 				mesh.Draw(commandBuffer);
 			}
+            {
+                auto view = m_Registry.view<TransformComponent, LineMeshComponent>();
+                for (auto [entity, transform,lineMesh] : view.each()) {
+                    LinePushConstants constants;
+                    constants.MVP = vp * transform.GetTransform();
+                    constants.Color = glm::vec4(0.0,1.0,0.0,1.0);
+                    vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT,
+                                       0, sizeof(LinePushConstants), &constants);
+                    lineMesh.Draw(commandBuffer);
+                }
+            }
 		}
 
 		m_Renderer->EndRecording();
