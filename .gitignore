@@ -3,6 +3,8 @@ out/
 build/
 cmake-build-debug/
 /.idea
+Debug/
+Build/
 
 # C++ objects and libs
 *.slo
@@ -75,6 +77,7 @@ compile_commands.json
 
 # MacOS spam
 .DS_Store
+Floof.xcodeproj/
 
 #Visual Studio spam
 .vs/*
