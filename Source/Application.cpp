@@ -78,7 +78,14 @@ namespace FLOOF {
 			transform.Position.x -= 6.f;
 			transform.Position.y += 10.f;
 		}
-
+        //ball
+        {
+            const auto ballEntity = m_Registry.create();
+            auto & transform = m_Registry.emplace<TransformComponent>(ballEntity);
+            m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(3,3));
+            m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
+            transform.Position.y += 15;
+        }
 		{
 			m_CameraEntity = m_Registry.create();
 			glm::vec3 cameraPos(0.f, 15.f, -40.f);

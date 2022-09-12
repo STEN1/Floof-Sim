@@ -7,9 +7,14 @@ bool FLOOF::Physics::TriangleBallIntersect(const FLOOF::Triangle &triangle, cons
 }
 
 glm::vec3
-FLOOF::Physics::moveBallOnTriangle(const FLOOF::Triangle &triangle, const glm::vec3 &position, const float &radius) {
+FLOOF::Physics::moveBallOnTriangle(const FLOOF::Triangle &triangle, const glm::vec3 &position, const float &radius, const glm::vec3 &velocity) {
 
-    return glm::vec3();
+    glm::vec3 G(0.0,Math::Gravity,0.0);
+    glm::vec3 N = -G;
+
+    glm::vec3 test = glm::reflect(G, triangle.N);
+
+    return test;
 }
 
 
