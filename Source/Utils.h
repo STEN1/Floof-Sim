@@ -7,7 +7,7 @@
 namespace FLOOF {
 	namespace Utils {
 		std::vector<MeshVertex> GetVisimVertexData(const std::string& path);
-        std::vector<MeshVertex> MakeBall(int recursions, int radius);
+        std::vector<MeshVertex> MakeBall(const int & density, const float &radius);
 		glm::vec3 CalcBarycentric(glm::vec3 position, const Triangle& triangle);
     }
 }

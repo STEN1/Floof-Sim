@@ -44,21 +44,38 @@ namespace FLOOF {
         {
             const auto entity = m_Registry.create();
             m_Registry.emplace<TransformComponent>(entity);
-
-            //line mesh componenet
             std::vector<LineVertex> lines;
             LineVertex line;
             line.Pos = glm::vec3();
             lines.push_back(line);
-            line.Pos = glm::vec3(0.0,100.0,0.0);
+            line.Pos = glm::vec3(0.f, 200.f, 0.f);
             lines.push_back(line);
-            m_Registry.emplace<LineMeshComponent>(entity, lines);
+            auto& lineMeshComponent = m_Registry.emplace<LineMeshComponent>(entity, lines);
+			lineMeshComponent.Color = glm::vec4(0.f, 1.f, 0.f, 1.f);
         }
 		{
-			const auto treeEntity = m_Registry.create();
-			m_Registry.emplace<TransformComponent>(treeEntity);
-			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
-			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
+			const auto entity = m_Registry.create();
+			m_Registry.emplace<TransformComponent>(entity);
+			std::vector<LineVertex> lines;
+			LineVertex line;
+			line.Pos = glm::vec3();
+			lines.push_back(line);
+			line.Pos = glm::vec3(200.f, 0.f, 0.f);
+			lines.push_back(line);
+			auto& lineMeshComponent = m_Registry.emplace<LineMeshComponent>(entity, lines);
+			lineMeshComponent.Color = glm::vec4(1.f, 0.f, 0.f, 1.f);
+		}
+		{
+			const auto entity = m_Registry.create();
+			m_Registry.emplace<TransformComponent>(entity);
+			std::vector<LineVertex> lines;
+			LineVertex line;
+			line.Pos = glm::vec3();
+			lines.push_back(line);
+			line.Pos = glm::vec3(0.f, 0.f, 200.f);
+			lines.push_back(line);
+			auto& lineMeshComponent = m_Registry.emplace<LineMeshComponent>(entity, lines);
+			lineMeshComponent.Color = glm::vec4(0.f, 0.f, 1.f, 1.f);
 		}
 
 		{
@@ -82,8 +99,12 @@ namespace FLOOF {
         {
             const auto ballEntity = m_Registry.create();
             auto & transform = m_Registry.emplace<TransformComponent>(ballEntity);
-            m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(3,3));
+            auto & ball  = m_Registry.emplace<BallCompoonent>(ballEntity);
+            ball.Radius = 3.f;
+            auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
+            m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
             m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
+
             transform.Position.y += 15;
         }
 		{
@@ -180,18 +201,19 @@ namespace FLOOF {
 				texture.Bind(commandBuffer);
 				mesh.Draw(commandBuffer);
 			}
-            {
-                m_Renderer->BindGraphicsPipeline(commandBuffer,RenderPipelineKeys::Line);
-                auto view = m_Registry.view<TransformComponent, LineMeshComponent>();
-                for (auto [entity, transform,lineMesh] : view.each()) {
-                    LinePushConstants constants;
-                    constants.MVP = vp * transform.GetTransform();
-                    constants.Color = glm::vec4(0.0,1.0,0.0,1.0);
-                    vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(RenderPipelineKeys::Line), VK_SHADER_STAGE_VERTEX_BIT,
-                                       0, sizeof(LinePushConstants), &constants);
-                    lineMesh.Draw(commandBuffer);
-                }
-            }
+		}
+
+		{ // Line drawing
+			m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
+			auto view = m_Registry.view<TransformComponent, LineMeshComponent>();
+			for (auto [entity, transform, lineMesh] : view.each()) {
+				LinePushConstants constants;
+				constants.MVP = vp * transform.GetTransform();
+				constants.Color = lineMesh.Color;
+				vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(RenderPipelineKeys::Line), VK_SHADER_STAGE_VERTEX_BIT,
+					0, sizeof(LinePushConstants), &constants);
+				lineMesh.Draw(commandBuffer);
+			}
 		}
 
 		m_Renderer->EndRecording();

@@ -60,25 +60,25 @@ namespace FLOOF {
             return vertexData;
 		}
 
-        std::vector<MeshVertex> MakeBall(int recursions, int radius) {
-            int r = radius;
+        std::vector<MeshVertex> MakeBall(const int & density, const float & radius) {
+            
             std::vector<MeshVertex> vertexData;
 
-            glm::vec3 v0{0,0,r};
-            glm::vec3 v1{r,0,0};
-            glm::vec3 v2{0,r,0};
-            glm::vec3 v3{-r,0,0};
-            glm::vec3 v4{0,-r,0};
-            glm::vec3 v5{0,0,-r};
+            glm::vec3 v0{0,0,radius};
+            glm::vec3 v1{radius,0,0};
+            glm::vec3 v2{0,radius,0};
+            glm::vec3 v3{-radius,0,0};
+            glm::vec3 v4{0,-radius,0};
+            glm::vec3 v5{0,0,-radius};
 
-            SubDivide(v0, v1, v2, recursions,vertexData);
-            SubDivide(v0, v2, v3, recursions,vertexData);
-            SubDivide(v0, v3, v4, recursions,vertexData);
-            SubDivide(v0, v4, v1, recursions,vertexData);
-            SubDivide(v5, v2, v1, recursions,vertexData);
-            SubDivide(v5, v3, v2, recursions,vertexData);
-            SubDivide(v5, v4, v3, recursions,vertexData);
-            SubDivide(v5, v1, v4, recursions,vertexData);
+            SubDivide(v0, v1, v2,density ,vertexData);
+            SubDivide(v0, v2, v3, density,vertexData);
+            SubDivide(v0, v3, v4, density,vertexData);
+            SubDivide(v0, v4, v1, density,vertexData);
+            SubDivide(v5, v2, v1, density,vertexData);
+            SubDivide(v5, v3, v2, density,vertexData);
+            SubDivide(v5, v4, v3, density,vertexData);
+            SubDivide(v5, v1, v4, density,vertexData);
 
             return { vertexData };
         }
