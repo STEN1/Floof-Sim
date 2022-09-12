@@ -124,9 +124,9 @@ std::pair<std::vector<FLOOF::Vertex>, std::vector<uint32_t>> ObjLoader::GetIndex
 		if (index == -1) // build vertex data and add index
 		{
 			FLOOF::Vertex vertex;
-			vertex.pos = glm::vec3(m_v[m_f[i].v * 3], m_v[m_f[i].v * 3 + 1], m_v[m_f[i].v * 3 + 2]);
-			vertex.normal = glm::vec3(m_vn[m_f[i].vn * 3], m_vn[m_f[i].vn * 3 + 1], m_vn[m_f[i].vn * 3 + 2]);
-			vertex.uv = glm::vec2(m_vt[m_f[i].vt * 2], m_vt[m_f[i].vt * 2 + 1]);
+			vertex.Pos = glm::vec3(m_v[m_f[i].v * 3], m_v[m_f[i].v * 3 + 1], m_v[m_f[i].v * 3 + 2]);
+			vertex.Normal = glm::vec3(m_vn[m_f[i].vn * 3], m_vn[m_f[i].vn * 3 + 1], m_vn[m_f[i].vn * 3 + 2]);
+			vertex.UV = glm::vec2(m_vt[m_f[i].vt * 2], m_vt[m_f[i].vt * 2 + 1]);
 			vertexData.push_back(vertex);
 
 			builtF.push_back(m_f[i]);

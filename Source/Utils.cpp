@@ -30,9 +30,9 @@ namespace FLOOF {
                 std::string line;
                 std::getline(file, line);
                 std::stringstream ss(line);
-				ss >> vertex.pos.x;
-				ss >> vertex.pos.y;
-				ss >> vertex.pos.z;
+				ss >> vertex.Pos.x;
+				ss >> vertex.Pos.y;
+				ss >> vertex.Pos.z;
 			}
 
 			for (uint32_t i = 2; i < vertexData.size(); i += 3) {
@@ -40,21 +40,21 @@ namespace FLOOF {
 				Vertex& b = vertexData[i - 1];
 				Vertex& c = vertexData[i - 0];
 
-				glm::vec3 ab = b.pos - a.pos;
-				glm::vec3 ac = c.pos - a.pos;
+				glm::vec3 ab = b.Pos - a.Pos;
+				glm::vec3 ac = c.Pos - a.Pos;
 
                 glm::vec3 normal = glm::normalize(glm::cross(ab, ac));
 
-				a.normal = normal;
-				b.normal = normal;
-				c.normal = normal;
+				a.Normal = normal;
+				b.Normal = normal;
+				c.Normal = normal;
 
-				a.uv.x = a.pos.x;
-				a.uv.y = a.pos.y;
-				b.uv.x = b.pos.x;
-				b.uv.y = b.pos.y;
-				c.uv.x = c.pos.x;
-				c.uv.y = c.pos.y;
+				a.UV.x = a.Pos.x;
+				a.UV.y = a.Pos.y;
+				b.UV.x = b.Pos.x;
+				b.UV.y = b.Pos.y;
+				c.UV.x = c.Pos.x;
+				c.UV.y = c.Pos.y;
 			}
 
             return vertexData;
@@ -103,18 +103,18 @@ namespace FLOOF {
             normal = glm::normalize(normal);
             FLOOF::Vertex v{};
 
-            v.pos = a;
-            v.normal = normal;
+            v.Pos = a;
+            v.Normal = normal;
             vertexData.push_back(v);
 
             FLOOF::Vertex vertB{};
-            v.pos = b;
-            v.normal = normal;
+            v.Pos = b;
+            v.Normal = normal;
             vertexData.push_back(v);
 
             FLOOF::Vertex vertC{};
-            v.pos = c;
-            v.normal = normal;
+            v.Pos = c;
+            v.Normal = normal;
             vertexData.push_back(v);
         }
 
@@ -122,9 +122,9 @@ namespace FLOOF {
 
             glm::vec2 pos{ position.x, position.z };
     
-            glm::vec2 p1 = glm::vec2(triangle.A.pos.x, triangle.A.pos.z);
-            glm::vec2 p2 = glm::vec2(triangle.B.pos.x, triangle.B.pos.z);
-            glm::vec2 p3 = glm::vec2(triangle.C.pos.x, triangle.C.pos.z);
+            glm::vec2 p1 = glm::vec2(triangle.A.x, triangle.A.z);
+            glm::vec2 p2 = glm::vec2(triangle.B.x, triangle.B.z);
+            glm::vec2 p3 = glm::vec2(triangle.C.x, triangle.C.z);
 
             glm::vec2 Va = p2 - p1;
             glm::vec2 Vb = p3 - p1;

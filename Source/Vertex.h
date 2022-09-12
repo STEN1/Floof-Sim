@@ -7,12 +7,12 @@
 
 namespace FLOOF {
 	struct Vertex {
-		glm::vec3 pos;
-		glm::vec3 normal;
-		glm::vec2 uv;
+		glm::vec3 Pos;
+		glm::vec3 Normal;
+		glm::vec2 UV;
 
 		bool operator == (const Vertex& other) const {
-			return pos == other.pos && normal == other.normal && uv == other.uv;
+			return Pos == other.Pos && Normal == other.Normal && UV == other.UV;
 		}
 
 		static VkVertexInputBindingDescription GetBindingDescription() {
@@ -29,25 +29,25 @@ namespace FLOOF {
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
 			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[0].offset = offsetof(Vertex, pos);
+			attributeDescriptions[0].offset = offsetof(Vertex, Pos);
 
 			attributeDescriptions[1].binding = 0;
 			attributeDescriptions[1].location = 1;
 			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[1].offset = offsetof(Vertex, normal);
+			attributeDescriptions[1].offset = offsetof(Vertex, Normal);
 
 			attributeDescriptions[2].binding = 0;
 			attributeDescriptions[2].location = 2;
 			attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[2].offset = offsetof(Vertex, uv);
+			attributeDescriptions[2].offset = offsetof(Vertex, UV);
 
 			return attributeDescriptions;
 		}
 	};
     struct Triangle{
-        glm::vec3 a;
-        glm::vec3 b;
-        glm::vec3 c;
+        glm::vec3 A;
+        glm::vec3 B;
+        glm::vec3 C;
         glm::vec3 N;
     };
 }
