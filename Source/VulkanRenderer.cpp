@@ -43,7 +43,7 @@ namespace FLOOF {
             params.VertexPath = "Shaders/Line.vert.spv";
             params.Key = RenderPipelineKeys::Line;
             params.PolygonMode = VK_POLYGON_MODE_LINE;
-            params.Topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+            params.Topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
             params.BindingDescription = LineVertex::GetBindingDescription();
             params.AttributeDescriptions = LineVertex::GetAttributeDescriptions();
             params.PushConstantSize = sizeof(LinePushConstants);
@@ -751,20 +751,28 @@ namespace FLOOF {
         pushConstants.size = params.PushConstantSize;
         pushConstants.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
-        descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        descriptorSetLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
-        descriptorSetLayoutCreateInfo.bindingCount = params.DescriptorSetLayoutBindings.size();
-        descriptorSetLayoutCreateInfo.pBindings = params.DescriptorSetLayoutBindings.data();
-
-        vkCreateDescriptorSetLayout(m_LogicalDevice, &descriptorSetLayoutCreateInfo, nullptr, &m_DescriptorSetLayouts[params.Key]);
-
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &m_DescriptorSetLayouts[params.Key];
-        pipelineLayoutInfo.pushConstantRangeCount = 1;
-        pipelineLayoutInfo.pPushConstantRanges = &pushConstants;
+        if (params.DescriptorSetLayoutBindings.size() != 0) {
+            VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
+            descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+            descriptorSetLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
+            descriptorSetLayoutCreateInfo.bindingCount = params.DescriptorSetLayoutBindings.size();
+            descriptorSetLayoutCreateInfo.pBindings = params.DescriptorSetLayoutBindings.data();
+
+            vkCreateDescriptorSetLayout(m_LogicalDevice, &descriptorSetLayoutCreateInfo, nullptr, &m_DescriptorSetLayouts[params.Key]);
+
+            pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+            pipelineLayoutInfo.setLayoutCount = 1;
+            pipelineLayoutInfo.pSetLayouts = &m_DescriptorSetLayouts[params.Key];
+            pipelineLayoutInfo.pushConstantRangeCount = 1;
+            pipelineLayoutInfo.pPushConstantRanges = &pushConstants;
+        } else {
+            pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+            pipelineLayoutInfo.setLayoutCount = 0;
+            pipelineLayoutInfo.pSetLayouts = nullptr;
+            pipelineLayoutInfo.pushConstantRangeCount = 1;
+            pipelineLayoutInfo.pPushConstantRanges = &pushConstants;
+        }
 
         VkResult plResult = vkCreatePipelineLayout(m_LogicalDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayouts[params.Key]);
         ASSERT(plResult == VK_SUCCESS);

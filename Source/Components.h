@@ -40,6 +40,7 @@ namespace FLOOF {
 
 		VulkanBuffer VertexBuffer{};
 		uint32_t VertexCount{};
+		glm::vec4 Color{};
 	};
 
 	struct TextureComponent {

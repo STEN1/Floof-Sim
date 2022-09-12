@@ -179,6 +179,8 @@ namespace FLOOF {
 	void LineMeshComponent::Draw(VkCommandBuffer commandBuffer) {
 		auto renderer = VulkanRenderer::Get();
 
+		VkDeviceSize offset{ 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
 		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 	}
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
