@@ -61,7 +61,7 @@ namespace FLOOF {
 		}
 
         std::vector<MeshVertex> MakeBall(const int & density, const float & radius) {
-            
+
             std::vector<MeshVertex> vertexData;
 
             glm::vec3 v0{0,0,radius};

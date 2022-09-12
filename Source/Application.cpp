@@ -4,7 +4,7 @@
 #include "Components.h"
 #include "Input.h"
 #include "Utils.h"
-
+#include "Physics/Physics.h"
 #include <string>
 
 namespace FLOOF {
@@ -100,12 +100,12 @@ namespace FLOOF {
             const auto ballEntity = m_Registry.create();
             auto & transform = m_Registry.emplace<TransformComponent>(ballEntity);
             auto & ball  = m_Registry.emplace<BallCompoonent>(ballEntity);
-            ball.Radius = 3.f;
+            ball.Radius = 1.f;
             auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
             m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
             m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
 
-            transform.Position.y += 15;
+            transform.Position.y += 30;
         }
 		{
 			m_CameraEntity = m_Registry.create();
@@ -177,6 +177,27 @@ namespace FLOOF {
 		}
 	}
 	void Application::Simulate(double deltaTime) {
+    //loop trough ball and set velocity
+        {
+            Triangle triangle;
+            triangle.A = glm::vec3(0.0,0.0,0.0);
+            triangle.B = glm::vec3(0.0,0.0,1.0);
+            triangle.C = glm::vec3(1.0,0.0,0.0);
+            triangle.N = glm::cross(triangle.B-triangle.A,triangle.C-triangle.A);
+            auto view = m_Registry.view<TransformComponent, BallCompoonent,VelocityComponent>();
+            for (auto [entiry, transform, ball,velocity] : view.each()) {
+               //TODO find triangle under ball
+                velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball.Radius,velocity.Velocity);
+                break;
+            }
+            {
+                auto view = m_Registry.view<TransformComponent,VelocityComponent>();
+                for(auto [entity,transform,velocity] : view.each()){
+                    transform.Position += velocity.Velocity * static_cast<float>(deltaTime);
+                }
+            }
+        }
+    //move stuff with velocity
 
 
 	}
