@@ -70,8 +70,9 @@ namespace FLOOF {
 		std::vector<Triangle> Triangles;
 	};
 
-    struct BallCompoonent {
+    struct BallComponent {
         float Radius;
+        float Mass;
     };
     struct VelocityComponent {
         glm::vec3 Velocity;
