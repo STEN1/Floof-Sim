@@ -1,17 +1,15 @@
-//
-// Created by Adrian Drevland on 12/09/2022.
-//
+
 
 #ifndef FLOOF_PHYSICS_H
 #define FLOOF_PHYSICS_H
+#include "../Vertex.h"
 
-namespace FLOOD{
+namespace FLOOF{
     class Physics {
     public:
-        Physics();
-        ~Physics();
+        Physics() = delete;
 
-
+    static bool TriangleBallIntersect(const Triangle &triangle, const glm::vec3 &position, const float &radius);
 
     };
 }

@@ -69,6 +69,12 @@ namespace FLOOF {
 		std::vector<Triangle> TerrainTriangles;
 	};
 
+    struct BallCompoonent {
+        float Radius;
+    };
+    struct VelocityComponent {
+        glm::vec3 Velocity;
 
+    };
 }
 
