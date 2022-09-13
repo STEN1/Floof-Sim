@@ -270,8 +270,8 @@ namespace FLOOF {
 
 		{ // Line drawing
 			m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
-			auto view = m_Registry.view<TransformComponent, LineMeshComponent>();
-			for (auto [entity, transform, lineMesh] : view.each()) {
+			auto view = m_Registry.view<LineMeshComponent>();
+			for (auto [entity, lineMesh] : view.each()) {
 				LinePushConstants constants;
 				constants.MVP = vp;
 				constants.Color = lineMesh.Color;
