@@ -22,5 +22,7 @@ namespace FLOOF {
 		VulkanRenderer* m_Renderer;
 		entt::entity m_CameraEntity;
 		entt::entity m_TerrainEntity;
+
+		bool m_DebugDraw = true;
 	};
 }
