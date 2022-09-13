@@ -273,7 +273,7 @@ namespace FLOOF {
 			auto view = m_Registry.view<TransformComponent, LineMeshComponent>();
 			for (auto [entity, transform, lineMesh] : view.each()) {
 				LinePushConstants constants;
-				constants.MVP = vp * glm::translate(transform.Position);
+				constants.MVP = vp;
 				constants.Color = lineMesh.Color;
 				vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(RenderPipelineKeys::Line), VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(LinePushConstants), &constants);
