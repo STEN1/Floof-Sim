@@ -115,11 +115,14 @@ namespace FLOOF {
             auto & transform = m_Registry.emplace<TransformComponent>(ballEntity);
             auto & ball  = m_Registry.emplace<BallComponent>(ballEntity);
             ball.Radius = 1.f;
+            ball.Mass = 10.f;
             auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
             m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
             m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
 
             transform.Position.y += 30;
+            transform.Position.x +=5;
+            transform.Position.z -=5;
         }
 		{
 			m_CameraEntity = m_Registry.create();
@@ -192,25 +195,11 @@ namespace FLOOF {
 		}
 	}
 	void Application::Simulate(double deltaTime) {
-    //loop trough ball and set velocity
-        {
-            Triangle triangle;
-            triangle.A = glm::vec3(0.0,0.0,0.0);
-            triangle.B = glm::vec3(0.0,0.0,1.0);
-            triangle.C = glm::vec3(1.0,0.0,0.0);
-            triangle.N = glm::cross(triangle.B-triangle.A,triangle.C-triangle.A);
-            auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
-            for (auto [entiry, transform, ball,velocity] : view.each()) {
-               //TODO find triangle under ball
-                auto &terrain =  m_Registry.get<TerrainComponent>(m_TerrainEntity);
-                velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity);
-                break;
-            }
-            {
-                const float slowMotionModifier{200.f};
+      {
+                //set tranformation
                 auto view = m_Registry.view<TransformComponent,VelocityComponent>();
                 for(auto [entity,transform,velocity] : view.each()){
-                    transform.Position += velocity.Velocity * static_cast<float>(deltaTime)*float(deltaTime);
+                    transform.Position += velocity.Velocity;
 
                     //teleport to top if falls under -20
                     if(transform.Position.y < -20.f){
@@ -219,6 +208,25 @@ namespace FLOOF {
 
                 }
             }
+
+        //loop trough ball and set velocity
+        {
+            Triangle triangle;
+            //calculate ball velocity
+            auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
+            for (auto [entiry, transform, ball,velocity] : view.each()) {
+
+                auto &terrain =  m_Registry.get<TerrainComponent>(m_TerrainEntity);
+                for(auto & tri : terrain.Triangles){
+                    if(Utils::isInside(transform.Position,tri)){
+                        triangle = tri;
+                        break;
+                    }
+                }
+                velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity,deltaTime);
+
+            }
+
         }
     //move stuff with velocity
 

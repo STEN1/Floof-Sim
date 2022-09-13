@@ -13,7 +13,7 @@ namespace FLOOF{
         Physics() = delete;
 
     static bool TriangleBallIntersect(const Triangle &triangle, const glm::vec3 &position, const float &radius);
-    static glm::vec3 GetVelocityBall(const Triangle & triangle, const glm::vec3 & position, const BallComponent& ball, const glm::vec3 &Velocity);
+    static glm::vec3 GetVelocityBall(const Triangle & triangle, const glm::vec3 & position, const BallComponent& ball, const glm::vec3 &Velocity, const double & deltatime);
     };
 }
 
