@@ -55,6 +55,7 @@ namespace FLOOF {
 				mesh.Color = glm::vec4(1.f, 0.f, 1.f, 1.f);
 			}
 		}
+
         {
             const auto entity = m_Registry.create();
             m_Registry.emplace<TransformComponent>(entity);
@@ -67,6 +68,7 @@ namespace FLOOF {
             auto& lineMeshComponent = m_Registry.emplace<LineMeshComponent>(entity, lines);
 			lineMeshComponent.Color = glm::vec4(0.f, 1.f, 0.f, 1.f);
         }
+
 		{
 			const auto entity = m_Registry.create();
 			m_Registry.emplace<TransformComponent>(entity);
@@ -79,6 +81,7 @@ namespace FLOOF {
 			auto& lineMeshComponent = m_Registry.emplace<LineMeshComponent>(entity, lines);
 			lineMeshComponent.Color = glm::vec4(1.f, 0.f, 0.f, 1.f);
 		}
+
 		{
 			const auto entity = m_Registry.create();
 			m_Registry.emplace<TransformComponent>(entity);
@@ -109,8 +112,8 @@ namespace FLOOF {
 			transform.Position.x -= 6.f;
 			transform.Position.y += 10.f;
 		}
-        //ball
-        {
+        
+        {	// Ball
             const auto ballEntity = m_Registry.create();
             auto & transform = m_Registry.emplace<TransformComponent>(ballEntity);
             auto & ball  = m_Registry.emplace<BallComponent>(ballEntity);
@@ -128,6 +131,7 @@ namespace FLOOF {
             transform.Position.x +=5;
             transform.Position.z -=5;
         }
+
 		{
 			m_CameraEntity = m_Registry.create();
 			glm::vec3 cameraPos(0.f, 15.f, -40.f);
@@ -156,13 +160,17 @@ namespace FLOOF {
 			Simulate(deltaTime);
 			Draw();
 		}
+
 		m_Renderer->FinishAllFrames();
 		m_Registry.clear();
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
 		auto* renderer = VulkanRenderer::Get();
-		auto commandBuffer = renderer->AllocateBeginOneTimeCommandBuffer();
+		if (Input::Key(GLFW_KEY_N) == GLFW_PRESS) {
+			m_DebugDraw = !m_DebugDraw;
+		}
+
 		{	// Rotate first mesh.
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
 			for (auto [entiry, transform, mesh] : view.each()) {
@@ -170,6 +178,7 @@ namespace FLOOF {
 				break;
 			}
 		}
+
 		{	// Update camera.
 			auto view = m_Registry.view<CameraComponent>();
 			for (auto [entity, camera] : view.each()) {
@@ -199,7 +208,9 @@ namespace FLOOF {
 				}
 			}
 		}
-		{	// Update velocity lines lines
+
+		if (m_DebugDraw) { // update debug lines
+			auto commandBuffer = renderer->AllocateBeginOneTimeCommandBuffer();
 			auto view = m_Registry.view<TransformComponent, VelocityComponent, LineMeshComponent>();
 			for (auto [entity, transform, velocity, lineMesh] : view.each()) {
 				std::vector<LineVertex> lineData(2);
@@ -207,25 +218,24 @@ namespace FLOOF {
 				lineData[1].Pos = transform.Position + (velocity.Velocity * 1000.f);
 				lineMesh.UpdateBuffer(commandBuffer, lineData);
 			}
+			renderer->EndSubmitFreeCommandBuffer(commandBuffer);
 		}
-		renderer->EndSubmitFreeCommandBuffer(commandBuffer);
 	}
 	void Application::Simulate(double deltaTime) {
-        {
-                //set tranformation
-                auto view = m_Registry.view<TransformComponent,VelocityComponent>();
-                for(auto [entity,transform,velocity] : view.each()){
-                    transform.Position += velocity.Velocity*float(deltaTime);
-                    //teleport to top if falls under -20
-                    if(transform.Position.y < -5.f){
-                        transform.Position.y = 30.f;
-                    }
+        {	// Set tranformation
+            auto view = m_Registry.view<TransformComponent,VelocityComponent>();
+            for(auto [entity,transform,velocity] : view.each()){
+                transform.Position += velocity.Velocity*float(deltaTime);
+                // Teleport to top if falls under -20
+                if(transform.Position.y < -5.f){
+                    transform.Position.y = 30.f;
                 }
+            }
         }
-        //loop trough ball and set velocity
-        {
+
+        {	// Loop trough ball and set velocity
             Triangle triangle;
-            //calculate ball velocity
+            // Calculate ball velocity
             auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
             for (auto [entiry, transform, ball,velocity] : view.each()) {
                 auto &terrain =  m_Registry.get<TerrainComponent>(m_TerrainEntity);
@@ -263,7 +273,7 @@ namespace FLOOF {
 			}
 		}
 
-		{ // Line drawing
+		if (m_DebugDraw) { // Draw debug lines
 			m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
 			auto view = m_Registry.view<LineMeshComponent>();
 			for (auto [entity, lineMesh] : view.each()) {
