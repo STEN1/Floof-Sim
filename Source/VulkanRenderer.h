@@ -173,6 +173,9 @@ namespace FLOOF {
 		void InitGlfwCallbacks();
 
 		void CleanupSwapChain();
+
+		VkCommandBuffer AllocateBeginOneTimeCommandBuffer();
+		void EndSubmitFreeCommandBuffer(VkCommandBuffer);
 	public:
 		void RecreateSwapChain();
 	private:

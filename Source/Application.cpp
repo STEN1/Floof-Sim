@@ -118,6 +118,10 @@ namespace FLOOF {
             auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
             m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
             m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
+			std::vector<LineVertex> line(2);
+			line[0].Pos = glm::vec3();
+			line[1].Pos = glm::vec3();
+			m_Registry.emplace<LineMeshComponent>(ballEntity, line);
 
             transform.Position.y += 30;
         }
@@ -188,6 +192,15 @@ namespace FLOOF {
 					camera.Yaw(mouseDelta.x * mouseSpeed);
 					camera.Pitch(mouseDelta.y * mouseSpeed);
 				}
+			}
+		}
+		{	// Update velocity lines lines
+			auto view = m_Registry.view<TransformComponent, VelocityComponent, LineMeshComponent>();
+			for (auto [entity, transform, velocity, lineMesh] : view.each()) {
+				std::vector<LineVertex> lineData(2);
+				lineData[0].Pos = transform.Position;
+				lineData[1].Pos = transform.Position + (velocity.Velocity * 0.01f);
+				lineMesh.UpdateBuffer(lineData);
 			}
 		}
 	}
