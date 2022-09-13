@@ -195,27 +195,23 @@ namespace FLOOF {
 		}
 	}
 	void Application::Simulate(double deltaTime) {
-      {
+        {
                 //set tranformation
                 auto view = m_Registry.view<TransformComponent,VelocityComponent>();
                 for(auto [entity,transform,velocity] : view.each()){
-                    transform.Position += velocity.Velocity;
-
+                    transform.Position += velocity.Velocity*float(deltaTime);
                     //teleport to top if falls under -20
-                    if(transform.Position.y < -20.f){
-                        transform.Position.y = 100.f;
+                    if(transform.Position.y < -5.f){
+                        transform.Position.y = 30.f;
                     }
-
                 }
-            }
-
+        }
         //loop trough ball and set velocity
         {
             Triangle triangle;
             //calculate ball velocity
             auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
             for (auto [entiry, transform, ball,velocity] : view.each()) {
-
                 auto &terrain =  m_Registry.get<TerrainComponent>(m_TerrainEntity);
                 for(auto & tri : terrain.Triangles){
                     if(Utils::isInside(transform.Position,tri)){
@@ -224,12 +220,8 @@ namespace FLOOF {
                     }
                 }
                 velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity,deltaTime);
-
             }
-
         }
-    //move stuff with velocity
-
 
 	}
 	void Application::Draw() {
