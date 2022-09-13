@@ -11,5 +11,6 @@
 #define LOG_ERROR(message) FLOOF::Utils::Logger::s_Logger->log(FLOOF::Utils::Logger::LogType::ERROR,message);
 #define LOG_CRITICAL(message) FLOOF::Utils::Logger::s_Logger->log(FLOOF::Utils::Logger::LogType::CRITICAL,message);
 #define LOG_INFO(message) FLOOF::Utils::Logger::s_Logger->log(FLOOF::Utils::Logger::LogType::INFO,message);
+#define LOG_VEC(message, vec) FLOOF::Utils::Logger::s_Logger->log(FLOOF::Utils::Logger::LogType::INFO, message, vec);
 
 #endif //FLOOF_LOGGERMACROS_H

@@ -69,4 +69,28 @@ namespace FLOOF{
         std::cout << output << "\n";
         stream.close();
     }
+
+    void Utils::Logger::log(Utils::Logger::LogType logtype, const glm::vec3 vec) {
+        std::string vecstring;
+        vecstring += "X : ";
+        vecstring += std::to_string(vec.x);
+        vecstring += " \t Y : ";
+        vecstring += std::to_string(vec.y);
+        vecstring += "\t Z : ";
+        vecstring += std::to_string(vec.z);
+
+        log(logtype, vecstring.c_str());
+    }
+
+    void Utils::Logger::log(Utils::Logger::LogType logtype, const char *message, const glm::vec3 vec) {
+        std::string vecstring = message;
+        vecstring += "\t X : ";
+        vecstring += std::to_string(vec.x);
+        vecstring += " \t Y : ";
+        vecstring += std::to_string(vec.y);
+        vecstring += "\t Z : ";
+        vecstring += std::to_string(vec.z);
+
+        log(logtype, vecstring.c_str());
+    }
 }

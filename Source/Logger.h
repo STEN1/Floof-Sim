@@ -1,4 +1,5 @@
 #pragma once
+#include "glm/glm.hpp"
 
 namespace FLOOF {
     namespace Utils {
@@ -15,6 +16,8 @@ namespace FLOOF {
                };
 
            void log(LogType logtype, const char* message);
+           void log(LogType logtype, const glm::vec3 vec);
+           void log(LogType logtype, const char* message,const glm::vec3 vec);
         private:
            const char* m_LogPath;
         };
