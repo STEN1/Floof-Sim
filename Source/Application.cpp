@@ -204,7 +204,7 @@ namespace FLOOF {
 			for (auto [entity, transform, velocity, lineMesh] : view.each()) {
 				std::vector<LineVertex> lineData(2);
 				lineData[0].Pos = transform.Position;
-				lineData[1].Pos = transform.Position + (velocity.Velocity * 1000.f);
+				lineData[1].Pos = transform.Position + (velocity.Velocity * 1.f);
 				lineMesh.UpdateBuffer(commandBuffer, lineData);
 			}
 		}
@@ -229,17 +229,29 @@ namespace FLOOF {
             auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
             for (auto [entiry, transform, ball,velocity] : view.each()) {
                 auto &terrain =  m_Registry.get<TerrainComponent>(m_TerrainEntity);
+                //testing out physic TODO add to physics header
                 for(auto & tri : terrain.Triangles){
                     if(Utils::isInside(transform.Position,tri)){
                         triangle = tri;
                         break;
                     }
+                  }
+                    glm::vec3 a(0.f,-Math::Gravity,0.f);
+                    if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius)) { // collision
+                        a = glm::vec3(triangle.N.x * triangle.N.y, triangle.N.z * triangle.N.y,(triangle.N.y * triangle.N.y) - 1);
+                        a *= Math::Gravity;
+                        //velocity.Velocity=glm::vec3(0); // test collision
+                    }
+                    if(glm::length(velocity.Velocity) > 0.f)
+                        velocity.Velocity = a*static_cast<float>(deltaTime)+(velocity.Velocity); // old velocity + a*s
+                    else
+                        velocity.Velocity = a*static_cast<float>(deltaTime);
+                       //velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity,deltaTime);
                 }
-                velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity,deltaTime);
-            }
         }
+    }
 
-	}
+
 	void Application::Draw() {
 		auto* renderer = VulkanRenderer::Get();
 		auto commandBuffer = m_Renderer->StartRecording();
