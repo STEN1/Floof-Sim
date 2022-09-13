@@ -105,7 +105,7 @@ namespace FLOOF {
 
 		template<typename VertexType>
 		VulkanBuffer CreateVertexBuffer(const std::vector<VertexType>& vertices) {
-			std::size_t size = sizeof(MeshVertex) * vertices.size();
+			std::size_t size = sizeof(VertexType) * vertices.size();
 			VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 			bufferInfo.size = size;
 			bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
