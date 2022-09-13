@@ -202,6 +202,7 @@ namespace FLOOF {
             auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
             for (auto [entiry, transform, ball,velocity] : view.each()) {
                //TODO find triangle under ball
+                auto &terrain =  m_Registry.get<TerrainComponent>(m_TerrainEntity);
                 velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity);
                 break;
             }
@@ -209,7 +210,7 @@ namespace FLOOF {
                 const float slowMotionModifier{200.f};
                 auto view = m_Registry.view<TransformComponent,VelocityComponent>();
                 for(auto [entity,transform,velocity] : view.each()){
-                    transform.Position += velocity.Velocity * static_cast<float>(deltaTime)/slowMotionModifier;
+                    transform.Position += velocity.Velocity * static_cast<float>(deltaTime)*float(deltaTime);
 
                     //teleport to top if falls under -20
                     if(transform.Position.y < -20.f){
