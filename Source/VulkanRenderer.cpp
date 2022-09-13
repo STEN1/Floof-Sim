@@ -244,17 +244,7 @@ namespace FLOOF {
     }
 
     void VulkanRenderer::CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size) {
-        VkCommandBufferAllocateInfo commandAllocInfo{};
-        commandAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        commandAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandAllocInfo.commandPool = m_CommandPool;
-        commandAllocInfo.commandBufferCount = 1;
-        VkCommandBuffer commandBuffer;
-        vkAllocateCommandBuffers(m_LogicalDevice, &commandAllocInfo, &commandBuffer);
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        VkCommandBuffer commandBuffer = AllocateBeginOneTimeCommandBuffer();
 
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0; // Optional
@@ -262,17 +252,7 @@ namespace FLOOF {
         copyRegion.size = size;
         vkCmdCopyBuffer(commandBuffer, src, dst, 1, &copyRegion);
 
-        vkEndCommandBuffer(commandBuffer);
-
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
-
-        vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(m_GraphicsQueue);
-
-        vkFreeCommandBuffers(m_LogicalDevice, m_CommandPool, 1, &commandBuffer);
+        EndSubmitFreeCommandBuffer(commandBuffer);
     }
 
     void VulkanRenderer::CopyBufferToImage(VkBuffer srcBuffer, VkImage dstImage, uint32_t sizeX, uint32_t sizeY) {
@@ -704,7 +684,7 @@ namespace FLOOF {
         rasterizer.depthClampEnable = VK_FALSE;
         rasterizer.rasterizerDiscardEnable = VK_FALSE;
         rasterizer.polygonMode = params.PolygonMode;
-        rasterizer.lineWidth = 1.0f;
+        rasterizer.lineWidth = 4.0f;
         rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
         rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
         rasterizer.depthBiasEnable = VK_FALSE;
@@ -957,6 +937,34 @@ namespace FLOOF {
         }
 
         vkDestroySwapchainKHR(m_LogicalDevice, m_SwapChain, nullptr);
+    }
+
+    VkCommandBuffer VulkanRenderer::AllocateBeginOneTimeCommandBuffer() {
+        VkCommandBufferAllocateInfo commandAllocInfo{};
+        commandAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        commandAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        commandAllocInfo.commandPool = m_CommandPool;
+        commandAllocInfo.commandBufferCount = 1;
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(m_LogicalDevice, &commandAllocInfo, &commandBuffer);
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        
+        return commandBuffer;
+    }
+
+    void VulkanRenderer::EndSubmitFreeCommandBuffer(VkCommandBuffer commandBuffer) {
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        vkEndCommandBuffer(commandBuffer);
+        vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(m_GraphicsQueue);
+        vkFreeCommandBuffers(m_LogicalDevice, m_CommandPool, 1, &commandBuffer);
     }
 
     void VulkanRenderer::RecreateSwapChain() {

@@ -38,11 +38,36 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
-add_subdirectory("Libs/glfw")
+add_subdirectory(Libs/glfw)
 target_link_libraries(Floof glfw)
 
-add_subdirectory("Libs/entt")
+add_subdirectory(Libs/entt)
 target_link_libraries(Floof EnTT)
+
+set(IMGUI_DIR Libs/imgui)
+add_library(IMGUI STATIC)
+
+target_sources(IMGUI
+               PRIVATE
+					${IMGUI_DIR}/imgui_demo.cpp
+                    ${IMGUI_DIR}/imgui_draw.cpp
+                    ${IMGUI_DIR}/imgui_tables.cpp
+                    ${IMGUI_DIR}/imgui_widgets.cpp
+                    ${IMGUI_DIR}/imgui.cpp
+
+                PRIVATE
+                    ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
+                    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+                )
+
+target_include_directories(IMGUI
+                            PUBLIC ${IMGUI_DIR}
+                            PUBLIC ${IMGUI_DIR}/backends
+							PUBLIC ${Vulkan_INCLUDE_DIRS}
+							PUBLIC Libs/glfw/include
+                            )
+
+target_link_libraries(Floof IMGUI)
 
 target_include_directories(Floof PUBLIC "Libs/HeaderOnly")
 

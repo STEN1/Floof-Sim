@@ -119,6 +119,10 @@ namespace FLOOF {
             auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
             m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
             m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
+			std::vector<LineVertex> line(2);
+			line[0].Pos = glm::vec3();
+			line[1].Pos = glm::vec3(20.f);
+			m_Registry.emplace<LineMeshComponent>(ballEntity, line);
 
             transform.Position.y += 30;
             transform.Position.x +=5;
@@ -157,6 +161,8 @@ namespace FLOOF {
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
+		auto* renderer = VulkanRenderer::Get();
+		auto commandBuffer = renderer->AllocateBeginOneTimeCommandBuffer();
 		{	// Rotate first mesh.
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
 			for (auto [entiry, transform, mesh] : view.each()) {
@@ -193,6 +199,16 @@ namespace FLOOF {
 				}
 			}
 		}
+		{	// Update velocity lines lines
+			auto view = m_Registry.view<TransformComponent, VelocityComponent, LineMeshComponent>();
+			for (auto [entity, transform, velocity, lineMesh] : view.each()) {
+				std::vector<LineVertex> lineData(2);
+				lineData[0].Pos = transform.Position;
+				lineData[1].Pos = transform.Position + (velocity.Velocity * 1000.f);
+				lineMesh.UpdateBuffer(commandBuffer, lineData);
+			}
+		}
+		renderer->EndSubmitFreeCommandBuffer(commandBuffer);
 	}
 	void Application::Simulate(double deltaTime) {
         {
@@ -249,10 +265,10 @@ namespace FLOOF {
 
 		{ // Line drawing
 			m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
-			auto view = m_Registry.view<TransformComponent, LineMeshComponent>();
-			for (auto [entity, transform, lineMesh] : view.each()) {
+			auto view = m_Registry.view<LineMeshComponent>();
+			for (auto [entity, lineMesh] : view.each()) {
 				LinePushConstants constants;
-				constants.MVP = vp * transform.GetTransform();
+				constants.MVP = vp;
 				constants.Color = lineMesh.Color;
 				vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(RenderPipelineKeys::Line), VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(LinePushConstants), &constants);
