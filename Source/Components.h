@@ -37,7 +37,7 @@ namespace FLOOF {
 		~LineMeshComponent();
 
 		void Draw(VkCommandBuffer commandBuffer);
-		void UpdateBuffer(const std::vector<LineVertex>& vertexData);
+		void UpdateBuffer(VkCommandBuffer commandBuffer, const std::vector<LineVertex>& vertexData);
 		VulkanBuffer VertexBuffer{};
 		uint32_t VertexCount{};
 		glm::vec4 Color = glm::vec4(1.f);

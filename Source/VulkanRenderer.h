@@ -174,9 +174,9 @@ namespace FLOOF {
 
 		void CleanupSwapChain();
 
+	public:
 		VkCommandBuffer AllocateBeginOneTimeCommandBuffer();
 		void EndSubmitFreeCommandBuffer(VkCommandBuffer);
-	public:
 		void RecreateSwapChain();
 	private:
 		void WaitWhileMinimized();

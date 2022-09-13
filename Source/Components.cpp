@@ -183,12 +183,8 @@ namespace FLOOF {
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
 		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 	}
-	void LineMeshComponent::UpdateBuffer(const std::vector<LineVertex>& vertexData) {
-		auto renderer = VulkanRenderer::Get();
-
-		VkCommandBuffer commandBuffer = renderer->AllocateBeginOneTimeCommandBuffer();
+	void LineMeshComponent::UpdateBuffer(VkCommandBuffer commandBuffer, const std::vector<LineVertex>& vertexData) {
 		vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, {}, VertexCount * sizeof(LineVertex), vertexData.data());
-		renderer->EndSubmitFreeCommandBuffer(commandBuffer);
 	}
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
 		Up = glm::vec3(0.f, -1.f, 0.f);

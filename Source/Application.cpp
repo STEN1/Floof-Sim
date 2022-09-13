@@ -161,6 +161,8 @@ namespace FLOOF {
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
+		auto* renderer = VulkanRenderer::Get();
+		auto commandBuffer = renderer->AllocateBeginOneTimeCommandBuffer();
 		{	// Rotate first mesh.
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
 			for (auto [entiry, transform, mesh] : view.each()) {
@@ -203,9 +205,10 @@ namespace FLOOF {
 				std::vector<LineVertex> lineData(2);
 				lineData[0].Pos = transform.Position;
 				lineData[1].Pos = transform.Position + (velocity.Velocity * 1000.f);
-				lineMesh.UpdateBuffer(lineData);
+				lineMesh.UpdateBuffer(commandBuffer, lineData);
 			}
 		}
+		renderer->EndSubmitFreeCommandBuffer(commandBuffer);
 	}
 	void Application::Simulate(double deltaTime) {
       {
