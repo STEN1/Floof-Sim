@@ -38,7 +38,7 @@ FLOOF::Physics::GetVelocityBall(const FLOOF::Triangle &triangle, const glm::vec3
             F +=velocity*static_cast<float>(deltatime);
         }
         }
-    LOG_VEC("velocity ",velocity);
-    LOG_VEC("F vector",F);
+    /*LOG_VEC("velocity ",velocity);
+    LOG_VEC("F vector",F);*/
     return F;
 }
