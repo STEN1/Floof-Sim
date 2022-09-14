@@ -240,8 +240,8 @@ namespace FLOOF {
 		for (auto& triangle : Triangles) {
 			std::cout << "Triangle: " << triangleId++ << std::endl;
 			std::cout << "A: " << triangle.A << std::endl;
-			std::cout << "B: " << triangle.A << std::endl;
-			std::cout << "C: " << triangle.A << std::endl;
+			std::cout << "B: " << triangle.B << std::endl;
+			std::cout << "C: " << triangle.C << std::endl;
 			std::cout << "Normal: " << triangle.N << std::endl;
 		}
 	}
