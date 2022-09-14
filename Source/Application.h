@@ -32,5 +32,7 @@ namespace FLOOF {
 		void DebugDrawTriangle(const Triangle& triangle, const glm::vec3& color);
 		std::vector<LineVertex> m_DebugLineBuffer;
 		entt::entity m_DebugLineEntity;
+
+		bool m_DebugDraw = true;
 	};
 }
