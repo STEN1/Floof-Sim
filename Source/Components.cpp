@@ -3,6 +3,7 @@
 #include <cstring>
 #include "stb_image.h"
 #include "ObjLoader.h"
+#include "LoggerMacros.h"
 
 namespace FLOOF {
 	TextureComponent::TextureComponent(const std::string& path) {
@@ -232,6 +233,16 @@ namespace FLOOF {
 			tri.N = glm::normalize(glm::cross(ab, ac));
 
 			Triangles.push_back(tri);
+		}
+	}
+	void TerrainComponent::PrintTriangleData() {
+		uint32_t triangleId = 0;
+		for (auto& triangle : Triangles) {
+			std::cout << "Triangle: " << triangleId++ << std::endl;
+			std::cout << "A: " << triangle.A << std::endl;
+			std::cout << "B: " << triangle.A << std::endl;
+			std::cout << "C: " << triangle.A << std::endl;
+			std::cout << "Normal: " << triangle.N << std::endl;
 		}
 	}
 }

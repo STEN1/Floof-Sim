@@ -94,3 +94,7 @@ namespace FLOOF{
         log(logtype, vecstring.c_str());
     }
 }
+
+std::ostream& operator << (std::ostream& out, const glm::vec3& v) {
+    return out << "(x: " << v.x << " y: " << v.y << " z: " << v.z << ")";
+}

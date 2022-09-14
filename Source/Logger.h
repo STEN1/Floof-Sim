@@ -1,5 +1,6 @@
 #pragma once
 #include "glm/glm.hpp"
+#include <ostream>
 
 namespace FLOOF {
     namespace Utils {
@@ -23,3 +24,5 @@ namespace FLOOF {
         };
     }
 }
+
+std::ostream& operator << (std::ostream& out, const glm::vec3& v);

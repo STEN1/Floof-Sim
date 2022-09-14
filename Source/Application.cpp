@@ -43,6 +43,7 @@ namespace FLOOF {
 			auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
+			terrain.PrintTriangleData();
 		}
 
 		{

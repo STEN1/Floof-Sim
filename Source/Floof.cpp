@@ -1,5 +1,4 @@
-﻿#include "Floof.h"
-#include "Application.h"
+﻿#include "Application.h"
 
 int main() {
     FLOOF::Application* app = new FLOOF::Application;

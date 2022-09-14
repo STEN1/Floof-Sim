@@ -70,6 +70,7 @@ namespace FLOOF {
 	struct TerrainComponent {
 		TerrainComponent(const std::vector<MeshVertex>& vertexData);
 		std::vector<Triangle> Triangles;
+		void PrintTriangleData();
 	};
 
     struct BallComponent {
