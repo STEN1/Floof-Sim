@@ -277,7 +277,6 @@ namespace FLOOF {
 			for (auto [entity, lineMesh] : view.each()) {
 				LinePushConstants constants;
 				constants.MVP = vp;
-				constants.Color = lineMesh.Color;
 				vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(RenderPipelineKeys::Line), VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(LinePushConstants), &constants);
 				lineMesh.Draw(commandBuffer);
@@ -286,5 +285,37 @@ namespace FLOOF {
 
 		m_Renderer->EndRecording();
 		m_Renderer->SubmitAndPresent();
+	}
+
+	void Application::DebugInit() {
+		// Size is max size of cmdBuffer updates
+		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
+		uint32_t size = 65536 / sizeof(LineVertex);
+		m_DebugLineBuffer.resize(size);
+		memset(m_DebugLineBuffer.data(), 0, m_DebugLineBuffer.size() * sizeof(LineVertex));
+		m_DebugLineEntity = m_Registry.create();
+		// Make the line mesh buffer as large as max update size by initializing with a buffer of that size.
+		LineMeshComponent& lineMesh = m_Registry.emplace<LineMeshComponent>(m_DebugLineEntity, m_DebugLineBuffer);
+	}
+
+	void Application::DebugClearLineBuffer() {
+		m_DebugLineBuffer.clear();
+	}
+
+	void Application::DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color) {
+		LineVertex v;
+		v.Color = color;
+		v.Pos = start;
+		m_DebugLineBuffer.push_back(v);
+		v.Pos = end;
+		m_DebugLineBuffer.push_back(v);
+	}
+
+	void Application::DebugDrawTriangle(const Triangle& triangle, const glm::vec3& color) {
+		DebugDrawLine(triangle.A, triangle.B, color);
+		DebugDrawLine(triangle.B, triangle.C, color);
+		DebugDrawLine(triangle.C, triangle.A, color);
+		glm::vec3 midPoint = (triangle.A + triangle.B + triangle.C) / 3.f;
+		DebugDrawLine(midPoint, midPoint + triangle.N, color);
 	}
 }

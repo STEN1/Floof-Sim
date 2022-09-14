@@ -49,6 +49,7 @@ namespace FLOOF {
 
 	struct LineVertex {
 		glm::vec3 Pos;
+		glm::vec3 Color;
 
 		static VkVertexInputBindingDescription GetBindingDescription() {
 			VkVertexInputBindingDescription bindingDescription{};
@@ -61,12 +62,17 @@ namespace FLOOF {
 		}
 
 		static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions() {
-			std::vector<VkVertexInputAttributeDescription> attributeDescriptions(1);
+			std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
 
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
 			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 			attributeDescriptions[0].offset = offsetof(LineVertex, Pos);
+
+			attributeDescriptions[1].binding = 0;
+			attributeDescriptions[1].location = 1;
+			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[1].offset = offsetof(LineVertex, Color);
 
 			return attributeDescriptions;
 		}

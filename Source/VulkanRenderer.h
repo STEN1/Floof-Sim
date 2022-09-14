@@ -24,7 +24,6 @@ namespace FLOOF {
 
 	struct LinePushConstants {
 		glm::mat4 MVP;
-		glm::vec4 Color;
 	};
 
 	struct VulkanBuffer {
