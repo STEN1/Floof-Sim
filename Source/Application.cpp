@@ -13,7 +13,8 @@ namespace FLOOF {
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		m_Window = glfwCreateWindow(1600, 900, "Vulkan window", nullptr, nullptr);
 		m_Renderer = new VulkanRenderer(m_Window);
-		Input::s_Window = m_Window;
+		Input::Init(m_Window);
+		Input::RegisterKeyPressCallback(GLFW_KEY_N, std::bind(&Application::DebugToggle, this));
         Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
 
         LOG_INFO("Test of logging");
@@ -116,10 +117,6 @@ namespace FLOOF {
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
-		if (Input::Key(GLFW_KEY_N) == GLFW_PRESS) {
-			m_DebugDraw = !m_DebugDraw;
-		}
-
 		if (m_DebugDraw) {
 			// World axis
 			DebugDrawLine(glm::vec3(0.f), glm::vec3(100.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
@@ -275,6 +272,10 @@ namespace FLOOF {
 		auto& lineMesh = m_Registry.get<LineMeshComponent>(m_DebugLineEntity);
 		lineMesh.UpdateBuffer(commandBuffer, m_DebugLineBuffer);
 		m_Renderer->EndSubmitFreeCommandBuffer(commandBuffer);
+	}
+
+	void Application::DebugToggle()	{
+		m_DebugDraw = !m_DebugDraw;
 	}
 
 	void Application::DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color) {
