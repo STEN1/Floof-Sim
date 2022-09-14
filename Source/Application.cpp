@@ -194,21 +194,22 @@ namespace FLOOF {
                 for(auto & tri : terrain.Triangles){
                     if(Utils::isInside(transform.Position,tri)){
                         triangle = tri;
+                        DebugDrawTriangle(triangle,glm::vec3(0.f,255.f,0.f));
                         break;
                     }
                   }
                     glm::vec3 a(0.f,-Math::Gravity,0.f);
                     if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius)) { // collision
-                        a = glm::vec3(triangle.N.x * triangle.N.y, triangle.N.z * triangle.N.y,(triangle.N.y * triangle.N.y) - 1);
-                        a *= Math::Gravity*deltaTime;
-                        DebugDrawTriangle(triangle,glm::vec3(0.f,255.f,0.f));
+                        a = float(Math::Gravity) * glm::vec3(triangle.N.x * triangle.N.y, triangle.N.z * triangle.N.y,(triangle.N.y * triangle.N.y) - 1);
+                        //a *= Math::Gravity;
                         //move ball on top of triangle;
-                        transform.Position += glm::normalize(triangle.N);
+                        auto intersect = (glm::dot(transform.Position-triangle.A,triangle.N));
+                        transform.Position += glm::normalize(triangle.N)*(ball.Radius*(1-intersect));
                        //velocity.Velocity = glm::vec3(0); // test collision
                     }
-                        DebugDrawLine(transform.Position,transform.Position+a,glm::vec3(255.f,0.f,0.f));
                         velocity.Velocity += a*static_cast<float>(deltaTime); // old velocity + a*s
                         DebugDrawLine(transform.Position,transform.Position+velocity.Velocity,glm::vec3(0.f,0.f,255.f));
+                        DebugDrawLine(transform.Position,transform.Position+a,glm::vec3(255.f,0.f,0.f));
                         //velocity.Velocity = a*static_cast<float>(deltaTime); // old velocity + a*s
                        //velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity,deltaTime);
                 }
