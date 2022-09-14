@@ -5,8 +5,8 @@
 #include "../LoggerMacros.h"
 
 bool FLOOF::Physics::TriangleBallIntersect(const FLOOF::Triangle &triangle, const glm::vec3 &position, const float &radius) {
-   auto intersect = glm::abs(glm::dot(position-triangle.A,triangle.N));
-   return (intersect < radius);
+   auto intersect = (glm::dot(position-triangle.A,triangle.N));
+   return (intersect > radius);
 }
 
 glm::vec3

@@ -176,7 +176,7 @@ namespace FLOOF {
         {	// Set tranformation
             auto view = m_Registry.view<TransformComponent,VelocityComponent>();
             for(auto [entity,transform,velocity] : view.each()){
-                transform.Position += velocity.Velocity*float(deltaTime);
+                transform.Position += velocity.Velocity*static_cast<float>(deltaTime);
                 // Teleport to top if falls under -20
                 if(transform.Position.y < -5.f){
                     transform.Position.y = 30.f;
@@ -201,9 +201,14 @@ namespace FLOOF {
                     if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius)) { // collision
                         a = glm::vec3(triangle.N.x * triangle.N.y, triangle.N.z * triangle.N.y,(triangle.N.y * triangle.N.y) - 1);
                         a *= Math::Gravity*deltaTime;
-                       velocity.Velocity=glm::vec3(0); // test collision
+                        DebugDrawTriangle(triangle,glm::vec3(0.f,255.f,0.f));
+                        //move ball on top of triangle;
+                        transform.Position += glm::normalize(triangle.N);
+                       //velocity.Velocity=glm::vec3(0); // test collision
                     }
-                        velocity.Velocity = a*static_cast<float>(deltaTime)+(velocity.Velocity); // old velocity + a*s
+                        DebugDrawLine(transform.Position,transform.Position+a,glm::vec3(255.f,0.f,0.f));
+                        velocity.Velocity += a*static_cast<float>(deltaTime); // old velocity + a*s
+                        //velocity.Velocity = a*static_cast<float>(deltaTime); // old velocity + a*s
                        //velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity,deltaTime);
                 }
         }

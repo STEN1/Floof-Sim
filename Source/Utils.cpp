@@ -149,23 +149,14 @@ namespace FLOOF {
 
             return cords;
         }
-        float sign (glm::vec3 p1, glm::vec3 p2, glm::vec3 p3)
-            {
-                return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
-            }
         bool isInside(const glm::vec3 &position, const Triangle &triangle) {
-        //https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
-                float d1, d2, d3;
-                bool has_neg, has_pos;
-
-                d1 = sign(position, triangle.A, triangle.B);
-                d2 = sign(position, triangle.B, triangle.C);
-                d3 = sign(position, triangle.C, triangle.A);
-
-                has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-                has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-
-                return !(has_neg && has_pos);
+            glm::vec3 v = Utils::CalcBarycentric(position,triangle);
+            for (size_t i = 0; i < 3; i++)
+            {
+                if (v[i] < 0.f || v[i] > 1.f)
+                    return false;
+            }
+            return true;
         }
     }
 }
