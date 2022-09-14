@@ -9,8 +9,7 @@
 
 namespace FLOOF {
 	namespace Utils {
-        static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::MeshVertex> &vertexData);
-        static void PushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::MeshVertex> &vertexData);
+        static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::MeshVertex> &vertexData, float radius);
 
 		std::vector<MeshVertex> GetVisimVertexData(const std::string& path) {
 			std::vector<MeshVertex> vertexData;
@@ -60,8 +59,7 @@ namespace FLOOF {
             return vertexData;
 		}
 
-        std::vector<MeshVertex> MakeBall(const int & density, const float & radius) {
-
+        std::vector<MeshVertex> MakeBall(int subdivisions, float radius) {
             std::vector<MeshVertex> vertexData;
 
             glm::vec3 v0{0,0,radius};
@@ -71,51 +69,40 @@ namespace FLOOF {
             glm::vec3 v4{0,-radius,0};
             glm::vec3 v5{0,0,-radius};
 
-            SubDivide(v0, v1, v2,density ,vertexData);
-            SubDivide(v0, v2, v3, density,vertexData);
-            SubDivide(v0, v3, v4, density,vertexData);
-            SubDivide(v0, v4, v1, density,vertexData);
-            SubDivide(v5, v2, v1, density,vertexData);
-            SubDivide(v5, v3, v2, density,vertexData);
-            SubDivide(v5, v4, v3, density,vertexData);
-            SubDivide(v5, v1, v4, density,vertexData);
+            SubDivide(v0, v1, v2, subdivisions, vertexData, radius);
+            SubDivide(v0, v2, v3, subdivisions, vertexData, radius);
+            SubDivide(v0, v3, v4, subdivisions, vertexData, radius);
+            SubDivide(v0, v4, v1, subdivisions, vertexData, radius);
+            SubDivide(v5, v2, v1, subdivisions, vertexData, radius);
+            SubDivide(v5, v3, v2, subdivisions, vertexData, radius);
+            SubDivide(v5, v4, v3, subdivisions, vertexData, radius);
+            SubDivide(v5, v1, v4, subdivisions, vertexData, radius);
 
-            return { vertexData };
+            return vertexData;
         }
-        static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::MeshVertex> &vertexData) {
+        static void SubDivide(glm::vec3 &a, glm::vec3 &b, glm::vec3 &c, int recursions, std::vector<FLOOF::MeshVertex> &vertexData, float radius) {
             if (recursions > 0) {
-                glm::vec3 v1 = glm::normalize(a + b);
-                glm::vec3 v2 = glm::normalize(a + c);
-                glm::vec3 v3 = glm::normalize(c + b);
+                glm::vec3 v1 = glm::normalize(a + b) * radius;
+                glm::vec3 v2 = glm::normalize(a + c) * radius;
+                glm::vec3 v3 = glm::normalize(c + b) * radius;
 
-                SubDivide(a, v1, v2, recursions - 1, vertexData);
-                SubDivide(c, v2, v3, recursions - 1, vertexData);
-                SubDivide(b, v3, v1, recursions - 1, vertexData);
-                SubDivide(v3, v2, v1, recursions - 1, vertexData);
+                SubDivide(a, v1, v2, recursions - 1, vertexData, radius);
+                SubDivide(c, v2, v3, recursions - 1, vertexData, radius);
+                SubDivide(b, v3, v1, recursions - 1, vertexData, radius);
+                SubDivide(v3, v2, v1, recursions - 1, vertexData, radius);
             } else {
+                glm::vec3 normal = glm::normalize(glm::cross(b - a, c - a));
+                FLOOF::MeshVertex v{};
+                v.Pos = a;
+                v.Normal = normal;
+                vertexData.push_back(v);
 
-                PushVerts(a,b,c,vertexData);
+                v.Pos = b;
+                vertexData.push_back(v);
+
+                v.Pos = c;
+                vertexData.push_back(v);
             }
-        }
-
-        static void PushVerts(glm::vec3 a, glm::vec3 b, glm::vec3 c, std::vector<FLOOF::MeshVertex> &vertexData) {
-            glm::vec3 normal = glm::cross(b - a, c - a);
-            normal = glm::normalize(normal);
-            FLOOF::MeshVertex v{};
-
-            v.Pos = a;
-            v.Normal = normal;
-            vertexData.push_back(v);
-
-            FLOOF::MeshVertex vertB{};
-            v.Pos = b;
-            v.Normal = normal;
-            vertexData.push_back(v);
-
-            FLOOF::MeshVertex vertC{};
-            v.Pos = c;
-            v.Normal = normal;
-            vertexData.push_back(v);
         }
 
         glm::vec3 CalcBarycentric(glm::vec3 position, const Triangle& triangle) {
