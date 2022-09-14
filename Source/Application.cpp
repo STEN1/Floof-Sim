@@ -15,6 +15,7 @@ namespace FLOOF {
 		m_Renderer = new VulkanRenderer(m_Window);
 		Input::Init(m_Window);
 		Input::RegisterKeyPressCallback(GLFW_KEY_N, std::bind(&Application::DebugToggle, this));
+        Input::RegisterKeyPressCallback(GLFW_KEY_R, std::bind(&Application::ResetBall, this));
         Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
 
         LOG_INFO("Test of logging");
@@ -294,4 +295,13 @@ namespace FLOOF {
 		glm::vec3 midPoint = (triangle.A + triangle.B + triangle.C) / 3.f;
 		DebugDrawLine(midPoint, midPoint + triangle.N, color);
 	}
+
+    void Application::ResetBall() {
+        auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
+        for(auto [entity, transform,ball, velocity]: view.each()){
+            transform.Position = glm::vec3(5.f,30.f,-5.f);
+            velocity.Velocity = glm::vec3(0.f);
+        }
+
+    }
 }
