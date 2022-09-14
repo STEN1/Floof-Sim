@@ -79,7 +79,7 @@ namespace FLOOF {
 
 		{
 			m_CameraEntity = m_Registry.create();
-			glm::vec3 cameraPos(0.f, 15.f, -40.f);
+			glm::vec3 cameraPos(0.f, 0.1f, -0.4f);
 			m_Registry.emplace<CameraComponent>(m_CameraEntity, cameraPos);
 		}
 
@@ -142,7 +142,7 @@ namespace FLOOF {
 		{	// Update camera.
 			auto view = m_Registry.view<CameraComponent>();
 			for (auto [entity, camera] : view.each()) {
-				static constexpr float speed = 20.f;
+				static constexpr float speed = 2.f;
 				float moveAmount = speed * deltaTime;
 				if (Input::Key(GLFW_KEY_W) == GLFW_PRESS) {
 					camera.MoveForward(moveAmount);
@@ -291,6 +291,6 @@ namespace FLOOF {
 		DebugDrawLine(triangle.B, triangle.C, color);
 		DebugDrawLine(triangle.C, triangle.A, color);
 		glm::vec3 midPoint = (triangle.A + triangle.B + triangle.C) / 3.f;
-		DebugDrawLine(midPoint, midPoint + triangle.N, color);
+		DebugDrawLine(midPoint, midPoint + (triangle.N * 0.02f), color);
 	}
 }
