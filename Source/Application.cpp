@@ -204,10 +204,11 @@ namespace FLOOF {
                         DebugDrawTriangle(triangle,glm::vec3(0.f,255.f,0.f));
                         //move ball on top of triangle;
                         transform.Position += glm::normalize(triangle.N);
-                       //velocity.Velocity=glm::vec3(0); // test collision
+                       //velocity.Velocity = glm::vec3(0); // test collision
                     }
                         DebugDrawLine(transform.Position,transform.Position+a,glm::vec3(255.f,0.f,0.f));
                         velocity.Velocity += a*static_cast<float>(deltaTime); // old velocity + a*s
+                        DebugDrawLine(transform.Position,transform.Position+velocity.Velocity,glm::vec3(0.f,0.f,255.f));
                         //velocity.Velocity = a*static_cast<float>(deltaTime); // old velocity + a*s
                        //velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity,deltaTime);
                 }

@@ -134,17 +134,20 @@ namespace FLOOF {
 
             glm::vec2 p = p2 - pos;
             glm::vec2 q = p3 - pos;
-            n = glm::cross(glm::vec3(p.x, p.y, 0), glm::vec3(q.x, q.y, 0));
+            //n = glm::cross(glm::vec3(p.x, p.y, 0), glm::vec3(q.x, q.y, 0));
+            n = glm::cross( glm::vec3(q.x, q.y, 0),glm::vec3(p.x, p.y, 0));
             cords.x = n.z / area;
 
             p = p3 - pos;
             q = p1 - pos;
-            n = glm::cross(glm::vec3(p.x, p.y, 0), glm::vec3(q.x, q.y, 0));
+            //n = glm::cross(glm::vec3(p.x, p.y, 0), glm::vec3(q.x, q.y, 0));
+            n = glm::cross(glm::vec3(q.x, q.y, 0),glm::vec3(p.x, p.y, 0) );
             cords.y = n.z / area;
 
             p = p1 - pos;
             q = p2 - pos;
-            n = glm::cross(glm::vec3(p.x, p.y, 0), glm::vec3(q.x, q.y, 0));
+            //n = glm::cross(glm::vec3(p.x, p.y, 0), glm::vec3(q.x, q.y, 0));
+            n = glm::cross (glm::vec3(q.x, q.y, 0),glm::vec3(p.x, p.y, 0));
             cords.z = n.z / area;
 
             return cords;
