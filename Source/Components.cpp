@@ -170,6 +170,7 @@ namespace FLOOF {
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
 		VertexCount = vertexData.size();
+		MaxVertexCount = VertexCount;
 	}
 	LineMeshComponent::~LineMeshComponent() {
 		auto renderer = VulkanRenderer::Get();
@@ -184,6 +185,11 @@ namespace FLOOF {
 		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 	}
 	void LineMeshComponent::UpdateBuffer(VkCommandBuffer commandBuffer, const std::vector<LineVertex>& vertexData) {
+		if (vertexData.size() > MaxVertexCount) {
+			std::cout << "Cant update buffer with data larger than vkBuffer.\n";
+			return;
+		}
+		VertexCount = vertexData.size();
 		vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, {}, VertexCount * sizeof(LineVertex), vertexData.data());
 	}
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {

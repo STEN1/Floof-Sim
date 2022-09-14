@@ -41,6 +41,7 @@ namespace FLOOF {
 		void UpdateBuffer(VkCommandBuffer commandBuffer, const std::vector<LineVertex>& vertexData);
 		VulkanBuffer VertexBuffer{};
 		uint32_t VertexCount{};
+		uint32_t MaxVertexCount{};
 		glm::vec4 Color = glm::vec4(1.f);
 	};
 
