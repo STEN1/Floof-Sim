@@ -249,13 +249,10 @@ namespace FLOOF {
                     glm::vec3 a(0.f,-Math::Gravity,0.f);
                     if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius)) { // collision
                         a = glm::vec3(triangle.N.x * triangle.N.y, triangle.N.z * triangle.N.y,(triangle.N.y * triangle.N.y) - 1);
-                        a *= Math::Gravity;
-                        //velocity.Velocity=glm::vec3(0); // test collision
+                        a *= Math::Gravity*deltaTime;
+                       velocity.Velocity=glm::vec3(0); // test collision
                     }
-                    if(glm::length(velocity.Velocity) > 0.f)
                         velocity.Velocity = a*static_cast<float>(deltaTime)+(velocity.Velocity); // old velocity + a*s
-                    else
-                        velocity.Velocity = a*static_cast<float>(deltaTime);
                        //velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity,deltaTime);
                 }
         }
