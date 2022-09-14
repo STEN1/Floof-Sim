@@ -175,27 +175,24 @@ namespace FLOOF {
             auto view = m_Registry.view<TransformComponent,VelocityComponent>();
             for(auto [entity,transform,velocity] : view.each()){
                 transform.Position += velocity.Velocity*static_cast<float>(deltaTime);
-                // Teleport to top if falls under -20
-                if(transform.Position.y < -5.f){
-                    transform.Position.y = 30.f;
-                }
             }
         }
 
         {	// Loop trough ball and set velocity
-            Triangle triangle;
+            int triangleIndex{-1};
             // Calculate ball velocity
             auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
             for (auto [entiry, transform, ball,velocity] : view.each()) {
                 auto &terrain =  m_Registry.get<TerrainComponent>(m_TerrainEntity);
                 //testing out physic TODO add to physics header
-                for(auto & tri : terrain.Triangles){
-                    if(Utils::isInside(transform.Position,tri)){
-                        triangle = tri;
-                        DebugDrawTriangle(triangle,glm::vec3(0.f,255.f,0.f));
+                for(int i{0}; i < terrain.Triangles.size(); i++){
+                    if(Utils::isInside(transform.Position,terrain.Triangles[i])){
+                        triangleIndex = i;
+                        DebugDrawTriangle(terrain.Triangles[i],glm::vec3(0.f,255.f,0.f));
                         break;
                     }
                   }
+                    Triangle &triangle = terrain.Triangles[triangleIndex];
                     glm::vec3 a(0.f,-Math::Gravity,0.f);
                     if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius)) { // collision
                         a = float(Math::Gravity) * glm::vec3(triangle.N.x * triangle.N.y, triangle.N.z * triangle.N.y,(triangle.N.y * triangle.N.y) - 1);
