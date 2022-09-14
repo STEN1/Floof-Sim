@@ -67,15 +67,15 @@ namespace FLOOF {
             const auto ballEntity = m_Registry.create();
             auto & transform = m_Registry.emplace<TransformComponent>(ballEntity);
             auto & ball  = m_Registry.emplace<BallComponent>(ballEntity);
-            ball.Radius = 1.f;
+            ball.Radius = 0.01f;
             ball.Mass = 10.f;
             auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
-            m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
+            m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(0.f,ball.Radius));
             m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
 
-            transform.Position.y += 30;
-            transform.Position.x +=5;
-            transform.Position.z -=5;
+            transform.Position.y += 0.125f;
+            transform.Position.x +=0.f;
+            transform.Position.z -=0.f;
         }
 
 		{
@@ -174,7 +174,7 @@ namespace FLOOF {
         {	// Set tranformation
             auto view = m_Registry.view<TransformComponent,VelocityComponent>();
             for(auto [entity,transform,velocity] : view.each()){
-                transform.Position += velocity.Velocity*static_cast<float>(deltaTime);
+                transform.Position += velocity.Velocity;
             }
         }
 
@@ -193,18 +193,31 @@ namespace FLOOF {
                     }
                   }
                     Triangle &triangle = terrain.Triangles[triangleIndex];
+                    Triangle &triangle2 = terrain.Triangles[3];
                     glm::vec3 a(0.f,-Math::Gravity,0.f);
+                    glm::vec3 test(0.f);
+                    test = float(Math::Gravity) * glm::vec3(triangle2.N.x * triangle2.N.y, (triangle2.N.y * triangle2.N.y) - 1,(triangle2.N.z * triangle2.N.y));
                     if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius)) { // collision
-                        a = float(Math::Gravity) * glm::vec3(triangle.N.x * triangle.N.y, triangle.N.z * triangle.N.y,(triangle.N.y * triangle.N.y) - 1);
+                        a = float(Math::Gravity) * glm::vec3(triangle.N.x * triangle.N.y, (triangle.N.y * triangle.N.y) - 1,(triangle.N.z * triangle.N.y));
                         //a *= Math::Gravity;
+
                         //move ball on top of triangle;
                         auto intersect = (glm::dot(transform.Position-triangle.A,triangle.N));
-                        transform.Position += glm::normalize(triangle.N)*(ball.Radius*(1-intersect));
+                        //if(intersect < 0)
+                        transform.Position += glm::normalize(triangle.N)*intersect;
+                        //else
+                           // transform.Position += glm::normalize(triangle.N)*intersect+ball.Radius;
                        //velocity.Velocity = glm::vec3(0); // test collision
+
                     }
-                        velocity.Velocity += a*static_cast<float>(deltaTime); // old velocity + a*s
-                        DebugDrawLine(transform.Position,transform.Position+velocity.Velocity,glm::vec3(0.f,0.f,255.f));
-                        DebugDrawLine(transform.Position,transform.Position+a,glm::vec3(255.f,0.f,0.f));
+
+                        velocity.Velocity += a*static_cast<float>(deltaTime)*static_cast<float>(deltaTime); // old velocity + a*s
+                        //velocity.Velocity = glm::vec3(0);
+                        //make it slowmotion
+                        velocity.Velocity *=0.8f;
+                        //DebugDrawLine(transform.Position,transform.Position+test*2.f,glm::vec3(0.f,125.f,125.f));
+                        DebugDrawLine(transform.Position,transform.Position+velocity.Velocity*100.f,glm::vec3(0.f,0.f,255.f));
+                        DebugDrawLine(transform.Position,transform.Position+a*0.1f,glm::vec3(255.f,0.f,0.f));
                         //velocity.Velocity = a*static_cast<float>(deltaTime); // old velocity + a*s
                        //velocity.Velocity = Physics::GetVelocityBall(triangle,transform.Position,ball,velocity.Velocity,deltaTime);
                 }
@@ -296,7 +309,7 @@ namespace FLOOF {
     void Application::ResetBall() {
         auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
         for(auto [entity, transform,ball, velocity]: view.each()){
-            transform.Position = glm::vec3(5.f,30.f,-5.f);
+            transform.Position = glm::vec3(0.f,0.125f,0.f);
             velocity.Velocity = glm::vec3(0.f);
         }
 
