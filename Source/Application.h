@@ -26,6 +26,7 @@ namespace FLOOF {
 		// ------------Debug utils----------------
 		void DebugInit();
 		void DebugClearLineBuffer();
+		void DebugUpdateLineBuffer();
 		// Draws line in world coords
 		void DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color);
 		// Draws triangle on world coords

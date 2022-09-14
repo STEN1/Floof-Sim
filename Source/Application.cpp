@@ -33,6 +33,7 @@ namespace FLOOF {
 	}
 
 	int Application::Run() {
+		DebugInit();
 		{
 			m_TerrainEntity = m_Registry.create();
 			auto& terrainTransform = m_Registry.emplace<TransformComponent>(m_TerrainEntity);
@@ -40,59 +41,6 @@ namespace FLOOF {
 			auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
-
-			for (auto& tri : terrain.Triangles) {
-				const auto entity = m_Registry.create();
-				auto& transform = m_Registry.emplace<TransformComponent>(entity);
-				transform = terrainTransform;
-				std::vector<LineVertex> line(2);
-				LineVertex v;
-				v.Pos = (tri.A + tri.B + tri.C) / 3.f;
-				line[0] = v;
-				v.Pos += tri.N * 5.f;
-				line[1] = v;
-				auto& mesh = m_Registry.emplace<LineMeshComponent>(entity, line);
-				mesh.Color = glm::vec4(1.f, 0.f, 1.f, 1.f);
-			}
-		}
-
-        {
-            const auto entity = m_Registry.create();
-            m_Registry.emplace<TransformComponent>(entity);
-            std::vector<LineVertex> lines;
-            LineVertex line;
-            line.Pos = glm::vec3();
-            lines.push_back(line);
-            line.Pos = glm::vec3(0.f, 200.f, 0.f);
-            lines.push_back(line);
-            auto& lineMeshComponent = m_Registry.emplace<LineMeshComponent>(entity, lines);
-			lineMeshComponent.Color = glm::vec4(0.f, 1.f, 0.f, 1.f);
-        }
-
-		{
-			const auto entity = m_Registry.create();
-			m_Registry.emplace<TransformComponent>(entity);
-			std::vector<LineVertex> lines;
-			LineVertex line;
-			line.Pos = glm::vec3();
-			lines.push_back(line);
-			line.Pos = glm::vec3(200.f, 0.f, 0.f);
-			lines.push_back(line);
-			auto& lineMeshComponent = m_Registry.emplace<LineMeshComponent>(entity, lines);
-			lineMeshComponent.Color = glm::vec4(1.f, 0.f, 0.f, 1.f);
-		}
-
-		{
-			const auto entity = m_Registry.create();
-			m_Registry.emplace<TransformComponent>(entity);
-			std::vector<LineVertex> lines;
-			LineVertex line;
-			line.Pos = glm::vec3();
-			lines.push_back(line);
-			line.Pos = glm::vec3(0.f, 0.f, 200.f);
-			lines.push_back(line);
-			auto& lineMeshComponent = m_Registry.emplace<LineMeshComponent>(entity, lines);
-			lineMeshComponent.Color = glm::vec4(0.f, 0.f, 1.f, 1.f);
 		}
 
 		{
@@ -122,10 +70,6 @@ namespace FLOOF {
             auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
             m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
             m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
-			std::vector<LineVertex> line(2);
-			line[0].Pos = glm::vec3();
-			line[1].Pos = glm::vec3(20.f);
-			m_Registry.emplace<LineMeshComponent>(ballEntity, line);
 
             transform.Position.y += 30;
             transform.Position.x +=5;
@@ -156,8 +100,14 @@ namespace FLOOF {
 				titleBarUpdateTimer = 0.f;
 				frameCounter = 0.f;
 			}
+			if (m_DebugDraw) {
+				DebugClearLineBuffer();
+			}
 			Update(deltaTime);
 			Simulate(deltaTime);
+			if (m_DebugDraw) {
+				DebugUpdateLineBuffer();
+			}
 			Draw();
 		}
 
@@ -166,9 +116,22 @@ namespace FLOOF {
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
-		auto* renderer = VulkanRenderer::Get();
 		if (Input::Key(GLFW_KEY_N) == GLFW_PRESS) {
 			m_DebugDraw = !m_DebugDraw;
+		}
+
+		if (m_DebugDraw) {
+			// World axis
+			DebugDrawLine(glm::vec3(0.f), glm::vec3(100.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
+			DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 100.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+			DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 100.f), glm::vec3(0.f, 0.f, 1.f));
+
+			// Terrain triangles
+			TerrainComponent& triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+			glm::vec3 surfaceTriangleColor{ 1.f, 0.f, 1.f };
+			for (auto& triangle : triangleSurface.Triangles) {
+				DebugDrawTriangle(triangle, surfaceTriangleColor);
+			}
 		}
 
 		{	// Rotate first mesh.
@@ -207,18 +170,6 @@ namespace FLOOF {
 					camera.Pitch(mouseDelta.y * mouseSpeed);
 				}
 			}
-		}
-
-		if (m_DebugDraw) { // update debug lines
-			auto commandBuffer = renderer->AllocateBeginOneTimeCommandBuffer();
-			auto view = m_Registry.view<TransformComponent, VelocityComponent, LineMeshComponent>();
-			for (auto [entity, transform, velocity, lineMesh] : view.each()) {
-				std::vector<LineVertex> lineData(2);
-				lineData[0].Pos = transform.Position;
-				lineData[1].Pos = transform.Position + (velocity.Velocity * 1.f);
-				lineMesh.UpdateBuffer(commandBuffer, lineData);
-			}
-			renderer->EndSubmitFreeCommandBuffer(commandBuffer);
 		}
 	}
 	void Application::Simulate(double deltaTime) {
@@ -263,7 +214,6 @@ namespace FLOOF {
 
 
 	void Application::Draw() {
-		auto* renderer = VulkanRenderer::Get();
 		auto commandBuffer = m_Renderer->StartRecording();
 
 		// Camera setup
@@ -272,7 +222,7 @@ namespace FLOOF {
 		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.1f, 1000.f);
 
 		{	// Geometry pass
-			renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
+			m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
 			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
 			for (auto [entity, transform, mesh, texture] : view.each()) {
 				MeshPushConstants constants;
@@ -314,6 +264,13 @@ namespace FLOOF {
 
 	void Application::DebugClearLineBuffer() {
 		m_DebugLineBuffer.clear();
+	}
+
+	void Application::DebugUpdateLineBuffer() {
+		auto commandBuffer = m_Renderer->AllocateBeginOneTimeCommandBuffer();
+		auto& lineMesh = m_Registry.get<LineMeshComponent>(m_DebugLineEntity);
+		lineMesh.UpdateBuffer(commandBuffer, m_DebugLineBuffer);
+		m_Renderer->EndSubmitFreeCommandBuffer(commandBuffer);
 	}
 
 	void Application::DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color) {

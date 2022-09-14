@@ -38,7 +38,7 @@ namespace FLOOF {
         }
         {
             RenderPipelineParams params;
-            params.Flags = RenderPipelineFlags::AlphaBlend | RenderPipelineFlags::DepthPass;
+            params.Flags = RenderPipelineFlags::AlphaBlend;
             params.FragmentPath = "Shaders/Line.frag.spv";
             params.VertexPath = "Shaders/Line.vert.spv";
             params.Key = RenderPipelineKeys::Line;
@@ -758,8 +758,13 @@ namespace FLOOF {
         ASSERT(plResult == VK_SUCCESS);
 
         VkPipelineDepthStencilStateCreateInfo depthStencilStateInfo = { VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
-        depthStencilStateInfo.depthTestEnable = VK_TRUE;
-        depthStencilStateInfo.depthWriteEnable = VK_TRUE;
+        if (params.Flags & RenderPipelineFlags::DepthPass) {
+            depthStencilStateInfo.depthTestEnable = VK_TRUE;
+            depthStencilStateInfo.depthWriteEnable = VK_TRUE;
+        } else {
+            depthStencilStateInfo.depthTestEnable = VK_FALSE;
+            depthStencilStateInfo.depthWriteEnable = VK_FALSE;
+        }
         depthStencilStateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
         depthStencilStateInfo.depthBoundsTestEnable = VK_FALSE;
         depthStencilStateInfo.stencilTestEnable = VK_FALSE;
