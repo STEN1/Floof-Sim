@@ -23,6 +23,10 @@ namespace FLOOF {
 		entt::entity m_CameraEntity;
 		entt::entity m_TerrainEntity;
 
+
+
+        // ------ physics utils --------
+        void ResetBall();
 		// ------------Debug utils----------------
 		void DebugInit();
 		void DebugClearLineBuffer();
