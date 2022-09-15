@@ -1,4 +1,5 @@
 # Floof
+![Floof example image](Assets/FloofHeader.png)
 
 Testet på Windows, Linux og MacOS
 
