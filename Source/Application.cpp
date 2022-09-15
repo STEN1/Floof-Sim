@@ -138,7 +138,7 @@ namespace FLOOF {
 
 		{	// Rotate first mesh.
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
-			for (auto [entiry, transform, mesh] : view.each()) {
+			for (auto [entity, transform, mesh] : view.each()) {
 				transform.Rotation.y += deltaTime;
 				break;
 			}
@@ -193,7 +193,7 @@ namespace FLOOF {
             static int oldIndex{-1};
             bool bInside{false};
             auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
-            for (auto [entiry, transform, ball,velocity] : view.each()) {
+            for (auto [entity, transform, ball,velocity] : view.each()) {
                 auto &terrain =  m_Registry.get<TerrainComponent>(m_TerrainEntity);
                 //find triangle under ball
                 for(int i{0}; i < terrain.Triangles.size(); i++){

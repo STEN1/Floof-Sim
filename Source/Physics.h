@@ -12,6 +12,8 @@ namespace FLOOF{
     static glm::vec3 GetReflectVelocity(const glm::vec3 & velocity, const glm::vec3 & reflectionangle);
     static glm::vec3 GetReflectionAngle(const glm::vec3 & m, const glm::vec3 & n);
     static glm::vec3 GetAccelerationVector(const Triangle& triangle);
+    static void ElasticCollision(glm::vec3 p1, glm::vec3 p2, glm::vec3 &v1, glm::vec3 &v2);
+
     };
 
 	class AABB;

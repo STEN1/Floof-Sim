@@ -22,7 +22,14 @@ namespace FLOOF {
         return (float(Math::Gravity) * glm::vec3(triangle.N.x * triangle.N.y, (triangle.N.y * triangle.N.y) - 1,(triangle.N.z * triangle.N.y)));
     }
 
-	CollisionShape::CollisionShape(Shape shape)
+    void Physics::ElasticCollision(glm::vec3 p1, glm::vec3 p2, glm::vec3 &v1, glm::vec3 &v2) {
+        glm::vec3 normal = (p1 - p2) / glm::length(p1 - p2);
+        normal *= glm::dot(v1 - v2, normal);
+        v1 -= normal;
+        v2 += normal;
+    }
+
+    CollisionShape::CollisionShape(Shape shape)
 		: shape(shape)
 	{
 	}
