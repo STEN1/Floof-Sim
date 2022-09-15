@@ -173,23 +173,26 @@ namespace FLOOF {
 		}
 	}
 	void Application::Simulate(double deltaTime) {
-        deltaTime *=.5f;
-        {	// Set tranformation
+        //TODO make sure slowmotion is not active on delivery
+        //deltaTime *=.3f;
+
+        //---- Set  ball Transform with velocity ----
+        {
             auto view = m_Registry.view<TransformComponent,VelocityComponent>();
             for(auto [entity,transform,velocity] : view.each()){
                 transform.Position += velocity.Velocity;
             }
         }
 
-        {	// Loop trough ball and set velocity
+        // ---- Calculate ball velocity ----
+        {
             int triangleIndex{-1};
             static int oldIndex{-1};
             bool bInside{false};
-            // Calculate ball velocity
             auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
             for (auto [entiry, transform, ball,velocity] : view.each()) {
                 auto &terrain =  m_Registry.get<TerrainComponent>(m_TerrainEntity);
-                //testing out physic TODO add to physics header
+                //find triangle under ball
                 for(int i{0}; i < terrain.Triangles.size(); i++){
                     if(Utils::isInside(transform.Position,terrain.Triangles[i])){
                         triangleIndex = i;
@@ -197,41 +200,32 @@ namespace FLOOF {
                         DebugDrawTriangle(terrain.Triangles[i],glm::vec3(0.f,255.f,0.f));
                         break;
                     }
-                  }
-                if(!bInside){
+                }
+                if(!bInside)
                     triangleIndex=-1;
-                }
-                //overlapp corner
+
+                //reflect velocity when hit corner
                 if(oldIndex != triangleIndex && oldIndex != -1 && triangleIndex != -1){
-                    ballPosOnCollision = transform.Position;
-                    ///x = m*n/length(m*n)
-                    glm::vec3 m,n;
-                    m = terrain.Triangles[oldIndex].N;
-                    n = terrain.Triangles[triangleIndex].N;
-                    x = (m + n) / (glm::length(m + n) * glm::length(m + n));
-                    x = glm::normalize(x);
-                    velocity.Velocity = velocity.Velocity - (2.f * (velocity.Velocity * x)) * x;
-
+                    glm::vec3 m = terrain.Triangles[oldIndex].N;
+                    glm::vec3 n = terrain.Triangles[triangleIndex].N;
+                    velocity.Velocity = Physics::GetReflectVelocity(velocity.Velocity, Physics::GetReflectionAngle(m,n));
                 }
-
                 oldIndex = triangleIndex;
-                    glm::vec3 a(0.f,-Math::Gravity,0.f);
-                    if(triangleIndex >= 0 && triangleIndex < terrain.Triangles.size()){
-                        Triangle &triangle = terrain.Triangles[triangleIndex];
-                        if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius) && bInside) { // collision
-                            a = float(Math::Gravity) * glm::vec3(triangle.N.x * triangle.N.y, (triangle.N.y * triangle.N.y) - 1,(triangle.N.z * triangle.N.y));
-                            //move ball on top of triangle;
-                            auto dist = (glm::dot(transform.Position-triangle.A,triangle.N));
-                            transform.Position += glm::normalize(triangle.N)*(-dist+ball.Radius);
-                               // transform.Position += glm::normalize(triangle.N)*intersect+ball.Radius;
-                           //velocity.Velocity = glm::vec3(0); // test collision
+                glm::vec3 a(0.f,-Math::Gravity,0.f);
+
+                if(triangleIndex >= 0 && triangleIndex < terrain.Triangles.size()){
+                    Triangle &triangle = terrain.Triangles[triangleIndex];
+                    if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius)) {
+                        a = Physics::GetAccelerationVector(triangle);
+                        //move ball on top of triangle;
+                        auto dist = (glm::dot(transform.Position-triangle.A,triangle.N));
+                        transform.Position += glm::normalize(triangle.N)*(-dist+ball.Radius);
                     }
-                    }
-                        velocity.Velocity += a*static_cast<float>(deltaTime)*static_cast<float>(deltaTime); // old velocity + a*s
-                        DebugDrawLine(transform.Position,transform.Position+velocity.Velocity*1000.f,glm::vec3(0.f,0.f,255.f));
-                        DebugDrawLine(ballPosOnCollision,ballPosOnCollision+x*1.f,glm::vec3(0.f,125.f,125.f));
-                        DebugDrawLine(transform.Position,transform.Position+a*0.01f,glm::vec3(255.f,0.f,0.f));
                 }
+                    velocity.Velocity += a*static_cast<float>(deltaTime)*static_cast<float>(deltaTime);
+                    DebugDrawLine(transform.Position,transform.Position+velocity.Velocity*100.f,glm::vec3(0.f,0.f,255.f));
+                    DebugDrawLine(transform.Position,transform.Position+a*0.01f,glm::vec3(255.f,0.f,0.f));
+            }
         }
     }
 
