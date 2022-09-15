@@ -4,7 +4,7 @@
 #include "Components.h"
 #include "Input.h"
 #include "Utils.h"
-#include "Physics/Physics.h"
+#include "Physics.h"
 #include <string>
 
 namespace FLOOF {

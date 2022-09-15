@@ -196,8 +196,13 @@ namespace FLOOF {
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
 		Up = glm::vec3(0.f, -1.f, 0.f);
 		Forward = glm::vec3(0.f, 0.f, 1.f);
+		Right = glm::normalize(glm::cross(Forward, Up));
 	}
 	glm::mat4 CameraComponent::GetVP(float fov, float aspect, float near, float far) {
+		FOV = fov;
+		Aspect = aspect;
+		Near = near;
+		Far = far;
 		glm::mat4 view = glm::lookAt(Position, Position + Forward, Up);
 		glm::mat4 projection = glm::perspective(fov, aspect, near, far);
 		return projection * view;
