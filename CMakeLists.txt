@@ -25,8 +25,8 @@ add_executable(Floof
 	Source/Logger.cpp
 	Source/Logger.h
 	Source/LoggerMacros.h 
-	Source/Physics/Physics.cpp 
-	Source/Physics/Physics.h
+	Source/Physics.cpp
+	Source/Physics.h
 )
 
 

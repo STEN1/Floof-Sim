@@ -62,9 +62,14 @@ namespace FLOOF {
 		void MoveRight(float amount);
 		void Pitch(float amount);
 		void Yaw(float amount);
+		glm::vec3 Position;
 		glm::vec3 Forward;
 		glm::vec3 Up;
-		glm::vec3 Position;
+		glm::vec3 Right;
+		float FOV = 1.f;
+		float Near = 0.1f;
+		float Far = 100.f;
+		float Aspect = 16.f / 9.f;
 	};
 
 	struct TerrainComponent {
