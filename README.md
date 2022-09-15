@@ -1,14 +1,14 @@
 # Floof, Multiplatform Vulkan Fysikk Motor
 ![Floof example image](Assets/FloofHeader.png)
 
-### Testet på Windows, Linux og MacOS
+### Testet på Windows, Linux og macOS
  * Apple silicon M1
  * AMD Graphics
  * Intel Graphics
  * Nvidia Graphics
 
 
-## Bygge instrukser Windows:
+## Byggeinstrukser Windows:
 * Oppdatert versjon av Visual studio 2022
 * Oppdatert versjon av CMake
 * Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
@@ -24,9 +24,9 @@ git clone --recursive https://github.com/STEN1/Floof
 * Nå kan du velge Floof.exe fra dropdown oppe ved valg om å kjøre i debug eller release
 
 
-## Bygge instrukser Macos
+## Byggeinstrukser macOS
 
-Note last ned nyeste versjon av Vulkan SDK til Macos med alle komponenter under installasjon
+Note last ned nyeste versjon av Vulkan SDK til macOS med alle komponenter under installasjon
 * Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
   * Da med alle komponenter under installasjon
 
@@ -51,9 +51,46 @@ mkdir build
 cd build
 ```
 
-```
+```c++
 cmake ..
 make -j8
 ```
 
+## Byggeinstrukser Linux (Ubuntu)
 
+* Oppdatert versjon av CLion
+* Oppdatert versjon av CMake
+* Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
+  * Lag en arbeidsmappe 
+  ```
+  cd ~
+  mkdir vulkan
+  cd vulkan
+  ```
+* Pakk ut SDKen
+  ```
+  tar xf $HOME/Downloads/vulkansdk-linux-x86_64-1.x.yy.z.tar.gz
+  ```
+* Registrer permanente Enviroment Variables
+  ```
+  sudo nano .bash_profile
+  ```
+  * Legg til på en ny linje:
+  ```
+  source ~/vulkan/1.x.yy.z/setup-env.sh
+  ```
+* Sjekk at SDKen fungerer
+  * Vulkan Installation Analyzer (VIA) with the command:
+	```
+	~$ vkvia
+	```
+* Vulkan Info with the command:
+	```
+	~$ vulkaninfo
+	```
+* Vulkan Cube with the command:
+	````
+	~$ vkcube
+	````
+* Clone prosjektet med kommandoen gitt over
+* Åpne mappen med CLion
