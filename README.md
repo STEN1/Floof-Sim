@@ -1,18 +1,19 @@
-# Floof
+# Floof, The Cross Platform Vulkan Physics Engine
 ![Floof example image](Assets/FloofHeader.png)
 
-Testet på Windows, Linux og MacOS
+### Works on Windows, Linux og MacOS
+
+
+## Bygge instrukser Windows:
+* Oppdatert versjon av Visual studio 2022
+* Oppdatert versjon av CMake
+* Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
+  * Da med alle komponenter under installasjon
 
 Siden prosjektet har bibliotek som git-submodules må man dra ned prosjektet med
 ```
 git clone --recursive https://github.com/STEN1/Floof
 ```
-
-Instrukser for Windows:
-* Oppdatert versjon av Visual studio 2022
-* Oppdatert versjon av CMake
-* Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
-  * Da med alle komponenter under installasjon
 * Clone projektet med kommandoen over
 * Åpne selve Floof mappen i Visual Studio siden det er ingen .sln fil
 * Høyreklikk på CmakeList.txt i Visual studio og velg "delete cache and reconfigure"
@@ -20,7 +21,7 @@ Instrukser for Windows:
 * Nå kan du velge Floof.exe fra dropdown oppe ved valg om å kjøre i debug eller release
 
 
-## installation Macos
+## Bygge instrukser Macos
 
 Note last ned nyeste versjon av Vulkan SDK til Macos med alle komponenter under installasjon
 * Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
