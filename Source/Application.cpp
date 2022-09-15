@@ -212,6 +212,10 @@ namespace FLOOF {
                     glm::vec3 m = terrain.Triangles[oldIndex].N;
                     glm::vec3 n = terrain.Triangles[triangleIndex].N;
                     velocity.Velocity = Physics::GetReflectVelocity(velocity.Velocity, Physics::GetReflectionAngle(m,n));
+                    if(triangleIndex == 1 && oldIndex == 0){
+                        std::string msg = std::to_string(glm::length(velocity.Velocity*static_cast<float>(deltaTime)));
+                        LOG_INFO(msg.c_str());
+                    }
                 }
                 oldIndex = triangleIndex;
                 glm::vec3 a(0.f,-Math::Gravity,0.f);
