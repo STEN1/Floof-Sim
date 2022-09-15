@@ -10,11 +10,10 @@
 * Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
   * Da med alle komponenter under installasjon
 
-Siden prosjektet har bibliotek som git-submodules må man dra ned prosjektet med
+* Siden prosjektet har bibliotek som git-submodules må man dra ned prosjektet med
 ```
 git clone --recursive https://github.com/STEN1/Floof
 ```
-* Clone projektet med kommandoen over
 * Åpne selve Floof mappen i Visual Studio siden det er ingen .sln fil
 * Høyreklikk på CmakeList.txt i Visual studio og velg "delete cache and reconfigure"
   * Dette vil kjøre cmake commando for å kompilere shadere til spir-v filer med kompilator som kom med Vulkan SDK
