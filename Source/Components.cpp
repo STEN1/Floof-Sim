@@ -137,7 +137,7 @@ namespace FLOOF {
 		IndexCount = indexData.size();
 
 	}
-	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData, const std::vector<uint32_t>& indexData)	{
+	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData, const std::vector<uint32_t>& indexData) {
 		auto* renderer = VulkanRenderer::Get();
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
@@ -145,7 +145,7 @@ namespace FLOOF {
 		VertexCount = vertexData.size();
 		IndexCount = indexData.size();
 	}
-	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData)	{
+	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData) {
 		auto* renderer = VulkanRenderer::Get();
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
@@ -208,7 +208,7 @@ namespace FLOOF {
 		glm::mat4 projection = glm::perspective(fov, aspect, near, far);
 		return projection * view;
 	}
-	void CameraComponent::MoveForward(float amount)	{
+	void CameraComponent::MoveForward(float amount) {
 		Position += Forward * amount;
 	}
 	void CameraComponent::MoveRight(float amount) {

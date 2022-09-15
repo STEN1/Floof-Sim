@@ -24,19 +24,20 @@ namespace FLOOF {
 		entt::entity m_CameraEntity;
 		entt::entity m_TerrainEntity;
 
-
-
-        // ------ physics utils --------
+        // ----------- Physics utils -------------
         void ResetBall();
         void SpawnBall();
         std::chrono::high_resolution_clock::time_point m_Ballspawntime;
-		// ------------Debug utils----------------
+
+		// ----------- Debug utils ---------------
 		void DebugInit();
 		void DebugClearLineBuffer();
 		void DebugUpdateLineBuffer();
 		void DebugToggle();
+
 		// Draws line in world coords
 		void DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color);
+
 		// Draws triangle on world coords
 		void DebugDrawTriangle(const Triangle& triangle, const glm::vec3& color);
 		std::vector<LineVertex> m_DebugLineBuffer;

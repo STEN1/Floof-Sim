@@ -8,6 +8,5 @@
 namespace FLOOF{
     namespace Math{
         constexpr inline const double Gravity{9.807};
-
     }
 }
