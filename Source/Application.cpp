@@ -19,10 +19,10 @@ namespace FLOOF {
         Input::RegisterKeyPressCallback(GLFW_KEY_F, std::bind(&Application::SpawnBall, this));
         Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
 
-        LOG_INFO("Test of logging");
-        LOG_WARNING("Test of logging");
-        LOG_ERROR("Test of logging");
-        LOG_CRITICAL("Test of logging");
+        //LOG_INFO("Test of logging");
+        //LOG_WARNING("Test of logging");
+        //LOG_ERROR("Test of logging");
+        //LOG_CRITICAL("Test of logging");
 
 	}
 
@@ -214,7 +214,11 @@ namespace FLOOF {
                     glm::vec3 n = terrain.Triangles[triangleIndex].N;
                     velocity.Velocity = Physics::GetReflectVelocity(velocity.Velocity, Physics::GetReflectionAngle(m,n));
                     if(triangleIndex == 1 && oldIndex == 0){
-                        std::string msg = std::to_string(glm::length(velocity.Velocity*static_cast<float>(deltaTime)));
+                        auto timeused = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-m_Ballspawntime).count();
+                        float seconds = timeused/1000.f;
+                        std::string msg = "Time first triangle : ";
+                        msg += std::to_string(seconds);
+                        msg += " s";
                         LOG_INFO(msg.c_str());
                     }
                 }
@@ -238,7 +242,10 @@ namespace FLOOF {
 
                             // ---- log oblig stuff -----
                             if(triangleIndex == 1 && oldIndex == 0){
-
+                                auto timeused = (m_Ballspawntime-std::chrono::high_resolution_clock::now()).count();
+                                std::string msg = "Time first triangle";
+                                msg += std::to_string(timeused);
+                                LOG_INFO(msg.c_str());
                             }
                         }
                     }
