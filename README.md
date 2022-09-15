@@ -35,7 +35,7 @@ Brew install vulkan-loader
 
 ### Klone og kompilere prosjektet
 ```
-cd "Project location"
+cd ${Project location}
 ```
 ```
 git clone --recursive https://github.com/STEN1/Floof
