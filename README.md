@@ -7,6 +7,14 @@
  * Intel Graphics
  * Nvidia Graphics
 
+### Kontrolloppsett
+| Beskrivelse           | Knapp          | 
+|-----------------------|----------------|
+| Styring av kamera     | WASD           | 
+| Rotering av kamera    | LCtrl / RMouse | 
+| Reset scene           | R              | 
+| Dropp ball fra kamera | F              | 
+| Debuglinjer           | N              | 
 
 ## Byggeinstrukser for Windows:
 * Oppdatert versjon av Visual studio 2022
