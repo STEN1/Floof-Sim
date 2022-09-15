@@ -234,6 +234,11 @@ namespace FLOOF {
                             auto frictionvec = -glm::normalize(velocity.Velocity)*(frictionConstant*ball.Mass);
                             af = a+frictionvec;
                             DebugDrawLine(transform.Position,transform.Position+frictionvec,glm::vec3(0.f,125.f,125.f));
+
+                            // ---- log oblig stuff -----
+                            if(triangleIndex == 1 && oldIndex == 0){
+
+                            }
                         }
                     }
                 }
@@ -330,6 +335,7 @@ namespace FLOOF {
 	}
 
     void Application::ResetBall() {
+        m_Ballspawntime = std::chrono::high_resolution_clock::now();
         auto view = m_Registry.view<TransformComponent, BallComponent,VelocityComponent>();
         for(auto [entity, transform,ball, velocity]: view.each()){
             transform.Position = glm::vec3(0.f,0.125f,0.f);

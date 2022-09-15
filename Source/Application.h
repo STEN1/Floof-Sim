@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "Logger.h"
 #include <memory>
+#include <chrono>
 
 namespace FLOOF {
 	class Application {
@@ -28,6 +29,7 @@ namespace FLOOF {
         // ------ physics utils --------
         void ResetBall();
         void SpawnBall();
+        std::chrono::time_point<double>() m_Ballspawntime;
 		// ------------Debug utils----------------
 		void DebugInit();
 		void DebugClearLineBuffer();
