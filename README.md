@@ -1,14 +1,14 @@
-# Floof, Multiplatform Vulkan Fysikk Motor
+# Floof, en multiplatform Vulkan fysikkmotor
 ![Floof example image](Assets/FloofHeader.png)
 
 ### Testet på Windows, Linux og macOS
- * Apple silicon M1
+ * Apple Silicon M1
  * AMD Graphics
  * Intel Graphics
  * Nvidia Graphics
 
 
-## Byggeinstrukser Windows:
+## Byggeinstrukser for Windows:
 * Oppdatert versjon av Visual studio 2022
 * Oppdatert versjon av CMake
 * Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
@@ -24,13 +24,13 @@ git clone --recursive https://github.com/STEN1/Floof
 * Nå kan du velge Floof.exe fra dropdown oppe ved valg om å kjøre i debug eller release
 
 
-## Byggeinstrukser macOS
+## Byggeinstrukser for macOS
 
 Note last ned nyeste versjon av Vulkan SDK til macOS med alle komponenter under installasjon
 * Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
   * Da med alle komponenter under installasjon
 
-### Nødvendige pakker fra Brew
+### Nødvendige Brew-pakker
 ```
 Brew install cmake
 Brew install molten-vk
@@ -51,12 +51,12 @@ mkdir build
 cd build
 ```
 
-```c++
+```
 cmake ..
 make -j8
 ```
 
-## Byggeinstrukser Linux (Ubuntu)
+## Byggeinstrukser for Linux (Ubuntu)
 
 * Oppdatert versjon av CLion
 * Oppdatert versjon av CMake
@@ -71,11 +71,11 @@ make -j8
   ```
   tar xf $HOME/Downloads/vulkansdk-linux-x86_64-1.x.yy.z.tar.gz
   ```
-* Registrer permanente Enviroment Variables
+* Registrer permanente Enviroment-variabler
   ```
   sudo nano .bash_profile
   ```
-  * Legg til på en ny linje:
+  * Legg til følgende på en ny linje:
   ```
   source ~/vulkan/1.x.yy.z/setup-env.sh
   ```
@@ -92,5 +92,8 @@ make -j8
 	```
 	~$ vkcube
 	```
-* Clone prosjektet med kommandoen gitt over
+* Klone prosjektet med
+```
+git clone --recursive https://github.com/STEN1/Floof
+```
 * Åpne mappen med CLion
