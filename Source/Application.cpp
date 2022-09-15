@@ -215,21 +215,22 @@ namespace FLOOF {
                 }
 
                 oldIndex = triangleIndex;
-                    Triangle &triangle = terrain.Triangles[triangleIndex];
                     glm::vec3 a(0.f,-Math::Gravity,0.f);
-                    if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius) && bInside) { // collision
-                        a = float(Math::Gravity) * glm::vec3(triangle.N.x * triangle.N.y, (triangle.N.y * triangle.N.y) - 1,(triangle.N.z * triangle.N.y));
-                        //move ball on top of triangle;
-                        auto dist = (glm::dot(transform.Position-triangle.A,triangle.N));
-                        transform.Position += glm::normalize(triangle.N)*(-dist+ball.Radius);
-                           // transform.Position += glm::normalize(triangle.N)*intersect+ball.Radius;
-                       //velocity.Velocity = glm::vec3(0); // test collision
-
+                    if(triangleIndex >= 0 && triangleIndex < terrain.Triangles.size()){
+                        Triangle &triangle = terrain.Triangles[triangleIndex];
+                        if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius) && bInside) { // collision
+                            a = float(Math::Gravity) * glm::vec3(triangle.N.x * triangle.N.y, (triangle.N.y * triangle.N.y) - 1,(triangle.N.z * triangle.N.y));
+                            //move ball on top of triangle;
+                            auto dist = (glm::dot(transform.Position-triangle.A,triangle.N));
+                            transform.Position += glm::normalize(triangle.N)*(-dist+ball.Radius);
+                               // transform.Position += glm::normalize(triangle.N)*intersect+ball.Radius;
+                           //velocity.Velocity = glm::vec3(0); // test collision
+                    }
                     }
                         velocity.Velocity += a*static_cast<float>(deltaTime)*static_cast<float>(deltaTime); // old velocity + a*s
-                        DebugDrawLine(transform.Position,transform.Position+velocity.Velocity*100.f,glm::vec3(0.f,0.f,255.f));
+                        DebugDrawLine(transform.Position,transform.Position+velocity.Velocity*1000.f,glm::vec3(0.f,0.f,255.f));
                         DebugDrawLine(ballPosOnCollision,ballPosOnCollision+x*1.f,glm::vec3(0.f,125.f,125.f));
-                        DebugDrawLine(transform.Position,transform.Position+a*0.05f,glm::vec3(255.f,0.f,0.f));
+                        DebugDrawLine(transform.Position,transform.Position+a*0.01f,glm::vec3(255.f,0.f,0.f));
                 }
         }
     }
