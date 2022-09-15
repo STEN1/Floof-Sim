@@ -28,14 +28,8 @@ Note last ned nyeste versjon av Vulkan SDK til Macos med alle komponenter under 
 ### Nødvendige pakker fra Brew
 ```
 Brew install cmake
-```
-```
 Brew install molten-vk
-```
-```
 Brew install vulkan-header
-```
-```
 Brew install vulkan-loader
 ```
 
@@ -49,21 +43,12 @@ git clone --recursive https://github.com/STEN1/Floof
 
 ```
 mkdir build
-```
-
-```
 cd build
 ```
 
-### for xcode prosjekt
-```
-cmake -G --Xcode ..
-```
-### for Cmake prosjekt
 ```
 cmake ..
-```
-
-```
 make -j8
 ```
+
+
