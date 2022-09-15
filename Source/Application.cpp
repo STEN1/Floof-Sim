@@ -173,7 +173,7 @@ namespace FLOOF {
 		}
 	}
 	void Application::Simulate(double deltaTime) {
-        deltaTime *=.1f;
+        deltaTime *=.5f;
         {	// Set tranformation
             auto view = m_Registry.view<TransformComponent,VelocityComponent>();
             for(auto [entity,transform,velocity] : view.each()){
