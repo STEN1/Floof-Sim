@@ -27,6 +27,8 @@ namespace FLOOF {
 
         // ------ physics utils --------
         void ResetBall();
+        glm::vec3 x;
+        glm::vec3 ballPosOnCollision;
 		// ------------Debug utils----------------
 		void DebugInit();
 		void DebugClearLineBuffer();
