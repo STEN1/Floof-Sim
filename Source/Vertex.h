@@ -83,5 +83,6 @@ namespace FLOOF {
         glm::vec3 B;
         glm::vec3 C;
         glm::vec3 N;
+        float FrictionConstant;
     };
 }

@@ -40,7 +40,7 @@ namespace FLOOF {
 			m_TerrainEntity = m_Registry.create();
 			auto& terrainTransform = m_Registry.emplace<TransformComponent>(m_TerrainEntity);
 			auto vertexData = Utils::GetVisimVertexData("Assets/SimTerrain.visim");
-			auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, vertexData);
+			auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, Utils::GetVisimTriangles("Assets/SimTerrain.visim"));
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
 			terrain.PrintTriangleData();
@@ -69,7 +69,7 @@ namespace FLOOF {
             auto & transform = m_Registry.emplace<TransformComponent>(ballEntity);
             auto & ball  = m_Registry.emplace<BallComponent>(ballEntity);
             ball.Radius = 0.01f;
-            ball.Mass = 10.f;
+            ball.Mass = 2.05f;
             auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
             m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
             m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
@@ -174,13 +174,14 @@ namespace FLOOF {
 	}
 	void Application::Simulate(double deltaTime) {
         //TODO make sure slowmotion is not active on delivery
-        deltaTime *=.3f;
+        deltaTime *=.1f;
 
         //---- Set  ball Transform with velocity ----
         {
             auto view = m_Registry.view<TransformComponent,VelocityComponent>();
             for(auto [entity,transform,velocity] : view.each()){
-                transform.Position += velocity.Velocity;
+                auto v = glm::length(velocity.Velocity);
+                transform.Position += velocity.Velocity*static_cast<float>(deltaTime)*static_cast<float>(deltaTime);
             }
         }
 
@@ -212,7 +213,7 @@ namespace FLOOF {
                 }
                 oldIndex = triangleIndex;
                 glm::vec3 a(0.f,-Math::Gravity,0.f);
-
+                glm::vec3 af(a);
                 if(triangleIndex >= 0 && triangleIndex < terrain.Triangles.size()){
                     Triangle &triangle = terrain.Triangles[triangleIndex];
                     if(Physics::TriangleBallIntersect(triangle,transform.Position,ball.Radius)) {
@@ -220,11 +221,22 @@ namespace FLOOF {
                         //move ball on top of triangle;
                         auto dist = (glm::dot(transform.Position-triangle.A,triangle.N));
                         transform.Position += glm::normalize(triangle.N)*(-dist+ball.Radius);
+
+                        //add friction
+                        if(glm::length(velocity.Velocity) > 0.f) {
+                            const float frictionConstant = triangle.FrictionConstant;
+                            auto frictionvec = -glm::normalize(velocity.Velocity)*(frictionConstant*ball.Mass);
+                            af = a+frictionvec;
+                            DebugDrawLine(transform.Position,transform.Position+frictionvec,glm::vec3(0.f,125.f,125.f));
+                        }
                     }
                 }
-                    velocity.Velocity += a*static_cast<float>(deltaTime)*static_cast<float>(deltaTime);
-                    DebugDrawLine(transform.Position,transform.Position+velocity.Velocity*100.f,glm::vec3(0.f,0.f,255.f));
-                    DebugDrawLine(transform.Position,transform.Position+a*0.01f,glm::vec3(255.f,0.f,0.f));
+
+                //af acceleration with friction
+                velocity.Velocity += af;
+                DebugDrawLine(transform.Position,transform.Position+velocity.Velocity,glm::vec3(0.f,0.f,255.f));
+                DebugDrawLine(transform.Position,transform.Position+a,glm::vec3(255.f,0.f,0.f));
+                DebugDrawLine(transform.Position,transform.Position+af,glm::vec3(125.f,125.f,0.f));
             }
         }
     }

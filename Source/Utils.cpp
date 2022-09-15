@@ -6,6 +6,8 @@
 #include <string>
 #include <sstream>
 
+#include "LoggerMacros.h"
+
 
 namespace FLOOF {
 	namespace Utils {
@@ -147,6 +149,64 @@ namespace FLOOF {
                     return false;
             }
             return true;
+        }
+
+        std::vector<Triangle> GetVisimTriangles(const std::string &path) {
+
+            std::ifstream file(path);
+            if(!file.is_open()){
+               std::string msg = path;
+               msg += " could not open";
+               LOG_ERROR(msg.c_str());
+              return {};
+            }
+            std::string line;
+            std::getline(file, line);
+            std::stringstream ss(line);
+            int tricount;
+            ss >> tricount;
+            tricount = tricount / 3;
+            std::vector<Triangle> triangles(tricount);
+
+            auto calcNormal = [](Triangle& triangle){
+                    auto ab = triangle.A - triangle.B;
+                    auto ac = triangle.A - triangle.C;
+                    triangle.N =glm::normalize(glm::cross(ab,ac));
+            };
+
+            for(auto & tri : triangles){
+                {
+                    std::string line;
+                    std::getline(file, line);
+                    std::stringstream ss(line);
+                    ss >> tri.A.x;
+                    ss >> tri.A.y;
+                    ss >> tri.A.z;
+                }
+                {
+                    std::string line;
+                    std::getline(file, line);
+                    std::stringstream ss(line);
+                    ss >> tri.B.x;
+                    ss >> tri.B.y;
+                    ss >> tri.B.z;
+                }
+                {
+                    std::string line;
+                    std::getline(file, line);
+                    std::stringstream ss(line);
+                    ss >> tri.C.x;
+                    ss >> tri.C.y;
+                    ss >> tri.C.z;
+
+                    ss >> tri.FrictionConstant;
+                }
+
+                calcNormal(tri);
+            }
+
+
+            return triangles;
         }
     }
 }
