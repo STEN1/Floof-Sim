@@ -17,3 +17,38 @@ Instrukser for Windows:
 * Høyreklikk på CmakeList.txt i Visual studio og velg "delete cache and reconfigure"
   * Dette vil kjøre cmake commando for å kompilere shadere til spir-v filer med kompilator som kom med Vulkan SDK
 * Nå kan du velge Floof.exe fra dropdown oppe ved valg om å kjøre i debug eller release
+
+
+## installation Macos
+
+Note last ned nyeste versjon av Vulkan SDK til Macos med alle komponenter under installasjon
+* Oppdatert versjon av Vulkan SDK https://vulkan.lunarg.com/sdk/home
+  * Da med alle komponenter under installasjon
+
+### Nødvendige pakker fra Brew
+```
+Brew install cmake
+Brew install molten-vk
+Brew install vulkan-header
+Brew install vulkan-loader
+```
+
+### Klone og kompilere prosjektet
+```
+cd ${Project location}
+```
+```
+git clone --recursive https://github.com/STEN1/Floof
+```
+
+```
+mkdir build
+cd build
+```
+
+```
+cmake ..
+make -j8
+```
+
+
