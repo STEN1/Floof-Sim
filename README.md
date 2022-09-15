@@ -1,7 +1,11 @@
-# Floof, The Cross Platform Vulkan Physics Engine
+# Floof, Multiplatform Vulkan Fysikk Motor
 ![Floof example image](Assets/FloofHeader.png)
 
-### Works on Windows, Linux og MacOS
+### Testet på Windows, Linux og MacOS
+ * Apple silicon M1
+ * AMD Graphics
+ * Intel Graphics
+ * Nvidia Graphics
 
 
 ## Bygge instrukser Windows:
