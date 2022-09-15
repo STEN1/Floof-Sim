@@ -82,8 +82,9 @@ namespace FLOOF {
 
 		{
 			m_CameraEntity = m_Registry.create();
-			glm::vec3 cameraPos(0.f, 0.1f, -0.4f);
-			m_Registry.emplace<CameraComponent>(m_CameraEntity, cameraPos);
+			glm::vec3 cameraPos(0.3f, 0.2f, 0.3f);
+			auto& camera = m_Registry.emplace<CameraComponent>(m_CameraEntity, cameraPos);
+			camera.Pitch(0.5f);
 		}
 
 		Timer timer;
