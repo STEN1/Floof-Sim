@@ -89,8 +89,8 @@ make -j8
 	~$ vulkaninfo
 	```
 * Vulkan Cube with the command:
-	````
+	```
 	~$ vkcube
-	````
+	```
 * Clone prosjektet med kommandoen gitt over
 * Åpne mappen med CLion
