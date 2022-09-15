@@ -27,6 +27,7 @@ namespace FLOOF {
 
         // ------ physics utils --------
         void ResetBall();
+        void SpawnBall();
 		// ------------Debug utils----------------
 		void DebugInit();
 		void DebugClearLineBuffer();

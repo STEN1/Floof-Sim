@@ -16,6 +16,7 @@ namespace FLOOF {
 		Input::Init(m_Window);
 		Input::RegisterKeyPressCallback(GLFW_KEY_N, std::bind(&Application::DebugToggle, this));
         Input::RegisterKeyPressCallback(GLFW_KEY_R, std::bind(&Application::ResetBall, this));
+        Input::RegisterKeyPressCallback(GLFW_KEY_F, std::bind(&Application::SpawnBall, this));
         Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
 
         LOG_INFO("Test of logging");
@@ -174,7 +175,7 @@ namespace FLOOF {
 	}
 	void Application::Simulate(double deltaTime) {
         //TODO make sure slowmotion is not active on delivery
-        deltaTime *=.1f;
+        //deltaTime *=.05f;
 
         //---- Set  ball Transform with velocity ----
         {
@@ -196,7 +197,8 @@ namespace FLOOF {
                 //find triangle under ball
                 for(int i{0}; i < terrain.Triangles.size(); i++){
                     if(Utils::isInside(transform.Position,terrain.Triangles[i])){
-                        triangleIndex = i;
+                      if( Physics::TriangleBallIntersect(terrain.Triangles[i],transform.Position,ball.Radius))
+                            triangleIndex = i;
                         bInside=true;
                         DebugDrawTriangle(terrain.Triangles[i],glm::vec3(0.f,255.f,0.f));
                         break;
@@ -329,6 +331,24 @@ namespace FLOOF {
             transform.Position = glm::vec3(0.f,0.125f,0.f);
            // transform.Position = glm::vec3(0.31f,0.225f,-0.2f);
             velocity.Velocity = glm::vec3(0.f);
+        }
+
+    }
+
+    void Application::SpawnBall() {
+        {	// Ball
+            const auto ballEntity = m_Registry.create();
+            auto & transform = m_Registry.emplace<TransformComponent>(ballEntity);
+            auto & ball  = m_Registry.emplace<BallComponent>(ballEntity);
+            ball.Radius = 0.01f;
+            ball.Mass = 2.05f;
+            auto & velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
+            m_Registry.emplace<MeshComponent>(ballEntity,Utils::MakeBall(2.f,ball.Radius));
+            m_Registry.emplace<TextureComponent>(ballEntity,"Assets/HappyTree.png");
+
+            auto &camera = m_Registry.get<CameraComponent>(m_CameraEntity);
+            transform.Position = camera.Position;
+
         }
 
     }
