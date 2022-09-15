@@ -12,7 +12,7 @@ namespace FLOOF {
 	Application::Application() {
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		m_Window = glfwCreateWindow(1600, 900, "Vulkan window", nullptr, nullptr);
+		m_Window = glfwCreateWindow(1600, 900, "Floof    FPS: 0.0", nullptr, nullptr);
 
 		GLFWimage images[3]{};
 		int channels{};
@@ -112,7 +112,7 @@ namespace FLOOF {
 				float avgDeltaTime = titleBarUpdateTimer / frameCounter;
 				float fps{};
 				fps = 1.0 / avgDeltaTime;
-				std::string title = "FPS: " + std::to_string(fps);
+				std::string title = "Floof    FPS: " + std::to_string(fps);
 				glfwSetWindowTitle(m_Window, title.c_str());
 				titleBarUpdateTimer = 0.f;
 				frameCounter = 0.f;
