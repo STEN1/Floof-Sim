@@ -6,12 +6,27 @@
 #include "Utils.h"
 #include "Physics.h"
 #include <string>
+#include "stb_image.h"
 
 namespace FLOOF {
 	Application::Application() {
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		m_Window = glfwCreateWindow(1600, 900, "Vulkan window", nullptr, nullptr);
+
+		GLFWimage images[3]{};
+		int channels{};
+		images[0].pixels = stbi_load("Assets/Icon16x16.png", &images[0].width, &images[0].height, &channels, 4);
+		ASSERT(channels == 4);
+		images[1].pixels = stbi_load("Assets/Icon32x32.png", &images[1].width, &images[1].height, &channels, 4);
+		ASSERT(channels == 4);
+		images[2].pixels = stbi_load("Assets/Icon48x48.png", &images[2].width, &images[2].height, &channels, 4);
+		ASSERT(channels == 4);
+		glfwSetWindowIcon(m_Window, 3, images);
+		for (uint32_t i = 0; i < 3; i++) {
+			stbi_image_free(images[i].pixels);
+		}
+
 		m_Renderer = new VulkanRenderer(m_Window);
 		Input::Init(m_Window);
 		Input::RegisterKeyPressCallback(GLFW_KEY_N, std::bind(&Application::DebugToggle, this));
