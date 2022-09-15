@@ -84,11 +84,11 @@ make -j8
 	```
 	~$ vkvia
 	```
-* Vulkan Info with the command:
+  * Vulkan Info with the command:
 	```
 	~$ vulkaninfo
 	```
-* Vulkan Cube with the command:
+  * Vulkan Cube with the command:
 	```
 	~$ vkcube
 	```
