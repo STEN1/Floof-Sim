@@ -174,7 +174,7 @@ namespace FLOOF {
 	}
 	void Application::Simulate(double deltaTime) {
         //TODO make sure slowmotion is not active on delivery
-        //deltaTime *=.3f;
+        deltaTime *=.3f;
 
         //---- Set  ball Transform with velocity ----
         {
