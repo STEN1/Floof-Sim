@@ -10,6 +10,6 @@ namespace FLOOF {
 		std::vector<Triangle> GetVisimTriangles(const std::string& path);
 		std::vector<MeshVertex> MakeBall(int subdivisions, float radius);
 		glm::vec3 CalcBarycentric(glm::vec3 position, const Triangle& triangle);
-		bool isInside(const glm::vec3& position, const Triangle& triangle);
+		bool IsPointInsideTriangle(const glm::vec3& position, const Triangle& triangle);
 	}
 }

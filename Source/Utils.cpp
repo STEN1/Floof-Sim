@@ -137,7 +137,7 @@ namespace FLOOF {
 
 			return cords;
 		}
-		bool isInside(const glm::vec3& position, const Triangle& triangle) {
+		bool IsPointInsideTriangle(const glm::vec3& position, const Triangle& triangle) {
 			glm::vec3 v = Utils::CalcBarycentric(position, triangle);
 			for (size_t i = 0; i < 3; i++) {
 				if (v[i] < 0.f || v[i] > 1.f)

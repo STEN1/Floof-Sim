@@ -209,8 +209,8 @@ namespace FLOOF {
 				// Find triangle under ball
 				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 				for (int i{ 0 }; i < terrain.Triangles.size(); i++) {
-					if (Utils::isInside(transform.Position, terrain.Triangles[i])) {
-						if (Physics::TriangleBallIntersect(terrain.Triangles[i], transform.Position, ball.Radius)) {
+					if (Utils::IsPointInsideTriangle(transform.Position, terrain.Triangles[i])) {
+						if (Physics::PlaneBallIntersect(terrain.Triangles[i], transform.Position, ball.Radius)) {
 							triangleIndex = i;
 						}
 						bInside = true;
@@ -223,7 +223,7 @@ namespace FLOOF {
 					triangleIndex = -1;
 				}
 
-				// Reflect velocity when hit corner
+				// Reflect velocity when triangle index changes
 				if (oldIndex != triangleIndex && oldIndex != -1 && triangleIndex != -1) {
 					glm::vec3 m = terrain.Triangles[oldIndex].N;
 					glm::vec3 n = terrain.Triangles[triangleIndex].N;
@@ -245,7 +245,7 @@ namespace FLOOF {
 				if (triangleIndex >= 0 && triangleIndex < terrain.Triangles.size()) {
 					Triangle& triangle = terrain.Triangles[triangleIndex];
 
-					if (Physics::TriangleBallIntersect(triangle, transform.Position, ball.Radius)) {
+					if (Physics::PlaneBallIntersect(triangle, transform.Position, ball.Radius)) {
 						// Move ball on top of triangle;
 						a = Physics::GetAccelerationVector(triangle);
 						auto dist = (glm::dot(transform.Position - triangle.A, triangle.N));

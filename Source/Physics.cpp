@@ -6,7 +6,7 @@
 
 
 namespace FLOOF {
-	bool Physics::TriangleBallIntersect(const FLOOF::Triangle& triangle, const glm::vec3& position, const float& radius) {
+	bool Physics::PlaneBallIntersect(const FLOOF::Triangle& triangle, const glm::vec3& position, const float& radius) {
 		auto intersect = (glm::dot(position - triangle.A, triangle.N));
 		return (intersect < radius);
 	}
