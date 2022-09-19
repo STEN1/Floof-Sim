@@ -215,6 +215,29 @@ namespace FLOOF {
 		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
+	ImGui_ImplVulkan_InitInfo VulkanRenderer::GetImguiInitInfo() {
+		ImGui_ImplVulkan_InitInfo initInfo{};
+
+		initInfo.Instance = m_Instance;
+		initInfo.PhysicalDevice = m_PhysicalDevice;
+		initInfo.Device = m_LogicalDevice;
+		initInfo.QueueFamily = m_QueueFamilyIndices.Graphics;
+		initInfo.Queue = m_GraphicsQueue;
+		initInfo.DescriptorPool = m_TextureDescriptorPool;
+		initInfo.Subpass = 0;
+		initInfo.MinImageCount = MAX_FRAMES_IN_FLIGHT;
+		initInfo.ImageCount = MAX_FRAMES_IN_FLIGHT;
+		initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		initInfo.Allocator = nullptr;
+		initInfo.CheckVkResultFn = nullptr;
+
+		return initInfo;
+	}
+
+	VkRenderPass VulkanRenderer::GetImguiRenderPass() {
+		return m_RenderPass;
+	}
+
 	void VulkanRenderer::FinishAllFrames() {
 		vkDeviceWaitIdle(m_LogicalDevice);
 	}

@@ -20,6 +20,7 @@ namespace FLOOF {
 		void Draw();
 		entt::registry m_Registry;
 		GLFWwindow* m_Window;
+		ImGuiContext* m_ImguiContext;
 		VulkanRenderer* m_Renderer;
 		entt::entity m_CameraEntity;
 		entt::entity m_TerrainEntity;
@@ -46,5 +47,6 @@ namespace FLOOF {
 
 		bool m_DebugDraw = true;
 		bool m_DrawNormals = false;
+		bool m_ShowImguiDemo = true;
 	};
 }
