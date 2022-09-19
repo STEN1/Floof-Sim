@@ -229,15 +229,6 @@ namespace FLOOF {
 	}
 	void Application::Simulate(double deltaTime) {
 
-        deltaTime *= 0.3f;
-
-		{	// Set ball Transform with velocity
-			auto view = m_Registry.view<TransformComponent, VelocityComponent>();
-			for (auto [entity, transform, velocity] : view.each()) {
-				    //transform.Position += velocity.Velocity;// * static_cast<float>(deltaTime) * static_cast<float>(deltaTime);
-			}
-		}
-
 		{	// Calculate ball velocity
 			bool bInside{ false };
 
