@@ -105,3 +105,5 @@ make -j8
 git clone --recursive https://github.com/STEN1/Floof
 ```
 * Åpne mappen med CLion
+
+* Voila!
