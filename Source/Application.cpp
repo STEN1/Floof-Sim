@@ -239,8 +239,6 @@ namespace FLOOF {
 		}
 
 		{	// Calculate ball velocity
-			int triangleIndex{ -1 };
-			static int oldIndex{ -1 };
 			bool bInside{ false };
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent>();
@@ -250,7 +248,7 @@ namespace FLOOF {
 				for (int i{ 0 }; i < terrain.Triangles.size(); i++) {
 					if (Utils::IsPointInsideTriangle(transform.Position, terrain.Triangles[i])) {
 						if (Physics::PlaneBallIntersect(terrain.Triangles[i], transform.Position, ball.Radius)) {
-							triangleIndex = i;
+							ball.TriangleIndex = i;
 						}
 						bInside = true;
 						DebugDrawTriangle(terrain.Triangles[i], glm::vec3(0.f, 255.f, 0.f));
@@ -259,16 +257,16 @@ namespace FLOOF {
 				}
 
 				if (!bInside) {
-					triangleIndex = -1;
+                    ball.TriangleIndex = -1;
 				}
 
 				// Reflect velocity when triangle index changes
-				if (oldIndex != triangleIndex && oldIndex != -1 && triangleIndex != -1) {
-					glm::vec3 m = terrain.Triangles[oldIndex].N;
-					glm::vec3 n = terrain.Triangles[triangleIndex].N;
+				if (ball.LastTriangleIndex != ball.TriangleIndex && ball.LastTriangleIndex != -1 && ball.TriangleIndex != -1) {
+					glm::vec3 m = terrain.Triangles[ball.LastTriangleIndex].N;
+					glm::vec3 n = terrain.Triangles[ball.TriangleIndex].N;
 					velocity.Velocity = Physics::GetReflectVelocity(velocity.Velocity, Physics::GetReflectionAngle(m, n));
 
-					if (triangleIndex == 1 && oldIndex == 0) {
+					if (ball.TriangleIndex == 1 && ball.LastTriangleIndex == 0) {
 						auto timeused = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_Ballspawntime).count();
 						float seconds = timeused / 1000.f;
 						std::string msg = "Time first triangle : ";
@@ -277,12 +275,12 @@ namespace FLOOF {
 						LOG_INFO(msg.c_str());
 					}
 				}
-				oldIndex = triangleIndex;
+				ball.LastTriangleIndex = ball.TriangleIndex;
 				glm::vec3 a(0.f, -Math::Gravity, 0.f);
 				glm::vec3 af(a);
 
-				if (triangleIndex >= 0 && triangleIndex < terrain.Triangles.size()) {
-					Triangle& triangle = terrain.Triangles[triangleIndex];
+				if (ball.TriangleIndex >= 0 && ball.TriangleIndex < terrain.Triangles.size()) {
+					Triangle& triangle = terrain.Triangles[ball.TriangleIndex];
 
 					if (Physics::PlaneBallIntersect(triangle, transform.Position, ball.Radius)) {
 						// Move ball on top of triangle;
@@ -296,14 +294,6 @@ namespace FLOOF {
 							auto frictionvec = -glm::normalize(velocity.Velocity) * (frictionConstant * ball.Mass);
 							af = a + frictionvec;
 							DebugDrawLine(transform.Position, transform.Position + frictionvec, glm::vec3(0.f, 125.f, 125.f));
-
-							// Log oblig stuff
-							if (triangleIndex == 1 && oldIndex == 0) {
-								auto timeused = (m_Ballspawntime - std::chrono::high_resolution_clock::now()).count();
-								std::string msg = "Time first triangle";
-								msg += std::to_string(timeused);
-								LOG_INFO(msg.c_str());
-							}
 						}
 					}
 				}
@@ -442,6 +432,8 @@ namespace FLOOF {
 			transform.Position = glm::vec3(0.f, 0.125f, 0.f);
 			//newpos = glm::vec3(0.f, 0.125f, 0.f);
 			velocity.Velocity = glm::vec3(0.f);
+            ball.LastTriangleIndex = -1;
+            ball.TriangleIndex = -1;
 		}
 
 	}

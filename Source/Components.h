@@ -81,6 +81,8 @@ namespace FLOOF {
     struct BallComponent {
         float Radius;
         float Mass;
+        int LastTriangleIndex{-1};
+        int TriangleIndex{-1};
     };
     struct VelocityComponent {
         glm::vec3 Velocity;
