@@ -7,13 +7,36 @@
 #include "Physics.h"
 #include <string>
 #include "stb_image.h"
+#include "imgui_impl_glfw.h"
 
 namespace FLOOF {
 	Application::Application() {
+		// Init glfw and create window
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		m_Window = glfwCreateWindow(1600, 900, "Floof    FPS: 0.0", nullptr, nullptr);
 
+		IMGUI_CHECKVERSION();
+		m_ImguiContext = ImGui::CreateContext();
+		ImGui::SetCurrentContext(m_ImguiContext);
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   // Enable Keyboard Controls
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+
+		ImGui::StyleColorsDark();
+
+		// Init Renderer and Imgui
+		ImGui_ImplGlfw_InitForVulkan(m_Window, true);
+		m_Renderer = new VulkanRenderer(m_Window);
+		auto ImguiInitInfo = m_Renderer->GetImguiInitInfo();
+		auto ImguiRenderPass = m_Renderer->GetImguiRenderPass();
+		ImGui_ImplVulkan_Init(&ImguiInitInfo, ImguiRenderPass);
+		auto commandBuffer = m_Renderer->AllocateBeginOneTimeCommandBuffer();
+		ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+		m_Renderer->EndSubmitFreeCommandBuffer(commandBuffer);
+		ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+		// Upload icons for windows and taskbar
 		GLFWimage images[3]{};
 		int channels{};
 		images[0].pixels = stbi_load("Assets/Icon16x16.png", &images[0].width, &images[0].height, &channels, 4);
@@ -27,16 +50,22 @@ namespace FLOOF {
 			stbi_image_free(images[i].pixels);
 		}
 
-		m_Renderer = new VulkanRenderer(m_Window);
+		// Register key callbacks
 		Input::Init(m_Window);
 		Input::RegisterKeyPressCallback(GLFW_KEY_N, std::bind(&Application::DebugToggle, this));
 		Input::RegisterKeyPressCallback(GLFW_KEY_R, std::bind(&Application::ResetBall, this));
 		Input::RegisterKeyPressCallback(GLFW_KEY_F, std::bind(&Application::SpawnBall, this));
 		Input::RegisterKeyPressCallback(GLFW_KEY_M, std::bind(&Application::DebugToggleDrawNormals, this));
+		
+		// Init Logger. Writes to specified log file.
 		Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
 	}
 
 	Application::~Application() {
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext(m_ImguiContext);
+
 		delete m_Renderer;
 
 		delete Utils::Logger::s_Logger;
@@ -122,11 +151,18 @@ namespace FLOOF {
 			if (m_DebugDraw) {
 				DebugClearLineBuffer();
 			}
+
 			if (deltaTime > 0.01f) {
 				deltaTime = 0.01f;
 			}
+
+			ImGui_ImplVulkan_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+
 			Update(deltaTime);
 			Simulate(deltaTime);
+
 			if (m_DebugDraw) {
 				DebugUpdateLineBuffer();
 			}
@@ -337,9 +373,18 @@ namespace FLOOF {
 				lineMesh.Draw(commandBuffer);
 			}
 		}
+		{
+			if (m_ShowImguiDemo)
+				ImGui::ShowDemoWindow(&m_ShowImguiDemo);
+
+			ImGui::Render();
+			ImDrawData* drawData = ImGui::GetDrawData();
+			ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
+		}
 
 		m_Renderer->EndRecording();
 		m_Renderer->SubmitAndPresent();
+
 	}
 
 	void Application::DebugInit() {

@@ -15,6 +15,8 @@
 #include <unordered_map>
 #include <memory>
 
+#include "imgui_impl_vulkan.h"
+
 namespace FLOOF {
 
 	struct MeshPushConstants {
@@ -82,6 +84,10 @@ namespace FLOOF {
 		std::vector<VkDescriptorSetLayoutBinding> DescriptorSetLayoutBindings;
 	};
 
+	struct ImguiInfo {
+
+	};
+
 	class VulkanRenderer {
 		friend class TextureComponent;
 		friend class MeshComponent;
@@ -97,6 +103,9 @@ namespace FLOOF {
 		VkCommandBuffer StartRecording();
 		void EndRecording();
 		void SubmitAndPresent();
+
+		ImGui_ImplVulkan_InitInfo GetImguiInitInfo();
+		VkRenderPass GetImguiRenderPass();
 
 		void FinishAllFrames();
 		VkPipelineLayout BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key);
