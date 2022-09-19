@@ -49,6 +49,19 @@ namespace FLOOF {
 			params.PushConstantSize = sizeof(LinePushConstants);
 			InitGraphicsPipeline(params);
 		}
+		{
+			RenderPipelineParams params;
+			params.Flags = RenderPipelineFlags::DepthPass;
+			params.FragmentPath = "Shaders/Normal.frag.spv";
+			params.VertexPath = "Shaders/Normal.vert.spv";
+			params.Key = RenderPipelineKeys::Normal;
+			params.PolygonMode = VK_POLYGON_MODE_FILL;
+			params.Topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+			params.BindingDescription = NormalVertex::GetBindingDescription();
+			params.AttributeDescriptions = NormalVertex::GetAttributeDescriptions();
+			params.PushConstantSize = sizeof(MeshPushConstants);
+			InitGraphicsPipeline(params);
+		}
 		InitDescriptorPools();
 		InitFramebuffers();
 		InitCommandPool();
@@ -206,8 +219,9 @@ namespace FLOOF {
 		vkDeviceWaitIdle(m_LogicalDevice);
 	}
 
-	void VulkanRenderer::BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key) {
+	VkPipelineLayout VulkanRenderer::BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key) {
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipelines[Key]);
+		return GetPipelineLayout(Key);
 	}
 
 	VulkanBuffer VulkanRenderer::CreateIndexBuffer(const std::vector<uint32_t>& indices) {

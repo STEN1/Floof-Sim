@@ -58,6 +58,7 @@ namespace FLOOF {
 		Basic = 1,
 		Line = 2,
 		Lit = 3,
+		Normal = 4,
 	};
 
 	inline RenderPipelineFlags operator | (RenderPipelineFlags lhs, RenderPipelineFlags rhs) {
@@ -98,7 +99,7 @@ namespace FLOOF {
 		void SubmitAndPresent();
 
 		void FinishAllFrames();
-		void BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key);
+		VkPipelineLayout BindGraphicsPipeline(VkCommandBuffer cmdBuffer, RenderPipelineKeys Key);
 
 		static VulkanRenderer* Get() { return s_Singleton; }
 

@@ -32,6 +32,7 @@ namespace FLOOF {
 		Input::RegisterKeyPressCallback(GLFW_KEY_N, std::bind(&Application::DebugToggle, this));
 		Input::RegisterKeyPressCallback(GLFW_KEY_R, std::bind(&Application::ResetBall, this));
 		Input::RegisterKeyPressCallback(GLFW_KEY_F, std::bind(&Application::SpawnBall, this));
+		Input::RegisterKeyPressCallback(GLFW_KEY_M, std::bind(&Application::DebugToggleDrawNormals, this));
 		Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
 	}
 
@@ -287,14 +288,28 @@ namespace FLOOF {
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
 		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.1f, 1000.f);
 
-		{	// Geometry pass
-			m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
+		if (m_DrawNormals == false) {	// Geometry pass
+			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
 			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
 			for (auto [entity, transform, mesh, texture] : view.each()) {
 				MeshPushConstants constants;
 				constants.MVP = vp * transform.GetTransform();
 				constants.InvModelMat = glm::inverse(transform.GetTransform());
-				vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(RenderPipelineKeys::Basic), VK_SHADER_STAGE_VERTEX_BIT,
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+					0, sizeof(MeshPushConstants), &constants);
+
+				texture.Bind(commandBuffer);
+
+				mesh.Draw(commandBuffer);
+			}
+		} else if (m_DrawNormals == true) {
+			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Normal);
+			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
+			for (auto [entity, transform, mesh, texture] : view.each()) {
+				MeshPushConstants constants;
+				constants.MVP = vp * transform.GetTransform();
+				constants.InvModelMat = glm::inverse(transform.GetTransform());
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(MeshPushConstants), &constants);
 
 				texture.Bind(commandBuffer);
@@ -304,12 +319,12 @@ namespace FLOOF {
 		}
 
 		if (m_DebugDraw) { // Draw debug lines
-			m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
+			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
 			auto view = m_Registry.view<LineMeshComponent>();
 			for (auto [entity, lineMesh] : view.each()) {
 				LinePushConstants constants;
 				constants.MVP = vp;
-				vkCmdPushConstants(commandBuffer, m_Renderer->GetPipelineLayout(RenderPipelineKeys::Line), VK_SHADER_STAGE_VERTEX_BIT,
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(LinePushConstants), &constants);
 
 				lineMesh.Draw(commandBuffer);
@@ -345,6 +360,10 @@ namespace FLOOF {
 
 	void Application::DebugToggle() {
 		m_DebugDraw = !m_DebugDraw;
+	}
+
+	void Application::DebugToggleDrawNormals() {
+		m_DrawNormals = !m_DrawNormals;
 	}
 
 	void Application::DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color) {

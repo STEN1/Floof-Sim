@@ -34,6 +34,7 @@ namespace FLOOF {
 		void DebugClearLineBuffer();
 		void DebugUpdateLineBuffer();
 		void DebugToggle();
+		void DebugToggleDrawNormals();
 
 		// Draws line in world coords
 		void DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color);
@@ -44,5 +45,6 @@ namespace FLOOF {
 		entt::entity m_DebugLineEntity;
 
 		bool m_DebugDraw = true;
+		bool m_DrawNormals = false;
 	};
 }
