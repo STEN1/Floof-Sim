@@ -15,7 +15,7 @@ namespace FLOOF {
 	}
 
 	glm::vec3 FLOOF::Physics::GetReflectionAngle(const glm::vec3& m, const glm::vec3& n) {
-		return glm::normalize((m + n) / (glm::length(m + n) * glm::length(m + n)));
+		return glm::normalize((m + n) / ((glm::length(m + n) * glm::length(m + n))));
 	}
 
 	glm::vec3 FLOOF::Physics::GetAccelerationVector(const FLOOF::Triangle& triangle) {

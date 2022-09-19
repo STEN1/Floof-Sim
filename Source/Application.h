@@ -28,7 +28,6 @@ namespace FLOOF {
         void ResetBall();
         void SpawnBall();
         std::chrono::high_resolution_clock::time_point m_Ballspawntime;
-
 		// ----------- Debug utils ---------------
 		void DebugInit();
 		void DebugClearLineBuffer();

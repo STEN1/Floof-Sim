@@ -192,11 +192,13 @@ namespace FLOOF {
 		}
 	}
 	void Application::Simulate(double deltaTime) {
+
+        deltaTime *= 0.3f;
+
 		{	// Set ball Transform with velocity
 			auto view = m_Registry.view<TransformComponent, VelocityComponent>();
 			for (auto [entity, transform, velocity] : view.each()) {
-				auto v = glm::length(velocity.Velocity);
-				transform.Position += velocity.Velocity * static_cast<float>(deltaTime) * static_cast<float>(deltaTime);
+				    //transform.Position += velocity.Velocity;// * static_cast<float>(deltaTime) * static_cast<float>(deltaTime);
 			}
 		}
 
@@ -270,8 +272,13 @@ namespace FLOOF {
 					}
 				}
 
-				// Acceleration with friction
-				velocity.Velocity += af;
+
+                //https://en.wikipedia.org/wiki/Verlet_integration
+                //transform
+                transform.Position = transform.Position + (velocity.Velocity*static_cast<float>(deltaTime)) +(af*(static_cast<float>(deltaTime)*static_cast<float>(deltaTime)*0.5f));
+                //set velocity
+                velocity.Velocity = velocity.Velocity +(af*static_cast<float>(deltaTime)*0.5f);
+				//velocity.Velocity += af;
 				DebugDrawLine(transform.Position, transform.Position + velocity.Velocity, glm::vec3(0.f, 0.f, 255.f));
 				DebugDrawLine(transform.Position, transform.Position + a, glm::vec3(255.f, 0.f, 0.f));
 				DebugDrawLine(transform.Position, transform.Position + af, glm::vec3(125.f, 125.f, 0.f));
@@ -388,6 +395,7 @@ namespace FLOOF {
 		auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent>();
 		for (auto [entity, transform, ball, velocity] : view.each()) {
 			transform.Position = glm::vec3(0.f, 0.125f, 0.f);
+			//newpos = glm::vec3(0.f, 0.125f, 0.f);
 			velocity.Velocity = glm::vec3(0.f);
 		}
 
