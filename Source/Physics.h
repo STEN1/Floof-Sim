@@ -52,6 +52,9 @@ namespace FLOOF {
 
 		const Shape shape;
 		glm::vec3 pos{};
+
+		CollisionShape(const CollisionShape& other) = default;
+		CollisionShape(CollisionShape&& other) = default;
 	protected:
 		CollisionShape(Shape shape);
 		static float DistanceFromPointToPlane(const glm::vec3& point, const glm::vec3& planePos, const glm::vec3& planeNormal);
