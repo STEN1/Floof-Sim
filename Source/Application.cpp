@@ -91,15 +91,6 @@ namespace FLOOF {
 			auto& transform = m_Registry.emplace<TransformComponent>(treeEntity);
 			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
 			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
-			transform.Position.x += 6.f;
-			transform.Position.y += 10.f;
-		}
-
-		{
-			const auto treeEntity = m_Registry.create();
-			auto& transform = m_Registry.emplace<TransformComponent>(treeEntity);
-			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
-			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
 			transform.Position.x -= 6.f;
 			transform.Position.y += 10.f;
 		}
@@ -117,6 +108,14 @@ namespace FLOOF {
 			transform.Position.y += 0.125f;
 			transform.Position.x += 0.f;
 			transform.Position.z -= 0.f;
+		}
+
+		{
+			const auto treeEntity = m_Registry.create();
+			auto& transform = m_Registry.emplace<TransformComponent>(treeEntity);
+			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
+			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
+			transform.Position.x += 4.f;
 		}
 
 		{
@@ -189,11 +188,10 @@ namespace FLOOF {
 			}
 		}
 
-		{	// Rotate first mesh.
-			auto view = m_Registry.view<TransformComponent, MeshComponent>();
-			for (auto [entity, transform, mesh] : view.each()) {
+		{	// Rotate ball mesh.
+			auto view = m_Registry.view<TransformComponent, MeshComponent, BallComponent>();
+			for (auto [entity, transform, mesh, ball] : view.each()) {
 				transform.Rotation.y += deltaTime;
-				break;
 			}
 		}
 
