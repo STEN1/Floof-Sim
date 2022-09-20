@@ -14,7 +14,6 @@ layout(push_constant) uniform PushConstants {
 
 void main() {
     gl_Position = pushConstants.mvp * vec4(pos, 1.0);
-    fragNormal = mat3(transpose(pushConstants.imodel))*normal;
-    //fragNormal = normal;
+    fragNormal = normalize(mat3(transpose(pushConstants.imodel)) * normal);
     fragUv = uv;
 }

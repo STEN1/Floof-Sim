@@ -66,6 +66,9 @@ namespace FLOOF {
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext(m_ImguiContext);
 
+		MeshComponent::ClearMeshDataCache();
+		TextureComponent::ClearTextureDataCache();
+
 		delete m_Renderer;
 
 		delete Utils::Logger::s_Logger;
@@ -102,12 +105,13 @@ namespace FLOOF {
 			ball.Radius = 0.01f;
 			ball.Mass = 2.05f;
 			auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
-			m_Registry.emplace<MeshComponent>(ballEntity, Utils::MakeBall(2.f, ball.Radius));
-			m_Registry.emplace<TextureComponent>(ballEntity, "Assets/HappyTree.png");
+			m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
+			m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
 
 			transform.Position.y += 0.125f;
 			transform.Position.x += 0.f;
 			transform.Position.z -= 0.f;
+			transform.Scale = glm::vec3(ball.Radius);
 		}
 
 		{
@@ -426,11 +430,12 @@ namespace FLOOF {
 		ball.Radius = 0.01f;
 		ball.Mass = 2.05f;
 		auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
-		m_Registry.emplace<MeshComponent>(ballEntity, Utils::MakeBall(2.f, ball.Radius));
-		m_Registry.emplace<TextureComponent>(ballEntity, "Assets/HappyTree.png");
+		m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
+		m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
 
 		auto& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
 		transform.Position = camera.Position;
+		transform.Scale = glm::vec3(ball.Radius);
 	}
 }
 

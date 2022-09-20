@@ -8,6 +8,12 @@
 
 namespace FLOOF {
 	TextureComponent::TextureComponent(const std::string& path) {
+		auto it = s_TextureDataCache.find(path);
+		if (it != s_TextureDataCache.end()) {
+			Data = it->second;
+			return;
+		}
+
 		auto renderer = VulkanRenderer::Get();
 		// Load texture
 		int xWidth, yHeight, channels;
@@ -55,18 +61,18 @@ namespace FLOOF {
 		VmaAllocationCreateInfo imageAllocCreateInfo = {};
 		imageAllocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
-		vmaCreateImage(renderer->m_Allocator, &imageInfo, &imageAllocCreateInfo, &CombinedTextureSampler.Image,
-			&CombinedTextureSampler.Allocation, &CombinedTextureSampler.AllocationInfo);
+		vmaCreateImage(renderer->m_Allocator, &imageInfo, &imageAllocCreateInfo, &Data.CombinedTextureSampler.Image,
+			&Data.CombinedTextureSampler.Allocation, &Data.CombinedTextureSampler.AllocationInfo);
 
 		// copy image from staging buffer to image buffer(gpu only memory)
-		renderer->CopyBufferToImage(stagingBuffer, CombinedTextureSampler.Image, xWidth, yHeight);
+		renderer->CopyBufferToImage(stagingBuffer, Data.CombinedTextureSampler.Image, xWidth, yHeight);
 
 		// free staging buffer
 		vmaDestroyBuffer(renderer->m_Allocator, stagingBuffer, stagingBufferAlloc);
 
 		// create image view
 		VkImageViewCreateInfo textureImageViewInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-		textureImageViewInfo.image = CombinedTextureSampler.Image;
+		textureImageViewInfo.image = Data.CombinedTextureSampler.Image;
 		textureImageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		textureImageViewInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
 		textureImageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -74,7 +80,7 @@ namespace FLOOF {
 		textureImageViewInfo.subresourceRange.levelCount = 1;
 		textureImageViewInfo.subresourceRange.baseArrayLayer = 0;
 		textureImageViewInfo.subresourceRange.layerCount = 1;
-		vkCreateImageView(renderer->m_LogicalDevice, &textureImageViewInfo, nullptr, &CombinedTextureSampler.ImageView);
+		vkCreateImageView(renderer->m_LogicalDevice, &textureImageViewInfo, nullptr, &Data.CombinedTextureSampler.ImageView);
 
 		// sampler
 		VkSamplerCreateInfo samplerInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
@@ -93,78 +99,99 @@ namespace FLOOF {
 		samplerInfo.mipLodBias = 0.f;
 		samplerInfo.minLod = 0.f;
 		samplerInfo.maxLod = FLT_MAX;
-		vkCreateSampler(renderer->m_LogicalDevice, &samplerInfo, nullptr, &CombinedTextureSampler.Sampler);
+		vkCreateSampler(renderer->m_LogicalDevice, &samplerInfo, nullptr, &Data.CombinedTextureSampler.Sampler);
 
 		// Get descriptor set and point it to data.
-		DesctriptorSet = renderer->AllocateTextureDescriptorSet();
+		Data.DesctriptorSet = renderer->AllocateTextureDescriptorSet();
 
 		VkDescriptorImageInfo descriptorImageInfo{};
-		descriptorImageInfo.sampler = CombinedTextureSampler.Sampler;
-		descriptorImageInfo.imageView = CombinedTextureSampler.ImageView;
+		descriptorImageInfo.sampler = Data.CombinedTextureSampler.Sampler;
+		descriptorImageInfo.imageView = Data.CombinedTextureSampler.ImageView;
 		descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		VkWriteDescriptorSet writeDescriptorSet{};
 		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writeDescriptorSet.dstSet = DesctriptorSet;
+		writeDescriptorSet.dstSet = Data.DesctriptorSet;
 		writeDescriptorSet.dstBinding = 0;
 		writeDescriptorSet.descriptorCount = 1;
 		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		writeDescriptorSet.pImageInfo = &descriptorImageInfo;
 
 		vkUpdateDescriptorSets(renderer->m_LogicalDevice, 1, &writeDescriptorSet, 0, nullptr);
+
+		s_TextureDataCache[path] = Data;
 	}
 	TextureComponent::~TextureComponent() {
-		auto renderer = VulkanRenderer::Get();
-
-		renderer->FreeTextureDescriptorSet(DesctriptorSet);
-		vkDestroyImageView(renderer->m_LogicalDevice, CombinedTextureSampler.ImageView, nullptr);
-		vmaDestroyImage(renderer->m_Allocator, CombinedTextureSampler.Image, CombinedTextureSampler.Allocation);
-		vkDestroySampler(renderer->m_LogicalDevice, CombinedTextureSampler.Sampler, nullptr);
 	}
 	void TextureComponent::Bind(VkCommandBuffer commandBuffer) {
 		auto renderer = VulkanRenderer::Get();
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->GetPipelineLayout(RenderPipelineKeys::Basic),
-			0, 1, &DesctriptorSet, 0, 0);
+			0, 1, &Data.DesctriptorSet, 0, 0);
+	}
+	void TextureComponent::ClearTextureDataCache() {
+		auto renderer = VulkanRenderer::Get();
+
+		for (auto& [key ,data] : s_TextureDataCache) {
+			renderer->FreeTextureDescriptorSet(data.DesctriptorSet);
+			vkDestroyImageView(renderer->m_LogicalDevice, data.CombinedTextureSampler.ImageView, nullptr);
+			vmaDestroyImage(renderer->m_Allocator, data.CombinedTextureSampler.Image, data.CombinedTextureSampler.Allocation);
+			vkDestroySampler(renderer->m_LogicalDevice, data.CombinedTextureSampler.Sampler, nullptr);
+		}
 	}
 	MeshComponent::MeshComponent(const std::string& path) {
 		auto* renderer = VulkanRenderer::Get();
 
-		auto [vertexData, indexData] = ObjLoader(path).GetIndexedData();
-		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
-		IndexBuffer = renderer->CreateIndexBuffer(indexData);
-		VertexCount = vertexData.size();
-		IndexCount = indexData.size();
-
+		auto it = s_MeshDataCache.find(path);
+		if (it == s_MeshDataCache.end()) {
+			auto [vertexData, indexData] = ObjLoader(path).GetIndexedData();
+			Data.VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+			Data.IndexBuffer = renderer->CreateIndexBuffer(indexData);
+			Data.VertexCount = vertexData.size();
+			Data.IndexCount = indexData.size();
+			s_MeshDataCache[path] = Data;
+		} else {
+			Data = it->second;
+		}
+		m_IsCachedMesh = true;
 	}
 	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData, const std::vector<uint32_t>& indexData) {
 		auto* renderer = VulkanRenderer::Get();
 
-		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
-		IndexBuffer = renderer->CreateIndexBuffer(indexData);
-		VertexCount = vertexData.size();
-		IndexCount = indexData.size();
+		Data.VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		Data.IndexBuffer = renderer->CreateIndexBuffer(indexData);
+		Data.VertexCount = vertexData.size();
+		Data.IndexCount = indexData.size();
 	}
 	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData) {
 		auto* renderer = VulkanRenderer::Get();
 
-		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
-		VertexCount = vertexData.size();
+		Data.VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		Data.VertexCount = vertexData.size();
 	}
 	MeshComponent::~MeshComponent() {
-		auto* renderer = VulkanRenderer::Get();
-		vmaDestroyBuffer(renderer->m_Allocator, IndexBuffer.Buffer, IndexBuffer.Allocation);
-		vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
+		if (m_IsCachedMesh == false) {
+			auto* renderer = VulkanRenderer::Get();
+			vmaDestroyBuffer(renderer->m_Allocator, Data.IndexBuffer.Buffer, Data.IndexBuffer.Allocation);
+			vmaDestroyBuffer(renderer->m_Allocator, Data.VertexBuffer.Buffer, Data.VertexBuffer.Allocation);
+		}
 	}
 	void MeshComponent::Draw(VkCommandBuffer commandBuffer) {
 		VkDeviceSize offset{ 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
-		if (IndexBuffer.Buffer != VK_NULL_HANDLE) {
-			vkCmdBindIndexBuffer(commandBuffer, IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
-			vkCmdDrawIndexed(commandBuffer, IndexCount,
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &Data.VertexBuffer.Buffer, &offset);
+		if (Data.IndexBuffer.Buffer != VK_NULL_HANDLE) {
+			vkCmdBindIndexBuffer(commandBuffer, Data.IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdDrawIndexed(commandBuffer, Data.IndexCount,
 				1, 0, 0, 0);
 		} else {
-			vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
+			vkCmdDraw(commandBuffer, Data.VertexCount, 1, 0, 0);
+		}
+	}
+	void MeshComponent::ClearMeshDataCache() {
+		auto* renderer = VulkanRenderer::Get();
+		for (auto& [key, data] : s_MeshDataCache) {
+			vmaDestroyBuffer(renderer->m_Allocator, data.IndexBuffer.Buffer, data.IndexBuffer.Allocation);
+			vmaDestroyBuffer(renderer->m_Allocator, data.VertexBuffer.Buffer, data.VertexBuffer.Allocation);
 		}
 	}
 	LineMeshComponent::LineMeshComponent(const std::vector<LineVertex>& vertexData) {

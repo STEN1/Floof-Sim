@@ -44,10 +44,19 @@ namespace FLOOF {
 
 		void Draw(VkCommandBuffer commandBuffer);
 
-		VulkanBuffer VertexBuffer{};
-		VulkanBuffer IndexBuffer{};
-		uint32_t VertexCount{};
-		uint32_t IndexCount{};
+		struct MeshData {
+			VulkanBuffer VertexBuffer{};
+			VulkanBuffer IndexBuffer{};
+			uint32_t VertexCount{};
+			uint32_t IndexCount{};
+		};
+
+		MeshData Data{};
+
+		static void ClearMeshDataCache();
+	private:
+		bool m_IsCachedMesh = false;
+		inline static std::unordered_map<std::string, MeshData> s_MeshDataCache;
 	};
 
 	struct LineMeshComponent {
@@ -69,8 +78,16 @@ namespace FLOOF {
 
 		void Bind(VkCommandBuffer commandBuffer);
 
-		VulkanCombinedTextureSampler CombinedTextureSampler{};
-		VkDescriptorSet DesctriptorSet{};
+		struct TextureData {
+			VulkanCombinedTextureSampler CombinedTextureSampler{};
+			VkDescriptorSet DesctriptorSet{};
+		};
+
+		TextureData Data{};
+
+		static void ClearTextureDataCache();
+	private:
+		inline static std::unordered_map<std::string, TextureData> s_TextureDataCache;
 	};
 
 	struct CameraComponent {
