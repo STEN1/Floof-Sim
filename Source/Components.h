@@ -114,9 +114,8 @@ namespace FLOOF {
 	};
 
     struct BallComponent {
-        //FLOOF::Sphere Sphere;
         Sphere CollisionSphere;
-        float Radius;
+        float Radius; // TODO dobbel lagring av radius !! fix
         float Mass;
         int LastTriangleIndex{-1};
         int TriangleIndex{-1};

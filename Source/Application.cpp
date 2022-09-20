@@ -104,6 +104,8 @@ namespace FLOOF {
 			auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
 			ball.Radius = 0.01f;
 			ball.Mass = 2.05f;
+            ball.CollisionSphere.radius = ball.Radius;
+            ball.CollisionSphere.pos = transform.Position;
 			auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
 			m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
 			m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
@@ -283,6 +285,15 @@ namespace FLOOF {
 					}
 				}
 
+                //todo ball ball collision
+                for(auto [entity2, transform2, ball2, velocity2] : view.each()){
+                    if(&ball != &ball2 && ball.CollisionSphere.Intersect(&ball2.CollisionSphere)){
+                        //calculate new velocity
+                        velocity.Velocity = ((ball.Mass*velocity.Velocity)+(ball2.Mass*velocity2.Velocity))/(ball.Mass+ball2.Mass);
+                                       //((m1*v1) + (m2*v2))/(m1+m2)
+                    }
+
+                }
 
                 //https://en.wikipedia.org/wiki/Verlet_integration
                 //transform
@@ -290,6 +301,11 @@ namespace FLOOF {
                 //set velocity
                 velocity.Velocity = velocity.Velocity +(af*static_cast<float>(deltaTime)*0.5f);
 				//velocity.Velocity += af;
+
+                //set collision sphere location
+                auto t = transform.GetTransform();
+                ball.CollisionSphere.pos = glm::vec3( t[0][3],t[1][3],t[2][3]);
+                //draw debug lines
 				DebugDrawLine(transform.Position, transform.Position + velocity.Velocity, glm::vec3(0.f, 0.f, 255.f));
 				DebugDrawLine(transform.Position, transform.Position + a, glm::vec3(255.f, 0.f, 0.f));
 				DebugDrawLine(transform.Position, transform.Position + af, glm::vec3(125.f, 125.f, 0.f));
@@ -417,6 +433,8 @@ namespace FLOOF {
 			transform.Position = glm::vec3(0.f, 0.125f, 0.f);
 			//newpos = glm::vec3(0.f, 0.125f, 0.f);
 			velocity.Velocity = glm::vec3(0.f);
+            ball.CollisionSphere.radius = ball.Radius;
+            ball.CollisionSphere.pos = transform.Position;
             ball.LastTriangleIndex = -1;
             ball.TriangleIndex = -1;
 		}
@@ -429,6 +447,7 @@ namespace FLOOF {
 		auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
 		ball.Radius = 0.01f;
 		ball.Mass = 2.05f;
+        
 		auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
 		m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
 		m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
@@ -436,6 +455,9 @@ namespace FLOOF {
 		auto& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
 		transform.Position = camera.Position;
 		transform.Scale = glm::vec3(ball.Radius);
+        
+        ball.CollisionSphere.radius = ball.Radius;
+        ball.CollisionSphere.pos = transform.Position;
 	}
 }
 
