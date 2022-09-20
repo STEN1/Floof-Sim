@@ -4,7 +4,6 @@
 #include "Vertex.h"
 
 namespace FLOOF {
-    class Triangle;
 	class Physics {
 	public:
 		Physics() = delete;
