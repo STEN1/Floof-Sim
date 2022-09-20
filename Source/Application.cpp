@@ -154,7 +154,7 @@ namespace FLOOF {
 			}
 
 			if (m_DebugDraw) {
-				DebugClearLineBuffer();
+				DebugClearDebugData();
 			}
 
 			if (deltaTime > 0.01f) {
@@ -354,14 +354,25 @@ namespace FLOOF {
 
 		if (m_DebugDraw) { // Draw debug lines
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
-			auto view = m_Registry.view<LineMeshComponent>();
-			for (auto [entity, lineMesh] : view.each()) {
-				LinePushConstants constants;
-				constants.MVP = vp;
+
+			LinePushConstants constants;
+			constants.MVP = vp;
+			vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+				0, sizeof(LinePushConstants), &constants);
+
+			auto& lineMesh = m_Registry.get<LineMeshComponent>(m_DebugLineEntity);
+			lineMesh.Draw(commandBuffer);
+
+			auto& sphereMesh = m_Registry.get<LineMeshComponent>(m_DebugSphereEntity);
+			TransformComponent transform;
+			for (auto& [pos, radius] : m_DebugSpherePositions) {
+				transform.Position = pos;
+				transform.Scale = glm::vec3(radius);
+				constants.MVP = vp * transform.GetLocalTransform();
+				
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(LinePushConstants), &constants);
-
-				lineMesh.Draw(commandBuffer);
+				sphereMesh.Draw(commandBuffer);
 			}
 		}
 		{
@@ -388,10 +399,24 @@ namespace FLOOF {
 
 		// Make the line mesh buffer as large as max update size by initializing with a buffer of that size.
 		LineMeshComponent& lineMesh = m_Registry.emplace<LineMeshComponent>(m_DebugLineEntity, m_DebugLineBuffer);
+		m_Registry.emplace<DebugComponent>(m_DebugLineEntity);
+
+		m_DebugSphereEntity = m_Registry.create();
+		m_Registry.emplace<LineMeshComponent>(m_DebugSphereEntity, Utils::LineVertexDataFromObj("Assets/Ball.obj"));
+		m_Registry.emplace<DebugComponent>(m_DebugSphereEntity);
 	}
 
 	void Application::DebugClearLineBuffer() {
 		m_DebugLineBuffer.clear();
+	}
+
+	void Application::DebugClearSpherePositions() {
+		m_DebugSpherePositions.clear();
+	}
+
+	void Application::DebugClearDebugData() {
+		DebugClearLineBuffer();
+		DebugClearSpherePositions();
 	}
 
 	void Application::DebugUpdateLineBuffer() {
@@ -424,6 +449,10 @@ namespace FLOOF {
 		DebugDrawLine(triangle.C, triangle.A, color);
 		glm::vec3 midPoint = (triangle.A + triangle.B + triangle.C) / 3.f;
 		DebugDrawLine(midPoint, midPoint + (triangle.N * 0.02f), color);
+	}
+
+	void Application::DebugDrawSphere(const glm::vec3& pos, float radius) {
+		m_DebugSpherePositions.emplace_back(pos, radius);
 	}
 
 	void Application::ResetBall() {
