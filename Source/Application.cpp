@@ -289,8 +289,9 @@ namespace FLOOF {
                 for(auto [entity2, transform2, ball2, velocity2] : view.each()){
                     if(&ball != &ball2 && ball.CollisionSphere.Intersect(&ball2.CollisionSphere)){
                         //calculate new velocity
-                        velocity.Velocity = ((ball.Mass*velocity.Velocity)+(ball2.Mass*velocity2.Velocity))/(ball.Mass+ball2.Mass);
-                                       //((m1*v1) + (m2*v2))/(m1+m2)
+                        velocity.Velocity = ((ball.Mass*velocity.Velocity)-(ball2.Mass*velocity2.Velocity))/(ball.Mass+ball2.Mass);
+                        //((m1*v1) + (m2*v2))/(m1+m2)
+                        //transform
                     }
 
                 }
@@ -303,9 +304,12 @@ namespace FLOOF {
 				//velocity.Velocity += af;
 
                 //set collision sphere location
-                auto t = transform.GetTransform();
-                ball.CollisionSphere.pos = glm::vec3( t[0][3],t[1][3],t[2][3]);
+                //auto t = transform.GetTransform();
+                //ball.CollisionSphere.pos = glm::vec3( t[0][3],t[1][3],t[2][3]);
+                ball.CollisionSphere.pos = transform.Position;
                 //draw debug lines
+                DebugDrawSphere(ball.CollisionSphere.pos,ball.CollisionSphere.radius);
+                
 				DebugDrawLine(transform.Position, transform.Position + velocity.Velocity, glm::vec3(0.f, 0.f, 255.f));
 				DebugDrawLine(transform.Position, transform.Position + a, glm::vec3(255.f, 0.f, 0.f));
 				DebugDrawLine(transform.Position, transform.Position + af, glm::vec3(125.f, 125.f, 0.f));
