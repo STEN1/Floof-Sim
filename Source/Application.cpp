@@ -169,6 +169,7 @@ namespace FLOOF {
 		}
 
 		m_Renderer->FinishAllFrames();
+		MeshComponent::ClearMeshDataCache();
 		m_Registry.clear();
 
 		return 0;

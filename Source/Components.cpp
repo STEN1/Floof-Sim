@@ -130,41 +130,56 @@ namespace FLOOF {
 	MeshComponent::MeshComponent(const std::string& path) {
 		auto* renderer = VulkanRenderer::Get();
 
-		auto [vertexData, indexData] = ObjLoader(path).GetIndexedData();
-		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
-		IndexBuffer = renderer->CreateIndexBuffer(indexData);
-		VertexCount = vertexData.size();
-		IndexCount = indexData.size();
-
+		auto it = s_MeshDataCache.find(path);
+		if (it == s_MeshDataCache.end()) {
+			auto [vertexData, indexData] = ObjLoader(path).GetIndexedData();
+			Data.VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+			Data.IndexBuffer = renderer->CreateIndexBuffer(indexData);
+			Data.VertexCount = vertexData.size();
+			Data.IndexCount = indexData.size();
+			s_MeshDataCache[path] = Data;
+		} else {
+			Data = it->second;
+		}
+		m_IsCachedMesh = true;
 	}
 	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData, const std::vector<uint32_t>& indexData) {
 		auto* renderer = VulkanRenderer::Get();
 
-		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
-		IndexBuffer = renderer->CreateIndexBuffer(indexData);
-		VertexCount = vertexData.size();
-		IndexCount = indexData.size();
+		Data.VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		Data.IndexBuffer = renderer->CreateIndexBuffer(indexData);
+		Data.VertexCount = vertexData.size();
+		Data.IndexCount = indexData.size();
 	}
 	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData) {
 		auto* renderer = VulkanRenderer::Get();
 
-		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
-		VertexCount = vertexData.size();
+		Data.VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		Data.VertexCount = vertexData.size();
 	}
 	MeshComponent::~MeshComponent() {
-		auto* renderer = VulkanRenderer::Get();
-		vmaDestroyBuffer(renderer->m_Allocator, IndexBuffer.Buffer, IndexBuffer.Allocation);
-		vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
+		if (m_IsCachedMesh == false) {
+			auto* renderer = VulkanRenderer::Get();
+			vmaDestroyBuffer(renderer->m_Allocator, Data.IndexBuffer.Buffer, Data.IndexBuffer.Allocation);
+			vmaDestroyBuffer(renderer->m_Allocator, Data.VertexBuffer.Buffer, Data.VertexBuffer.Allocation);
+		}
 	}
 	void MeshComponent::Draw(VkCommandBuffer commandBuffer) {
 		VkDeviceSize offset{ 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
-		if (IndexBuffer.Buffer != VK_NULL_HANDLE) {
-			vkCmdBindIndexBuffer(commandBuffer, IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
-			vkCmdDrawIndexed(commandBuffer, IndexCount,
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &Data.VertexBuffer.Buffer, &offset);
+		if (Data.IndexBuffer.Buffer != VK_NULL_HANDLE) {
+			vkCmdBindIndexBuffer(commandBuffer, Data.IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdDrawIndexed(commandBuffer, Data.IndexCount,
 				1, 0, 0, 0);
 		} else {
-			vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
+			vkCmdDraw(commandBuffer, Data.VertexCount, 1, 0, 0);
+		}
+	}
+	void MeshComponent::ClearMeshDataCache() {
+		auto* renderer = VulkanRenderer::Get();
+		for (auto& [key, data] : s_MeshDataCache) {
+			vmaDestroyBuffer(renderer->m_Allocator, data.IndexBuffer.Buffer, data.IndexBuffer.Allocation);
+			vmaDestroyBuffer(renderer->m_Allocator, data.VertexBuffer.Buffer, data.VertexBuffer.Allocation);
 		}
 	}
 	LineMeshComponent::LineMeshComponent(const std::vector<LineVertex>& vertexData) {
