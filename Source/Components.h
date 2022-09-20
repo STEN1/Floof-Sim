@@ -3,6 +3,7 @@
 
 #include "VulkanRenderer.h"
 #include "Floof.h"
+#include "Physics.h"
 
 
 namespace FLOOF {
@@ -96,6 +97,8 @@ namespace FLOOF {
 	};
 
     struct BallComponent {
+        //FLOOF::Sphere Sphere;
+        Sphere CollisionSphere;
         float Radius;
         float Mass;
         int LastTriangleIndex{-1};

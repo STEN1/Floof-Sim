@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Math.h"
-#include "Components.h"
+//#include "Components.h"
+//#include "Vertex.h"
 
 namespace FLOOF {
+    class Triangle;
 	class Physics {
 	public:
 		Physics() = delete;
@@ -21,8 +23,8 @@ namespace FLOOF {
 	class Plane;
 	class OBB;
 	class Frustum;
-
-	class Camera;
+    class CameraComponent;
+	//class Camera;
 
 	class CollisionShape {
 	public:

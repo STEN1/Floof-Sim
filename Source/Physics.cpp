@@ -2,7 +2,7 @@
 #include <cmath>
 #include "LoggerMacros.h"
 #include <algorithm>
-
+#include "Components.h"
 
 
 namespace FLOOF {

@@ -255,14 +255,6 @@ namespace FLOOF {
 					glm::vec3 n = terrain.Triangles[ball.TriangleIndex].N;
 					velocity.Velocity = Physics::GetReflectVelocity(velocity.Velocity, Physics::GetReflectionAngle(m, n));
 
-					if (ball.TriangleIndex == 1 && ball.LastTriangleIndex == 0) {
-						auto timeused = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_Ballspawntime).count();
-						float seconds = timeused / 1000.f;
-						std::string msg = "Time first triangle : ";
-						msg += std::to_string(seconds);
-						msg += " s";
-						LOG_INFO(msg.c_str());
-					}
 				}
 				ball.LastTriangleIndex = ball.TriangleIndex;
 				glm::vec3 a(0.f, -Math::Gravity, 0.f);
