@@ -53,6 +53,6 @@ namespace FLOOF {
 
 		bool m_DebugDraw = true;
 		bool m_DrawNormals = false;
-		bool m_ShowImguiDemo = true;
+		bool m_ShowImguiDemo = false;
 	};
 }

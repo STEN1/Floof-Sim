@@ -153,9 +153,7 @@ namespace FLOOF {
 				frameCounter = 0.f;
 			}
 
-			if (m_DebugDraw) {
-				DebugClearDebugData();
-			}
+			DebugClearDebugData();
 
 			if (deltaTime > 0.01f) {
 				deltaTime = 0.01f;
@@ -229,6 +227,16 @@ namespace FLOOF {
 					camera.Pitch(mouseDelta.y * mouseSpeed);
 				}
 			}
+		}
+		
+		{ // UI
+			if (m_ShowImguiDemo)
+				ImGui::ShowDemoWindow(&m_ShowImguiDemo);
+
+			ImGui::Begin("Utils");
+			if (ImGui::Button("Spawn ball"))
+				SpawnBall();
+			ImGui::End();
 		}
 	}
 	void Application::Simulate(double deltaTime) {
@@ -380,9 +388,6 @@ namespace FLOOF {
 			}
 		}
 		{
-			if (m_ShowImguiDemo)
-				ImGui::ShowDemoWindow(&m_ShowImguiDemo);
-
 			ImGui::Render();
 			ImDrawData* drawData = ImGui::GetDrawData();
 			ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
