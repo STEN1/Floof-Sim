@@ -52,16 +52,10 @@ namespace FLOOF {
 		static bool Intersect(Plane* plane, OBB* obb);
 		static bool Intersect(OBB* a, OBB* b);
 
-		const Shape shape;
-		glm::vec3 pos{};
-
-		CollisionShape(const CollisionShape&) = default;
-		CollisionShape(CollisionShape&&) = default;
-		CollisionShape& operator = (const CollisionShape&) = default;
-		CollisionShape& operator = (CollisionShape&&) = default;
-	protected:
-		CollisionShape(Shape shape);
 		static float DistanceFromPointToPlane(const glm::vec3& point, const glm::vec3& planePos, const glm::vec3& planeNormal);
+
+		Shape shape = Shape::None;
+		glm::vec3 pos{};
 	};
 
 	class AABB : public CollisionShape {

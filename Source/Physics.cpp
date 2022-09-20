@@ -29,10 +29,6 @@ namespace FLOOF {
 		v2 += normal;
 	}
 
-	CollisionShape::CollisionShape(Shape shape)
-		: shape(shape) {
-	}
-
 	float CollisionShape::DistanceFromPointToPlane(const glm::vec3& point, const glm::vec3& planePos, const glm::vec3& planeNormal) {
 		return glm::dot(point - planePos, planeNormal);
 	}
@@ -124,8 +120,8 @@ namespace FLOOF {
 		return true;
 	}
 
-	AABB::AABB()
-		: CollisionShape(Shape::AABB) {
+	AABB::AABB() {
+		shape = Shape::AABB;
 	}
 
 	bool AABB::Intersect(CollisionShape* shape) {
@@ -146,8 +142,8 @@ namespace FLOOF {
 		return false;
 	}
 
-	Sphere::Sphere()
-		: CollisionShape(Shape::Sphere) {
+	Sphere::Sphere() {
+		shape = Shape::Sphere;
 	}
 
 	bool Sphere::Intersect(CollisionShape* shape) {
@@ -168,8 +164,8 @@ namespace FLOOF {
 		return false;
 	}
 
-	Plane::Plane()
-		: CollisionShape(Shape::Plane) {
+	Plane::Plane() {
+		shape = Shape::Plane;
 	}
 
 	bool Plane::Intersect(CollisionShape* shape) {
@@ -190,8 +186,8 @@ namespace FLOOF {
 		return false;
 	}
 
-	OBB::OBB()
-		: CollisionShape(Shape::OBB) {
+	OBB::OBB() {
+		shape = Shape::OBB;
 	}
 
 	bool OBB::Intersect(CollisionShape* shape) {
@@ -200,8 +196,8 @@ namespace FLOOF {
 	}
 
 	Frustum::Frustum(CameraComponent& camera)
-		: CollisionShape(Shape::Frustum)
-		, m_Camera(camera) {
+		: m_Camera(camera) {
+		shape = Shape::Frustum;
 		UpdateFrustum();
 	}
 
