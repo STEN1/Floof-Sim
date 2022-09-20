@@ -122,5 +122,6 @@ namespace FLOOF {
         glm::vec3 Velocity;
 
     };
+	struct DebugComponent {};
 }
 

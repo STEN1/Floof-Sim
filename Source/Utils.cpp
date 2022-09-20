@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "LoggerMacros.h"
+#include "ObjLoader.h"
 
 
 namespace FLOOF {
@@ -144,6 +145,20 @@ namespace FLOOF {
 					return false;
 			}
 			return true;
+		}
+
+		std::vector<LineVertex> LineVertexDataFromObj(const std::string& path) {
+			auto [vertexData, indexData] = ObjLoader(path).GetIndexedData();
+
+			std::vector<LineVertex> out(indexData.size());
+			glm::vec3 color(1.f);
+
+			for (size_t i = 0; i < indexData.size(); i++) {
+				out[i].Pos = vertexData[indexData[i]].Pos;
+				out[i].Color = color;
+			}
+
+			return out;
 		}
 
 		std::vector<Triangle> GetVisimTriangles(const std::string& path) {

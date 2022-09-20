@@ -32,6 +32,8 @@ namespace FLOOF {
 		// ----------- Debug utils ---------------
 		void DebugInit();
 		void DebugClearLineBuffer();
+		void DebugClearSpherePositions();
+		void DebugClearDebugData();
 		void DebugUpdateLineBuffer();
 		void DebugToggle();
 		void DebugToggleDrawNormals();
@@ -39,10 +41,15 @@ namespace FLOOF {
 		// Draws line in world coords
 		void DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color);
 
-		// Draws triangle on world coords
+		// Draws triangle in world coords
 		void DebugDrawTriangle(const Triangle& triangle, const glm::vec3& color);
 		std::vector<LineVertex> m_DebugLineBuffer;
 		entt::entity m_DebugLineEntity;
+
+		// Draws a sphere in world coords with specified radius
+		void DebugDrawSphere(const glm::vec3& pos, float radius);
+		std::vector<std::pair<glm::vec3, float>> m_DebugSpherePositions;
+		entt::entity m_DebugSphereEntity;
 
 		bool m_DebugDraw = true;
 		bool m_DrawNormals = false;
