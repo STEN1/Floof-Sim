@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <functional>
 
 #include "Math.h"
 
@@ -45,6 +46,15 @@ namespace FLOOF {
 
 			return attributeDescriptions;
 		}
+
+		struct Hash {
+			size_t operator () (const MeshVertex& v) const noexcept {
+				size_t pos = Math::Cantor(std::hash<float>{}(v.Pos.x), Math::Cantor(std::hash<float>{}(v.Pos.y), std::hash<float>{}(v.Pos.z)));
+				size_t normal = Math::Cantor(std::hash<float>{}(v.Normal.x), Math::Cantor(std::hash<float>{}(v.Normal.y), std::hash<float>{}(v.Normal.z)));
+				size_t uv = Math::Cantor(std::hash<float>{}(v.UV.x), std::hash<float>{}(v.UV.y));
+				return Math::Cantor(pos, Math::Cantor(normal, uv));
+			}
+		};
 	};
 
 	struct LineVertex {
