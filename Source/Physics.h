@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Math.h"
-//#include "Components.h"
-//#include "Vertex.h"
+#include "Vertex.h"
 
 namespace FLOOF {
     class Triangle;
@@ -24,7 +23,6 @@ namespace FLOOF {
 	class OBB;
 	class Frustum;
     class CameraComponent;
-	//class Camera;
 
 	class CollisionShape {
 	public:

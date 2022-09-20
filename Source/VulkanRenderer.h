@@ -254,7 +254,9 @@ namespace FLOOF {
 		const std::vector<const char*> m_RequiredDeviceExtentions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 			VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+#ifdef VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
 			VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+#endif
         };
 
 		const std::vector<const char*> m_RequiredInstanceExtentions = {
