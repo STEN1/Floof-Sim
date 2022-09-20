@@ -66,6 +66,9 @@ namespace FLOOF {
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext(m_ImguiContext);
 
+		MeshComponent::ClearMeshDataCache();
+		TextureComponent::ClearTextureDataCache();
+
 		delete m_Renderer;
 
 		delete Utils::Logger::s_Logger;
@@ -170,7 +173,6 @@ namespace FLOOF {
 		}
 
 		m_Renderer->FinishAllFrames();
-		MeshComponent::ClearMeshDataCache();
 		m_Registry.clear();
 
 		return 0;

@@ -77,8 +77,16 @@ namespace FLOOF {
 
 		void Bind(VkCommandBuffer commandBuffer);
 
-		VulkanCombinedTextureSampler CombinedTextureSampler{};
-		VkDescriptorSet DesctriptorSet{};
+		struct TextureData {
+			VulkanCombinedTextureSampler CombinedTextureSampler{};
+			VkDescriptorSet DesctriptorSet{};
+		};
+
+		TextureData Data{};
+
+		static void ClearTextureDataCache();
+	private:
+		inline static std::unordered_map<std::string, TextureData> s_TextureDataCache;
 	};
 
 	struct CameraComponent {
