@@ -136,17 +136,6 @@ namespace FLOOF {
 		float titlebarUpdateRate = 0.1f;
 		float frameCounter{};
 
-        //activate all debug lines at start
-        {
-            m_BDebugLines[DebugLine::Velocity] = true;
-            m_BDebugLines[DebugLine::Friction] = true;
-            m_BDebugLines[DebugLine::Acceleration] = true;
-            m_BDebugLines[DebugLine::CollisionShape] = true;
-            m_BDebugLines[DebugLine::WorldAxis] = true;
-            m_BDebugLines[DebugLine::TerrainTriangle] = true;
-        }
-
-
 		while (!glfwWindowShouldClose(m_Window)) {
 			glfwPollEvents();
 
@@ -204,6 +193,20 @@ namespace FLOOF {
 			for (auto& triangle : triangleSurface.Triangles) {
 			    if(m_BDebugLines[DebugLine::TerrainTriangle])
 				    DebugDrawTriangle(triangle, surfaceTriangleColor);
+			}
+
+			// Closest point on triangle to ball center
+			if (m_BDebugLines[DebugLine::ClosestPointToBall]) {
+				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+				auto view = m_Registry.view<BallComponent>();
+				static constexpr glm::vec3 pointColor = glm::vec3(1.f);
+				for (auto [entity, ball] : view.each()) {
+					for (auto& triangle : terrain.Triangles) {
+						glm::vec3 start = CollisionShape::ClosestPointToPointOnTriangle(ball.CollisionSphere.pos, triangle);
+						glm::vec3 end = start + (triangle.N * 0.1f);
+						DebugDrawLine(start, end, pointColor);
+					}
+				}
 			}
 		}
 
@@ -464,6 +467,14 @@ namespace FLOOF {
 		m_DebugSphereEntity = m_Registry.create();
 		m_Registry.emplace<LineMeshComponent>(m_DebugSphereEntity, Utils::LineVertexDataFromObj("Assets/Ball.obj"));
 		m_Registry.emplace<DebugComponent>(m_DebugSphereEntity);
+
+		m_BDebugLines[DebugLine::Velocity] = true;
+		m_BDebugLines[DebugLine::Friction] = true;
+		m_BDebugLines[DebugLine::Acceleration] = true;
+		m_BDebugLines[DebugLine::CollisionShape] = true;
+		m_BDebugLines[DebugLine::WorldAxis] = true;
+		m_BDebugLines[DebugLine::TerrainTriangle] = true;
+		m_BDebugLines[DebugLine::ClosestPointToBall] = true;
 	}
 
 	void Application::DebugClearLineBuffer() {
