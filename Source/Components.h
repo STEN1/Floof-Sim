@@ -3,6 +3,7 @@
 
 #include "VulkanRenderer.h"
 #include "Floof.h"
+#include "Physics.h"
 
 
 namespace FLOOF {
@@ -113,7 +114,8 @@ namespace FLOOF {
 	};
 
     struct BallComponent {
-        float Radius;
+        Sphere CollisionSphere;
+        float Radius; // TODO dobbel lagring av radius !! fix
         float Mass;
         int LastTriangleIndex{-1};
         int TriangleIndex{-1};
