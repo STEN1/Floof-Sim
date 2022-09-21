@@ -185,20 +185,38 @@ namespace FLOOF {
 		m_Renderer->FinishAllFrames();
 		m_Registry.clear();
 
+
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
 		if (m_DebugDraw) {
 			// World axis
-			DebugDrawLine(glm::vec3(0.f), glm::vec3(100.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
-			DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 100.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-			DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 100.f), glm::vec3(0.f, 0.f, 1.f));
+            if(m_BDebugLines[DebugLine::WorldAxis]){
+                DebugDrawLine(glm::vec3(0.f), glm::vec3(100.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
+                DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 100.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+                DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 100.f), glm::vec3(0.f, 0.f, 1.f));
+            }
 
 			// Terrain triangles
 			TerrainComponent& triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 			glm::vec3 surfaceTriangleColor{ 1.f, 0.f, 1.f };
 			for (auto& triangle : triangleSurface.Triangles) {
-				DebugDrawTriangle(triangle, surfaceTriangleColor);
+			    if(m_BDebugLines[DebugLine::TerrainTriangle])
+				    DebugDrawTriangle(triangle, surfaceTriangleColor);
+			}
+
+			// Closest point on triangle to ball center
+			if (m_BDebugLines[DebugLine::ClosestPointToBall]) {
+				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+				auto view = m_Registry.view<BallComponent>();
+				static constexpr glm::vec3 pointColor = glm::vec3(1.f);
+				for (auto [entity, ball] : view.each()) {
+					for (auto& triangle : terrain.Triangles) {
+						glm::vec3 start = CollisionShape::ClosestPointToPointOnTriangle(ball.CollisionSphere.pos, triangle);
+						glm::vec3 end = start + (triangle.N * 0.1f);
+						DebugDrawLine(start, end, pointColor);
+					}
+				}
 			}
 		}
 
@@ -246,7 +264,26 @@ namespace FLOOF {
 			ImGui::Begin("Utils");
 			if (ImGui::Button("Spawn ball"))
 				SpawnBall();
+            if(ImGui::Button("Reset Ball"))
+                ResetBall();
 			ImGui::End();
+
+
+            ImGui::Begin("Toggle DebugLines");
+            if(ImGui::Button("VelocityVector"))
+                m_BDebugLines[DebugLine::Velocity]  = !m_BDebugLines[DebugLine::Velocity];
+            if(ImGui::Button("AccelerationVector"))
+                m_BDebugLines[DebugLine::Acceleration]  = !m_BDebugLines[DebugLine::Acceleration];
+            if(ImGui::Button("FrictionVector"))
+                m_BDebugLines[DebugLine::Friction]  = !m_BDebugLines[DebugLine::Friction];
+            if(ImGui::Button("Collision shapes"))
+                m_BDebugLines[DebugLine::CollisionShape]  = !m_BDebugLines[DebugLine::CollisionShape];
+            if(ImGui::Button("Terrain Triangles"))
+                m_BDebugLines[DebugLine::TerrainTriangle]  = !m_BDebugLines[DebugLine::TerrainTriangle];
+            if(ImGui::Button("World Axis"))
+                m_BDebugLines[DebugLine::WorldAxis]  = !m_BDebugLines[DebugLine::WorldAxis];
+            //ImGui::Checkbox(("World Axis"), &m_BDebugLines["WorldAxis"]);
+            ImGui::End();
 		}
 	}
 	void Application::Simulate(double deltaTime) {
@@ -264,7 +301,8 @@ namespace FLOOF {
 							ball.TriangleIndex = i;
 						}
 						bInside = true;
-						DebugDrawTriangle(terrain.Triangles[i], glm::vec3(0.f, 255.f, 0.f));
+                        if(m_BDebugLines[DebugLine::TerrainTriangle])
+						    DebugDrawTriangle(terrain.Triangles[i], glm::vec3(0.f, 255.f, 0.f));
 						break;
 					}
 				}
@@ -298,7 +336,8 @@ namespace FLOOF {
 							const float frictionConstant = triangle.FrictionConstant;
 							auto frictionvec = -glm::normalize(velocity.Velocity) * (frictionConstant * ball.Mass);
 							af = a + frictionvec;
-							DebugDrawLine(transform.Position, transform.Position + frictionvec, glm::vec3(0.f, 125.f, 125.f));
+                           if(m_BDebugLines[DebugLine::Friction])
+							    DebugDrawLine(transform.Position, transform.Position + frictionvec, glm::vec3(0.f, 125.f, 125.f));
 						}
 					}
 				}
@@ -326,11 +365,14 @@ namespace FLOOF {
                 //ball.CollisionSphere.pos = glm::vec3( t[0][3],t[1][3],t[2][3]);
                 ball.CollisionSphere.pos = transform.Position;
                 //draw debug lines
-                DebugDrawSphere(ball.CollisionSphere.pos,ball.CollisionSphere.radius);
-                
-				DebugDrawLine(transform.Position, transform.Position + velocity.Velocity, glm::vec3(0.f, 0.f, 255.f));
-				DebugDrawLine(transform.Position, transform.Position + a, glm::vec3(255.f, 0.f, 0.f));
-				DebugDrawLine(transform.Position, transform.Position + af, glm::vec3(125.f, 125.f, 0.f));
+                if(m_BDebugLines[DebugLine::CollisionShape])
+                    DebugDrawSphere(ball.CollisionSphere.pos,ball.CollisionSphere.radius);
+                if(m_BDebugLines[DebugLine::Velocity])
+				    DebugDrawLine(transform.Position, transform.Position + velocity.Velocity, glm::vec3(0.f, 0.f, 255.f));
+				if(m_BDebugLines[DebugLine::Acceleration])
+                    DebugDrawLine(transform.Position, transform.Position + a, glm::vec3(255.f, 0.f, 0.f));
+				if(m_BDebugLines[DebugLine::Acceleration] && m_BDebugLines[DebugLine::Friction])
+                    DebugDrawLine(transform.Position, transform.Position + af, glm::vec3(125.f, 125.f, 0.f));
 			}
 		}
 	}
@@ -435,6 +477,14 @@ namespace FLOOF {
 		m_DebugSphereEntity = m_Registry.create();
 		m_Registry.emplace<LineMeshComponent>(m_DebugSphereEntity, Utils::LineVertexDataFromObj("Assets/Ball.obj"));
 		m_Registry.emplace<DebugComponent>(m_DebugSphereEntity);
+
+		m_BDebugLines[DebugLine::Velocity] = true;
+		m_BDebugLines[DebugLine::Friction] = true;
+		m_BDebugLines[DebugLine::Acceleration] = true;
+		m_BDebugLines[DebugLine::CollisionShape] = true;
+		m_BDebugLines[DebugLine::WorldAxis] = true;
+		m_BDebugLines[DebugLine::TerrainTriangle] = true;
+		m_BDebugLines[DebugLine::ClosestPointToBall] = true;
 	}
 
 	void Application::DebugClearLineBuffer() {

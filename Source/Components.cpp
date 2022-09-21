@@ -214,6 +214,10 @@ namespace FLOOF {
 		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 	}
 	void LineMeshComponent::UpdateBuffer(VkCommandBuffer commandBuffer, const std::vector<ColorVertex>& vertexData) {
+		if (vertexData.size() == 0) {
+			VertexCount = 0;
+			return;
+		}
 		if (vertexData.size() > MaxVertexCount) {
 			std::cout << "Cant update buffer with data larger than vkBuffer.\n";
 			return;
