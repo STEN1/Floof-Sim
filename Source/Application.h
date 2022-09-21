@@ -30,7 +30,15 @@ namespace FLOOF {
         // ----------- Physics utils -------------
         void ResetBall();
         void SpawnBall();
-        std::unordered_map<std::string, bool> BDebugLines;
+        enum DebugLine{
+            WorldAxis =0,
+            TerrainTriangle,
+            Velocity,
+            Acceleration,
+            Friction,
+            CollisionShape
+        };
+        std::unordered_map<DebugLine, bool> m_BDebugLines;
         std::chrono::high_resolution_clock::time_point m_Ballspawntime;
 		// ----------- Debug utils ---------------
 		void DebugInit();
