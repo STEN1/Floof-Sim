@@ -255,7 +255,9 @@ namespace FLOOF {
 	}
 	TerrainComponent::TerrainComponent(std::vector<Triangle>&& triangles) {
 		Triangles = triangles;
-
+	}
+	TerrainComponent::TerrainComponent(const std::vector<Triangle>& triangles) {
+		Triangles = triangles;
 	}
 	void TerrainComponent::PrintTriangleData() {
 		uint32_t triangleId = 0;
@@ -277,5 +279,12 @@ namespace FLOOF {
 		auto renderer = VulkanRenderer::Get();
 
 		vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
+	}
+	void PointCloudComponent::Draw(VkCommandBuffer commandBuffer) {
+		auto renderer = VulkanRenderer::Get();
+
+		VkDeviceSize offset{ 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
+		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 	}
 }

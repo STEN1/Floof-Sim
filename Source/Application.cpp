@@ -229,7 +229,7 @@ namespace FLOOF {
 			}
 		}
 		
-		{ // UI
+		{	// UI
 			if (m_ShowImguiDemo)
 				ImGui::ShowDemoWindow(&m_ShowImguiDemo);
 
@@ -348,7 +348,7 @@ namespace FLOOF {
 
 				mesh.Draw(commandBuffer);
 			}
-		} else if (m_DrawNormals == true) {
+		} else if (m_DrawNormals == true) { // Debug drawing of normals for geometry
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Normal);
 			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
 			for (auto [entity, transform, mesh, texture] : view.each()) {
@@ -361,6 +361,18 @@ namespace FLOOF {
 				texture.Bind(commandBuffer);
 
 				mesh.Draw(commandBuffer);
+			}
+		}
+
+		{	// Draw point cloud
+			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Point);
+			auto view = m_Registry.view<PointCloudComponent>();
+			for (auto [entity, cloud] : view.each()) {
+				ColorPushConstants constants;
+				constants.MVP = vp;
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+					0, sizeof(ColorPushConstants), &constants);
+				cloud.Draw(commandBuffer);
 			}
 		}
 
@@ -387,7 +399,8 @@ namespace FLOOF {
 				sphereMesh.Draw(commandBuffer);
 			}
 		}
-		{
+
+		{	// Draw ImGui
 			ImGui::Render();
 			ImDrawData* drawData = ImGui::GetDrawData();
 			ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
@@ -395,7 +408,6 @@ namespace FLOOF {
 
 		m_Renderer->EndRecording();
 		m_Renderer->SubmitAndPresent();
-
 	}
 
 	void Application::DebugInit() {
