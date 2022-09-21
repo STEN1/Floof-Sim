@@ -8,6 +8,7 @@
 #include <string>
 #include "stb_image.h"
 #include "imgui_impl_glfw.h"
+#include "LasLoader.h"
 
 namespace FLOOF {
 	Application::Application() {
@@ -87,7 +88,16 @@ namespace FLOOF {
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
 			terrain.PrintTriangleData();
-		}
+
+
+        }
+
+        {
+
+            const auto PointCloudEntity = m_Registry.create();
+            m_Registry.emplace<PointCloudComponent>(PointCloudEntity, LasLoader("Assets/france2.txt").VertexData);
+
+        }
 
 		{
 			const auto treeEntity = m_Registry.create();
@@ -135,17 +145,6 @@ namespace FLOOF {
 		float titleBarUpdateTimer{};
 		float titlebarUpdateRate = 0.1f;
 		float frameCounter{};
-
-        //activate all debug lines at start
-        {
-            m_BDebugLines[DebugLine::Velocity] = true;
-            m_BDebugLines[DebugLine::Friction] = true;
-            m_BDebugLines[DebugLine::Acceleration] = true;
-            m_BDebugLines[DebugLine::CollisionShape] = true;
-            m_BDebugLines[DebugLine::WorldAxis] = true;
-            m_BDebugLines[DebugLine::TerrainTriangle] = true;
-        }
-
 
 		while (!glfwWindowShouldClose(m_Window)) {
 			glfwPollEvents();
@@ -198,6 +197,29 @@ namespace FLOOF {
                 DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 100.f), glm::vec3(0.f, 0.f, 1.f));
             }
 
+                if(m_BDebugLines[DebugLine::TerrainTriangle]) {
+                // Terrain triangles
+                TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+                glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
+                for (auto &triangle: triangleSurface.Triangles) {
+                    DebugDrawTriangle(triangle, surfaceTriangleColor);
+                }
+            }
+
+			// Closest point on triangle to ball center
+			if (m_BDebugLines[DebugLine::ClosestPointToBall]) {
+				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+				auto view = m_Registry.view<BallComponent>();
+				static constexpr glm::vec3 pointColor = glm::vec3(1.f);
+				for (auto [entity, ball] : view.each()) {
+					for (auto& triangle : terrain.Triangles) {
+						glm::vec3 start = CollisionShape::ClosestPointToPointOnTriangle(ball.CollisionSphere.pos, triangle);
+						glm::vec3 end = start + (triangle.N * 0.1f);
+						DebugDrawLine(start, end, pointColor);
+					}
+				}
+			}
+		}
 
             // Terrain triangles
             if (m_BDebugLines[DebugLine::TerrainTriangle]) {
@@ -207,7 +229,7 @@ namespace FLOOF {
                     DebugDrawTriangle(triangle, surfaceTriangleColor);
                 }
             }
-        }
+
 		{	// Rotate ball mesh.
 			auto view = m_Registry.view<TransformComponent, MeshComponent, BallComponent>();
 			for (auto [entity, transform, mesh, ball] : view.each()) {
@@ -472,6 +494,14 @@ namespace FLOOF {
 		m_DebugSphereEntity = m_Registry.create();
 		m_Registry.emplace<LineMeshComponent>(m_DebugSphereEntity, Utils::LineVertexDataFromObj("Assets/Ball.obj"));
 		m_Registry.emplace<DebugComponent>(m_DebugSphereEntity);
+
+		m_BDebugLines[DebugLine::Velocity] = true;
+		m_BDebugLines[DebugLine::Friction] = true;
+		m_BDebugLines[DebugLine::Acceleration] = true;
+		m_BDebugLines[DebugLine::CollisionShape] = true;
+		m_BDebugLines[DebugLine::WorldAxis] = true;
+		m_BDebugLines[DebugLine::TerrainTriangle] = true;
+		m_BDebugLines[DebugLine::ClosestPointToBall] = true;
 	}
 
 	void Application::DebugClearLineBuffer() {

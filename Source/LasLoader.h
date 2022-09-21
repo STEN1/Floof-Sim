@@ -7,9 +7,10 @@ class LasLoader {
 
 public:
     LasLoader(const std::string& path);
+    std::vector<FLOOF::ColorVertex> VertexData;
 
 private:
-    std::vector<FLOOF::MeshVertex> VertexData;
+
 
 
 };

@@ -27,6 +27,7 @@ namespace FLOOF {
 		entt::entity m_CameraEntity;
 		entt::entity m_TerrainEntity;
 
+
         // ----------- Physics utils -------------
         void ResetBall();
         void SpawnBall();
@@ -39,7 +40,8 @@ namespace FLOOF {
             Velocity,
             Acceleration,
             Friction,
-            CollisionShape
+            CollisionShape,
+			ClosestPointToBall
         };
         std::unordered_map<DebugLine, bool> m_BDebugLines;
         std::chrono::high_resolution_clock::time_point m_Ballspawntime;
