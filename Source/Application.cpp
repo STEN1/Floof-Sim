@@ -311,6 +311,8 @@ namespace FLOOF {
 	}
 	void Application::Simulate(double deltaTime) {
 
+        //deltaTime *= 0.2f;
+
 		{	// Calculate ball velocity
 
             glm::vec3 acc(0.f, -Math::Gravity, 0.f);
@@ -333,27 +335,12 @@ namespace FLOOF {
                         if(m_BDebugLines[DebugLine::TerrainTriangle])
                             DebugDrawTriangle(terrain.Triangles[i], glm::vec3(0.f, 255.f, 0.f));
 
-                        // Reflect velocity when triangle index changes
-                        //if (ball.LastTriangleIndex != ball.TriangleIndex && ball.LastTriangleIndex != -1 && ball.TriangleIndex != -1) {
-                          //  glm::vec3 m = terrain.Triangles[ball.LastTriangleIndex].N;
-                            //glm::vec3 n = terrain.Triangles[ball.TriangleIndex].N;
-                            //velocity.Velocity = Physics::GetReflectVelocity(velocity.Velocity, Physics::GetReflectionAngle(m, n));
-
-                        //}
-                        //apply all forces to ball
-
                         Triangle& triangle = terrain.Triangles[ball.TriangleIndex];
 
-                        const float elasticity = 0.5f;
                         float moveangle = glm::dot(velocity.Velocity,triangle.N);
-                        float j = -(1.f+elasticity) * moveangle / (1.f/ball.Mass);
+                        float j = -(1.f+ball.Elasticity) * moveangle / (1.f/ball.Mass);
                         const glm::vec3 vecImpulse = j*triangle.N;
                         velocity.Velocity += vecImpulse / ball.Mass;
-                        //acc = Physics::GetAccelerationVector(triangle);
-
-                        //push ball on top of triangle
-                        auto dist = (glm::dot(transform.Position - triangle.A, triangle.N));
-                        transform.Position += glm::normalize(triangle.N) * (-dist + ball.Radius);
 
                         // Add friction
                        if (glm::length(velocity.Velocity) > 0.f) {
@@ -363,17 +350,46 @@ namespace FLOOF {
                         ball.LastTriangleIndex = ball.TriangleIndex;
                         foundCollision = true;
                     }
+
+                    if(ball.CollisionSphere.Intersect(&terrain.Triangles[i])) {
+                        Triangle &triangle = terrain.Triangles[ball.TriangleIndex];
+                        //push ball on top of triangle
+                        auto dist = (glm::dot(transform.Position - triangle.A, triangle.N));
+                        transform.Position += glm::normalize(triangle.N) * (-dist + ball.Radius);
+                    }
+
                     if(!foundCollision)
                         ball.TriangleIndex = -1;
+
+                    //----- ball ball collision
+                    for(auto[ent,transform2,ball2,velocity2]: view.each()){
+
+                        if(ball.CollisionSphere.Intersect(&ball2.CollisionSphere) && &ball != &ball2){
+                            //calculate velocity when collision with another ball
+                            auto contactNormal = glm::normalize(transform.Position-transform2.Position);
+                            auto combinedMass = ball.Mass+ball2.Mass;
+                            auto elasticity = ball.Elasticity*ball2.Elasticity;
+                            auto relVelocity = velocity.Velocity - velocity2.Velocity;
+
+                            float moveangle = glm::dot(relVelocity,contactNormal);
+                            float j = -(1.f+elasticity) * moveangle / (1.f/combinedMass);
+                            if(moveangle >= 0.f){ // moves opposite dirrections;
+                                j = 0.f;
+                            }
+                            const glm::vec3 vecImpulse = j*contactNormal;
+                            velocity.Velocity += vecImpulse / combinedMass;
+
+                            //todo move balls out of eachoter
+                            //calculate overlap amount
+                            float overlap = glm::length(transform.Position+transform2.Position);
+                            //transform.Position += contactNormal*(overlap);
+                            //transform2.Position -= glm::normalize(transform.Position+transform2.Position)*(ball2.Radius-overlap);
+                        }
+                    }
 				}
 
                 //https://en.wikipedia.org/wiki/Verlet_integration
-                //transform
-                //velocity.Velocity += velocity.Force / ball.Mass * static_cast<float>(deltaTime);
-                //transform.Position += velocity.Velocity * static_cast<float>(deltaTime);
-
                 transform.Position += (velocity.Velocity*static_cast<float>(deltaTime)) +(((velocity.Force)+fri)*(static_cast<float>(deltaTime)*static_cast<float>(deltaTime)*0.5f));
-                //set velocity
                 velocity.Velocity += (((velocity.Force/ball.Mass)+fri)*static_cast<float>(deltaTime)*0.5f);
 
                 //set collision sphere location
@@ -397,6 +413,17 @@ namespace FLOOF {
 
                 //reset force
                 velocity.Force = glm::vec3(0.f);
+
+                //move ball when they fall
+                if(transform.Position.y <= -0.5f){
+                    const double minX{0};
+                    const double maxX{0.6};
+                    const double minZ{-0.4};
+                    const double maxZ{0.0};
+                    glm::vec3 loc(Math::RandDouble(minX,maxX),0.3f,Math::RandDouble(minZ,maxZ));
+                    transform.Position = loc;
+                    velocity.Velocity = glm::vec3(0.f);
+                }
 
             }
 		}
@@ -602,7 +629,7 @@ namespace FLOOF {
         const double maxZ{0.0};
 
         for(int i = 0; i < count; i++){
-                glm::vec3 loc(Math::RandDouble(minX,maxX),0.5f,Math::RandDouble(minZ,maxZ));
+                glm::vec3 loc(Math::RandDouble(minX,maxX),0.3f,Math::RandDouble(minZ,maxZ));
                 SpawnBall(loc, 0.01f, .5f);
         }
     }

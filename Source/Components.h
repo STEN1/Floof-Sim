@@ -129,6 +129,7 @@ namespace FLOOF {
         float Mass;
         int LastTriangleIndex{-1};
         int TriangleIndex{-1};
+        float Elasticity{0.5f};
     };
     struct VelocityComponent {
         glm::vec3 Velocity;
