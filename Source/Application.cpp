@@ -55,7 +55,7 @@ namespace FLOOF {
 		Input::Init(m_Window);
 		Input::RegisterKeyPressCallback(GLFW_KEY_N, std::bind(&Application::DebugToggle, this));
 		Input::RegisterKeyPressCallback(GLFW_KEY_R, std::bind(&Application::ResetBall, this));
-		Input::RegisterKeyPressCallback(GLFW_KEY_F, std::bind(&Application::SpawnBall, this));
+		//Input::RegisterKeyPressCallback(GLFW_KEY_F, std::bind(&Application::SpawnBall, this));
 		Input::RegisterKeyPressCallback(GLFW_KEY_M, std::bind(&Application::DebugToggleDrawNormals, this));
 		
 		// Init Logger. Writes to specified log file.
@@ -190,20 +190,22 @@ namespace FLOOF {
 	}
 	void Application::Update(double deltaTime) {
 		if (m_DebugDraw) {
-			// World axis
-            if(m_BDebugLines[DebugLine::WorldAxis]){
+            // World axis
+            if (m_BDebugLines[DebugLine::WorldAxis]) {
                 DebugDrawLine(glm::vec3(0.f), glm::vec3(100.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
                 DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 100.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
                 DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 100.f), glm::vec3(0.f, 0.f, 1.f));
             }
 
 			// Terrain triangles
-			TerrainComponent& triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
-			glm::vec3 surfaceTriangleColor{ 1.f, 0.f, 1.f };
-			for (auto& triangle : triangleSurface.Triangles) {
-			    if(m_BDebugLines[DebugLine::TerrainTriangle])
-				    DebugDrawTriangle(triangle, surfaceTriangleColor);
-			}
+            if(m_BDebugLines[DebugLine::TerrainTriangle]) {	
+				TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+				glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
+				for (auto &triangle: triangleSurface.Triangles) {
+					DebugDrawTriangle(triangle, surfaceTriangleColor);
+            }
+
+            }
 
 			// Closest point on triangle to ball center
 			if (m_BDebugLines[DebugLine::ClosestPointToBall]) {
@@ -219,6 +221,15 @@ namespace FLOOF {
 				}
 			}
 		}
+
+            // Terrain triangles
+            if (m_BDebugLines[DebugLine::TerrainTriangle]) {
+                TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+                glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
+                for (auto &triangle: triangleSurface.Triangles) {
+                    DebugDrawTriangle(triangle, surfaceTriangleColor);
+                }
+            }
 
 		{	// Rotate ball mesh.
 			auto view = m_Registry.view<TransformComponent, MeshComponent, BallComponent>();
@@ -283,6 +294,13 @@ namespace FLOOF {
             if(ImGui::Button("World Axis"))
                 m_BDebugLines[DebugLine::WorldAxis]  = !m_BDebugLines[DebugLine::WorldAxis];
             //ImGui::Checkbox(("World Axis"), &m_BDebugLines["WorldAxis"]);
+            ImGui::End();
+
+            ImGui::Begin("Oppgaver");
+            static int raincount = 1;
+            ImGui::SliderInt("Rain Ball Count", &raincount, 0, 100);
+            if(ImGui::Button("Spawn Rain"))
+                SpawnRain(raincount);
             ImGui::End();
 		}
 	}
@@ -569,6 +587,38 @@ namespace FLOOF {
         ball.CollisionSphere.radius = ball.Radius;
         ball.CollisionSphere.pos = transform.Position;
 	}
+
+    const void Application::SpawnRain(const int count) {
+
+        const double minX{0};
+        const double maxX{0.6};
+        const double minZ{0.0};
+        const double maxZ{-0.4};
+
+        for(int i = 0; i < count; i++){
+                glm::vec3 loc(Math::RandDouble(minX,maxX),0.5f,Math::RandDouble(minZ,maxZ));
+                SpawnBall(loc, 0.01f, 2.05f);
+        }
+    }
+
+    const void Application::SpawnBall(glm::vec3 location, const float radius, const float mass) {
+        const auto ballEntity = m_Registry.create();
+        auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
+        auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
+        ball.Radius = radius;
+        ball.Mass = mass;
+
+        auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
+        m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
+        m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
+
+        transform.Position = location;
+        transform.Scale = glm::vec3(ball.Radius);
+
+        ball.CollisionSphere.radius = ball.Radius;
+        ball.CollisionSphere.pos = transform.Position;
+
+    }
 }
 
 //test

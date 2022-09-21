@@ -179,7 +179,13 @@ namespace FLOOF {
 	}
 
 	bool CollisionShape::Intersect(Sphere* sphere, Triangle* triangle) {
-		return false;
+		// Find point P on triangle ABC closest to sphere center
+		glm::vec3 p = ClosestPointToPointOnTriangle(sphere->pos, *triangle);
+
+		// Sphere and triangle intersect if the (squared) distance from sphere
+		// center to point p is less than the (squared) sphere radius
+		glm::vec3 v = p - sphere->pos;
+		return glm::dot(v, v) <= sphere->radius * sphere->radius;
 	}
 
 	bool CollisionShape::Intersect(Plane* plane, Triangle* triangle) {
