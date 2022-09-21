@@ -58,6 +58,7 @@ namespace FLOOF {
 		static bool Intersect(Triangle* a, Triangle* b);
 
 		static float DistanceFromPointToPlane(const glm::vec3& point, const glm::vec3& planePos, const glm::vec3& planeNormal);
+		static glm::vec3 ClosestPointToPointOnTriangle(const glm::vec3& point, const Triangle& triangle);
 
 		Shape shape = Shape::None;
 		glm::vec3 pos{};
@@ -100,7 +101,7 @@ namespace FLOOF {
 		glm::vec3 B;
 		glm::vec3 C;
 		glm::vec3 N;
-		float FrictionConstant;
+		float FrictionConstant{};
 	};
 
 	class Frustum : public CollisionShape {
