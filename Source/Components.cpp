@@ -278,4 +278,11 @@ namespace FLOOF {
 
 		vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
 	}
+	void PointCloudComponent::Draw(VkCommandBuffer commandBuffer) {
+		auto renderer = VulkanRenderer::Get();
+
+		VkDeviceSize offset{ 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
+		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
+	}
 }

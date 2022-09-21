@@ -75,6 +75,8 @@ namespace FLOOF {
 		PointCloudComponent(const std::vector<ColorVertex>& vertexData);
 		~PointCloudComponent();
 
+		void Draw(VkCommandBuffer commandBuffer);
+
 		VulkanBuffer VertexBuffer{};
 		uint32_t VertexCount{};
 	};

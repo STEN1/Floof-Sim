@@ -364,6 +364,18 @@ namespace FLOOF {
 			}
 		}
 
+		{	// Draw point cloud
+			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Point);
+			auto view = m_Registry.view<PointCloudComponent>();
+			for (auto [entity, cloud] : view.each()) {
+				ColorPushConstants constants;
+				constants.MVP = vp;
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+					0, sizeof(ColorPushConstants), &constants);
+				cloud.Draw(commandBuffer);
+			}
+		}
+
 		if (m_DebugDraw) { // Draw debug lines
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
 
