@@ -24,7 +24,7 @@ namespace FLOOF {
         glm::mat4 InvModelMat;
 	};
 
-	struct LinePushConstants {
+	struct ColorPushConstants {
 		glm::mat4 MVP;
 	};
 
@@ -61,6 +61,7 @@ namespace FLOOF {
 		Line = 2,
 		Lit = 3,
 		Normal = 4,
+		Point = 5,
 	};
 
 	inline RenderPipelineFlags operator | (RenderPipelineFlags lhs, RenderPipelineFlags rhs) {

@@ -18,7 +18,7 @@ namespace FLOOF {
 		InitImageViews();
 		InitDepthBuffer();
 		InitRenderPass();
-		{
+		{	// Default light shader
 			RenderPipelineParams params;
 			params.Flags = RenderPipelineFlags::AlphaBlend | RenderPipelineFlags::DepthPass;
 			params.FragmentPath = "Shaders/Basic.frag.spv";
@@ -36,7 +36,7 @@ namespace FLOOF {
 			params.DescriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 			InitGraphicsPipeline(params);
 		}
-		{
+		{	// Line drawing shader
 			RenderPipelineParams params;
 			params.Flags = RenderPipelineFlags::AlphaBlend;
 			params.FragmentPath = "Shaders/Color.frag.spv";
@@ -46,10 +46,23 @@ namespace FLOOF {
 			params.Topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
 			params.BindingDescription = ColorVertex::GetBindingDescription();
 			params.AttributeDescriptions = ColorVertex::GetAttributeDescriptions();
-			params.PushConstantSize = sizeof(LinePushConstants);
+			params.PushConstantSize = sizeof(ColorPushConstants);
 			InitGraphicsPipeline(params);
 		}
-		{
+		{	// Point drawing shader
+			RenderPipelineParams params;
+			params.Flags = RenderPipelineFlags::AlphaBlend | RenderPipelineFlags::DepthPass;
+			params.FragmentPath = "Shaders/Color.frag.spv";
+			params.VertexPath = "Shaders/Color.vert.spv";
+			params.Key = RenderPipelineKeys::Point;
+			params.PolygonMode = VK_POLYGON_MODE_POINT;
+			params.Topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+			params.BindingDescription = ColorVertex::GetBindingDescription();
+			params.AttributeDescriptions = ColorVertex::GetAttributeDescriptions();
+			params.PushConstantSize = sizeof(ColorPushConstants);
+			InitGraphicsPipeline(params);
+		}
+		{	// Debug shader for normals
 			RenderPipelineParams params;
 			params.Flags = RenderPipelineFlags::DepthPass;
 			params.FragmentPath = "Shaders/Normal.frag.spv";

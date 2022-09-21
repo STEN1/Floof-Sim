@@ -367,10 +367,10 @@ namespace FLOOF {
 		if (m_DebugDraw) { // Draw debug lines
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
 
-			LinePushConstants constants;
+			ColorPushConstants constants;
 			constants.MVP = vp;
 			vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-				0, sizeof(LinePushConstants), &constants);
+				0, sizeof(ColorPushConstants), &constants);
 
 			auto& lineMesh = m_Registry.get<LineMeshComponent>(m_DebugLineEntity);
 			lineMesh.Draw(commandBuffer);
@@ -383,7 +383,7 @@ namespace FLOOF {
 				constants.MVP = vp * transform.GetLocalTransform();
 				
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-					0, sizeof(LinePushConstants), &constants);
+					0, sizeof(ColorPushConstants), &constants);
 				sphereMesh.Draw(commandBuffer);
 			}
 		}

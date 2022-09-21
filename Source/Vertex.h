@@ -96,6 +96,7 @@ namespace FLOOF {
 			VkVertexInputBindingDescription bindingDescription{};
 
 			bindingDescription.binding = 0;
+			// Shader is used with MeshVertex data for visualization, so stride is sizeof(MeshVertex).
 			bindingDescription.stride = sizeof(MeshVertex);
 			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
