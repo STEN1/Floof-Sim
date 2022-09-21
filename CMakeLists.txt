@@ -27,7 +27,7 @@ add_executable(Floof
 	Source/LoggerMacros.h 
 	Source/Physics.cpp
 	Source/Physics.h
-)
+        Source/LasLoader.cpp Source/LasLoader.h)
 
 
 find_package(Vulkan REQUIRED)
