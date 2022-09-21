@@ -113,7 +113,7 @@ namespace FLOOF {
 			auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
 			auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
 			ball.Radius = 0.01f;
-			ball.Mass = 2.05f;
+			ball.Mass = .5f;
             ball.CollisionSphere.radius = ball.Radius;
             ball.CollisionSphere.pos = transform.Position;
 			auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
@@ -280,11 +280,13 @@ namespace FLOOF {
 
 
             ImGui::Begin("Toggle DebugLines");
-            if(ImGui::Button("VelocityVector"))
+            if(ImGui::Button("All Debug Lines"))
+                m_DebugDraw = !m_DebugDraw;
+            if(ImGui::Button("Velocity Vector"))
                 m_BDebugLines[DebugLine::Velocity]  = !m_BDebugLines[DebugLine::Velocity];
-            if(ImGui::Button("AccelerationVector"))
+            if(ImGui::Button("Acceleration Vector"))
                 m_BDebugLines[DebugLine::Acceleration]  = !m_BDebugLines[DebugLine::Acceleration];
-            if(ImGui::Button("FrictionVector"))
+            if(ImGui::Button("Friction Vector"))
                 m_BDebugLines[DebugLine::Friction]  = !m_BDebugLines[DebugLine::Friction];
             if(ImGui::Button("Collision shapes"))
                 m_BDebugLines[DebugLine::CollisionShape]  = !m_BDebugLines[DebugLine::CollisionShape];
@@ -298,7 +300,7 @@ namespace FLOOF {
             ImGui::End();
 
             ImGui::Begin("Oppgaver");
-            static int raincount = 1;
+            static int raincount = 10;
             ImGui::SliderInt("Rain Ball Count", &raincount, 0, 100);
             if(ImGui::Button("Spawn Rain"))
                 SpawnRain(raincount);
@@ -308,90 +310,91 @@ namespace FLOOF {
 	void Application::Simulate(double deltaTime) {
 
 		{	// Calculate ball velocity
-			bool bInside{ false };
+
+            glm::vec3 acc(0.f, -Math::Gravity, 0.f);
+            glm::vec3 fri(0.f);
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent>();
 			for (auto [entity, transform, ball, velocity] : view.each()) {
-				// Find triangle under ball
 				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+
+                velocity.Force = Math::GravitationalAcceleration * ball.Mass;
+
+                bool foundCollision = false;
 				for (int i{ 0 }; i < terrain.Triangles.size(); i++) {
-					if (Utils::IsPointInsideTriangle(transform.Position, terrain.Triangles[i])) {
-						if (Physics::PlaneBallIntersect(terrain.Triangles[i], transform.Position, ball.Radius)) {
-							ball.TriangleIndex = i;
-						}
-						bInside = true;
+
+                    //------ new collision ------
+                    if(ball.CollisionSphere.Intersect(&terrain.Triangles[i])){
+                        ball.TriangleIndex = i;
+
+                        //draw debug triangle
                         if(m_BDebugLines[DebugLine::TerrainTriangle])
-						    DebugDrawTriangle(terrain.Triangles[i], glm::vec3(0.f, 255.f, 0.f));
-						break;
-					}
+                            DebugDrawTriangle(terrain.Triangles[i], glm::vec3(0.f, 255.f, 0.f));
+
+                        // Reflect velocity when triangle index changes
+                        //if (ball.LastTriangleIndex != ball.TriangleIndex && ball.LastTriangleIndex != -1 && ball.TriangleIndex != -1) {
+                          //  glm::vec3 m = terrain.Triangles[ball.LastTriangleIndex].N;
+                            //glm::vec3 n = terrain.Triangles[ball.TriangleIndex].N;
+                            //velocity.Velocity = Physics::GetReflectVelocity(velocity.Velocity, Physics::GetReflectionAngle(m, n));
+
+                        //}
+                        //apply all forces to ball
+
+                        Triangle& triangle = terrain.Triangles[ball.TriangleIndex];
+
+                        const float elasticity = 0.5f;
+                        float moveangle = glm::dot(velocity.Velocity,triangle.N);
+                        float j = -(1.f+elasticity) * moveangle / (1.f/ball.Mass);
+                        const glm::vec3 vecImpulse = j*triangle.N;
+                        velocity.Velocity += vecImpulse / ball.Mass;
+                        //acc = Physics::GetAccelerationVector(triangle);
+
+                        //push ball on top of triangle
+                        auto dist = (glm::dot(transform.Position - triangle.A, triangle.N));
+                        transform.Position += glm::normalize(triangle.N) * (-dist + ball.Radius);
+
+                        // Add friction
+                       if (glm::length(velocity.Velocity) > 0.f) {
+                           const float frictionConstant = triangle.FrictionConstant;
+                           fri = -glm::normalize(velocity.Velocity) * (frictionConstant * ball.Mass);
+                        }
+                        ball.LastTriangleIndex = ball.TriangleIndex;
+                        foundCollision = true;
+                    }
+                    if(!foundCollision)
+                        ball.TriangleIndex = -1;
 				}
-
-				if (!bInside) {
-                    ball.TriangleIndex = -1;
-				}
-
-				// Reflect velocity when triangle index changes
-				if (ball.LastTriangleIndex != ball.TriangleIndex && ball.LastTriangleIndex != -1 && ball.TriangleIndex != -1) {
-					glm::vec3 m = terrain.Triangles[ball.LastTriangleIndex].N;
-					glm::vec3 n = terrain.Triangles[ball.TriangleIndex].N;
-					velocity.Velocity = Physics::GetReflectVelocity(velocity.Velocity, Physics::GetReflectionAngle(m, n));
-
-				}
-				ball.LastTriangleIndex = ball.TriangleIndex;
-				glm::vec3 a(0.f, -Math::Gravity, 0.f);
-				glm::vec3 af(a);
-
-				if (ball.TriangleIndex >= 0 && ball.TriangleIndex < terrain.Triangles.size()) {
-					Triangle& triangle = terrain.Triangles[ball.TriangleIndex];
-
-					if (Physics::PlaneBallIntersect(triangle, transform.Position, ball.Radius)) {
-						// Move ball on top of triangle;
-						a = Physics::GetAccelerationVector(triangle);
-						auto dist = (glm::dot(transform.Position - triangle.A, triangle.N));
-						transform.Position += glm::normalize(triangle.N) * (-dist + ball.Radius);
-
-						// Add friction
-						if (glm::length(velocity.Velocity) > 0.f) {
-							const float frictionConstant = triangle.FrictionConstant;
-							auto frictionvec = -glm::normalize(velocity.Velocity) * (frictionConstant * ball.Mass);
-							af = a + frictionvec;
-                           if(m_BDebugLines[DebugLine::Friction])
-							    DebugDrawLine(transform.Position, transform.Position + frictionvec, glm::vec3(0.f, 125.f, 125.f));
-						}
-					}
-				}
-
-                //todo ball ball collision
-                //for(auto [entity2, transform2, ball2, velocity2] : view.each()){
-                   // if(&ball != &ball2 && ball.CollisionSphere.Intersect(&ball2.CollisionSphere)){
-                        //calculate new velocity
-                     //   velocity.Velocity = ((ball.Mass*velocity.Velocity)-(ball2.Mass*velocity2.Velocity))/(ball.Mass+ball2.Mass);
-                        //((m1*v1) + (m2*v2))/(m1+m2)
-                        //transform
-                    //}
-                //}
 
                 //https://en.wikipedia.org/wiki/Verlet_integration
                 //transform
-                transform.Position = transform.Position + (velocity.Velocity*static_cast<float>(deltaTime)) +(af*(static_cast<float>(deltaTime)*static_cast<float>(deltaTime)*0.5f));
+                //velocity.Velocity += velocity.Force / ball.Mass * static_cast<float>(deltaTime);
+                //transform.Position += velocity.Velocity * static_cast<float>(deltaTime);
+
+                transform.Position += (velocity.Velocity*static_cast<float>(deltaTime)) +(((velocity.Force)+fri)*(static_cast<float>(deltaTime)*static_cast<float>(deltaTime)*0.5f));
                 //set velocity
-                velocity.Velocity = velocity.Velocity +(af*static_cast<float>(deltaTime)*0.5f);
-				//velocity.Velocity += af;
+                velocity.Velocity += (((velocity.Force/ball.Mass)+fri)*static_cast<float>(deltaTime)*0.5f);
 
                 //set collision sphere location
-                //auto t = transform.GetTransform();
-                //ball.CollisionSphere.pos = glm::vec3( t[0][3],t[1][3],t[2][3]);
                 ball.CollisionSphere.pos = transform.Position;
+
                 //draw debug lines
+                if(m_BDebugLines[DebugLine::Friction])
+                    DebugDrawLine(transform.Position, transform.Position + fri, glm::vec3(0.f, 125.f, 125.f));
                 if(m_BDebugLines[DebugLine::CollisionShape])
                     DebugDrawSphere(ball.CollisionSphere.pos,ball.CollisionSphere.radius);
                 if(m_BDebugLines[DebugLine::Velocity])
 				    DebugDrawLine(transform.Position, transform.Position + velocity.Velocity, glm::vec3(0.f, 0.f, 255.f));
 				if(m_BDebugLines[DebugLine::Acceleration])
-                    DebugDrawLine(transform.Position, transform.Position + a, glm::vec3(255.f, 0.f, 0.f));
+                    DebugDrawLine(transform.Position, transform.Position + acc, glm::vec3(255.f, 0.f, 0.f));
 				if(m_BDebugLines[DebugLine::Acceleration] && m_BDebugLines[DebugLine::Friction])
-                    DebugDrawLine(transform.Position, transform.Position + af, glm::vec3(125.f, 125.f, 0.f));
-			}
+                    DebugDrawLine(transform.Position, transform.Position + (acc+fri), glm::vec3(125.f, 125.f, 0.f));
+
+
+
+                //reset force
+                velocity.Force = glm::vec3(0.f);
+
+            }
 		}
 	}
 
@@ -497,12 +500,12 @@ namespace FLOOF {
 		m_Registry.emplace<DebugComponent>(m_DebugSphereEntity);
 
 		m_BDebugLines[DebugLine::Velocity] = true;
-		m_BDebugLines[DebugLine::Friction] = true;
-		m_BDebugLines[DebugLine::Acceleration] = true;
-		m_BDebugLines[DebugLine::CollisionShape] = true;
+		m_BDebugLines[DebugLine::Friction] = false;
+		m_BDebugLines[DebugLine::Acceleration] = false;
+		m_BDebugLines[DebugLine::CollisionShape] = false;
 		m_BDebugLines[DebugLine::WorldAxis] = true;
 		m_BDebugLines[DebugLine::TerrainTriangle] = true;
-		m_BDebugLines[DebugLine::ClosestPointToBall] = true;
+		m_BDebugLines[DebugLine::ClosestPointToBall] = false;
 	}
 
 	void Application::DebugClearLineBuffer() {
@@ -574,7 +577,7 @@ namespace FLOOF {
 		auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
 		auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
 		ball.Radius = 0.01f;
-		ball.Mass = 2.05f;
+		ball.Mass = 0.50f;
         
 		auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
 		m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
@@ -597,7 +600,7 @@ namespace FLOOF {
 
         for(int i = 0; i < count; i++){
                 glm::vec3 loc(Math::RandDouble(minX,maxX),0.5f,Math::RandDouble(minZ,maxZ));
-                SpawnBall(loc, 0.01f, 2.05f);
+                SpawnBall(loc, 0.01f, .5f);
         }
     }
 
