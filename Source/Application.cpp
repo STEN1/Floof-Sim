@@ -203,9 +203,8 @@ namespace FLOOF {
 				glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
 				for (auto &triangle: triangleSurface.Triangles) {
 					DebugDrawTriangle(triangle, surfaceTriangleColor);
-            }
-
-            }
+				}
+			}
 
 			// Closest point on triangle to ball center
 			if (m_BDebugLines[DebugLine::ClosestPointToBall]) {
