@@ -296,6 +296,8 @@ namespace FLOOF {
                 m_BDebugLines[DebugLine::WorldAxis]  = !m_BDebugLines[DebugLine::WorldAxis];
 			if (ImGui::Button("Closest triangle point"))
 				m_BDebugLines[DebugLine::ClosestPointToBall] = !m_BDebugLines[DebugLine::ClosestPointToBall];
+            if(ImGui::Button("Gravitational Pull"))
+                m_BDebugLines[DebugLine::GravitationalPull]  = !m_BDebugLines[DebugLine::GravitationalPull];
             //ImGui::Checkbox(("World Axis"), &m_BDebugLines["WorldAxis"]);
             ImGui::End();
 
@@ -318,7 +320,7 @@ namespace FLOOF {
 			for (auto [entity, transform, ball, velocity] : view.each()) {
 				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 
-                velocity.Force = Math::GravitationalAcceleration * ball.Mass;
+                velocity.Force = Math::GravitationalPull * ball.Mass;
 
                 bool foundCollision = false;
 				for (int i{ 0 }; i < terrain.Triangles.size(); i++) {
@@ -388,6 +390,8 @@ namespace FLOOF {
                     DebugDrawLine(transform.Position, transform.Position + acc, glm::vec3(255.f, 0.f, 0.f));
 				if(m_BDebugLines[DebugLine::Acceleration] && m_BDebugLines[DebugLine::Friction])
                     DebugDrawLine(transform.Position, transform.Position + (acc+fri), glm::vec3(125.f, 125.f, 0.f));
+                if(m_BDebugLines[DebugLine::GravitationalPull])
+                    DebugDrawLine(transform.Position,transform.Position+Math::GravitationalPull, glm::vec3(255.f, 255.f, 255.f));
 
 
 
@@ -504,6 +508,7 @@ namespace FLOOF {
 		m_BDebugLines[DebugLine::WorldAxis] = true;
 		m_BDebugLines[DebugLine::TerrainTriangle] = true;
 		m_BDebugLines[DebugLine::ClosestPointToBall] = false;
+        m_BDebugLines[DebugLine::GravitationalPull] = false;
 	}
 
 	void Application::DebugClearLineBuffer() {
