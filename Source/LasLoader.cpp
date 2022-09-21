@@ -15,8 +15,8 @@ LasLoader::LasLoader(const std::string &path) : VertexData{} {
     while (std::getline(file, line)) {
         std::stringstream ss(line);
         ss >> tempVertex.Pos.x;
-        ss >> tempVertex.Pos.y;
         ss >> tempVertex.Pos.z;
+        ss >> tempVertex.Pos.y;
 
         tempVertex.Color = glm::vec3(1.f,1.f,1.f);
 
@@ -34,7 +34,7 @@ std::vector<FLOOF::ColorVertex> LasLoader::GetVertexData() {
 void LasLoader::Downscale() {
 
     float multiplier{0.001};
-    glm::vec3 offset(-876831.f,-2260896.f,-348.f);
+    glm::vec3 offset(-876831.f,-348.f,-2260896.f);
     for (auto& vertex : VertexData) {
         vertex.Pos = (vertex.Pos + offset) * multiplier;
     }
