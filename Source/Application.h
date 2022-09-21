@@ -31,6 +31,9 @@ namespace FLOOF {
         // ----------- Physics utils -------------
         void ResetBall();
         void SpawnBall();
+        const void SpawnBall(glm::vec3 location, const float radius, const float mass);
+        const void SpawnRain(const int count);
+
         enum DebugLine{
             WorldAxis =0,
             TerrainTriangle,
