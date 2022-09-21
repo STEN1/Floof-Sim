@@ -197,13 +197,14 @@ namespace FLOOF {
                 DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 100.f), glm::vec3(0.f, 0.f, 1.f));
             }
 
-                if(m_BDebugLines[DebugLine::TerrainTriangle]) {
-                // Terrain triangles
-                TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
-                glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
-                for (auto &triangle: triangleSurface.Triangles) {
-                    DebugDrawTriangle(triangle, surfaceTriangleColor);
-                }
+			// Terrain triangles
+            if(m_BDebugLines[DebugLine::TerrainTriangle]) {	
+				TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+				glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
+				for (auto &triangle: triangleSurface.Triangles) {
+					DebugDrawTriangle(triangle, surfaceTriangleColor);
+            }
+
             }
 
 			// Closest point on triangle to ball center
