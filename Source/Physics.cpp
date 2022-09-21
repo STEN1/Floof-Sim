@@ -154,6 +154,8 @@ namespace FLOOF {
 			return CollisionShape::Intersect(this, reinterpret_cast<Sphere*>(shape));
 		case Shape::Plane:
 			return CollisionShape::Intersect(this, reinterpret_cast<Plane*>(shape));
+		case Shape::Triangle:
+			return CollisionShape::Intersect(this, reinterpret_cast<Triangle*>(shape));
 		case Shape::Frustum:
 			return shape->Intersect(this);
 		case Shape::None:
@@ -174,6 +176,8 @@ namespace FLOOF {
 			return CollisionShape::Intersect(reinterpret_cast<AABB*>(shape), this);
 		case Shape::Sphere:
 			return CollisionShape::Intersect(this, reinterpret_cast<Sphere*>(shape));
+		case Shape::Triangle:
+			return CollisionShape::Intersect(this, reinterpret_cast<Triangle*>(shape));
 		case Shape::Plane:
 			return CollisionShape::Intersect(this, reinterpret_cast<Plane*>(shape));
 		case Shape::Frustum:
@@ -196,6 +200,8 @@ namespace FLOOF {
 			return CollisionShape::Intersect(reinterpret_cast<AABB*>(shape), this);
 		case Shape::Sphere:
 			return CollisionShape::Intersect(reinterpret_cast<Sphere*>(shape), this);
+		case Shape::Triangle:
+			return CollisionShape::Intersect(this, reinterpret_cast<Triangle*>(shape));
 		case Shape::Plane:
 			return CollisionShape::Intersect(this, reinterpret_cast<Plane*>(shape));
 		case Shape::Frustum:
@@ -263,6 +269,22 @@ namespace FLOOF {
 		shape = Shape::Triangle;
 	}
 	bool Triangle::Intersect(CollisionShape* shape) {
+		switch (shape->shape) {
+		case Shape::AABB:
+			return CollisionShape::Intersect(reinterpret_cast<AABB*>(shape), this);
+		case Shape::Sphere:
+			return CollisionShape::Intersect(reinterpret_cast<Sphere*>(shape), this);
+		case Shape::Plane:
+			return CollisionShape::Intersect(reinterpret_cast<Plane*>(shape), this);
+		case Shape::Triangle:
+			return CollisionShape::Intersect(reinterpret_cast<Triangle*>(shape), this);
+		case Shape::Frustum:
+			return shape->Intersect(this);
+		case Shape::None:
+			LOG_ERROR("Collision with none.");
+			break;
+		}
+
 		return false;
 	}
 }
