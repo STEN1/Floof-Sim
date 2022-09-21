@@ -484,9 +484,7 @@ namespace FLOOF {
 	}
 
 	void Application::DebugInit() {
-		// Size is max size of cmdBuffer updates
-		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
-		uint32_t size = 65536 / sizeof(ColorVertex);
+		uint32_t size = 1000000 * sizeof(ColorVertex);
 		m_DebugLineBuffer.resize(size);
 		memset(m_DebugLineBuffer.data(), 0, m_DebugLineBuffer.size() * sizeof(ColorVertex));
 		m_DebugLineEntity = m_Registry.create();
