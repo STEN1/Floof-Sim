@@ -8,6 +8,7 @@
 #include <string>
 #include "stb_image.h"
 #include "imgui_impl_glfw.h"
+#include "LasLoader.h"
 
 namespace FLOOF {
 	Application::Application() {
@@ -87,7 +88,16 @@ namespace FLOOF {
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
 			terrain.PrintTriangleData();
-		}
+
+
+        }
+
+        {
+
+            const auto PointCloudEntity = m_Registry.create();
+            m_Registry.emplace<PointCloudComponent>(PointCloudEntity, LasLoader("Assets/france2.txt").VertexData);
+
+        }
 
 		{
 			const auto treeEntity = m_Registry.create();
