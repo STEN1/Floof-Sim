@@ -69,7 +69,14 @@ namespace FLOOF {
 		VulkanBuffer VertexBuffer{};
 		uint32_t VertexCount{};
 		uint32_t MaxVertexCount{};
-		glm::vec4 Color = glm::vec4(1.f);
+	};
+
+	struct PointCloudComponent {
+		PointCloudComponent(const std::vector<ColorVertex>& vertexData);
+		~PointCloudComponent();
+
+		VulkanBuffer VertexBuffer{};
+		uint32_t VertexCount{};
 	};
 
 	struct TextureComponent {

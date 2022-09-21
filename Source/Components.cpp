@@ -267,4 +267,15 @@ namespace FLOOF {
 			std::cout << "Normal: " << triangle.N << std::endl;
 		}
 	}
+	PointCloudComponent::PointCloudComponent(const std::vector<ColorVertex>& vertexData) {
+		auto renderer = VulkanRenderer::Get();
+
+		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		VertexCount = vertexData.size();
+	}
+	PointCloudComponent::~PointCloudComponent() {
+		auto renderer = VulkanRenderer::Get();
+
+		vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
+	}
 }

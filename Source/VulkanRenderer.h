@@ -93,6 +93,7 @@ namespace FLOOF {
 		friend class TextureComponent;
 		friend class MeshComponent;
 		friend class LineMeshComponent;
+		friend class PointCloudComponent;
 	public:
 		VulkanRenderer(GLFWwindow* window);
 		~VulkanRenderer();
