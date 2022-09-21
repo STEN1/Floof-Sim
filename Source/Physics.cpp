@@ -35,6 +35,58 @@ namespace FLOOF {
 		return glm::dot(point - planePos, planeNormal);
 	}
 
+	glm::vec3 CollisionShape::ClosestPointToPointOnTriangle(const glm::vec3& point, const Triangle& triangle) {
+		// Check if P in vertex region outside A
+		glm::vec3 ab = triangle.B - triangle.A;
+		glm::vec3 ac = triangle.C - triangle.A;
+		glm::vec3 ap = point - triangle.A;
+		float d1 = glm::dot(ab, ap);
+		float d2 = glm::dot(ac, ap);
+		if (d1 <= 0.0f && d2 <= 0.0f) 
+			return triangle.A; // barycentric coordinates (1,0,0)
+
+		// Check if P in vertex region outside B
+		glm::vec3 bp = point - triangle.B;
+		float d3 = glm::dot(ab, bp);
+		float d4 = glm::dot(ac, bp);
+		if (d3 >= 0.0f && d4 <= d3) 
+			return triangle.B; // barycentric coordinates (0,1,0)
+
+		// Check if P in edge region of AB, if so return projection of P onto AB
+		float vc = d1 * d4 - d3 * d2;
+		if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
+			float v = d1 / (d1 - d3);
+			return triangle.A + v * ab; // barycentric coordinates (1-v,v,0)
+		}
+
+		// Check if P in vertex region outside C
+		glm::vec3 cp = point - triangle.C;
+		float d5 = glm::dot(ab, cp);
+		float d6 = glm::dot(ac, cp);
+		if (d6 >= 0.0f && d5 <= d6) 
+			return triangle.C; // barycentric coordinates (0,0,1)
+
+		// Check if P in edge region of AC, if so return projection of P onto AC
+		float vb = d5 * d2 - d1 * d6;
+		if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
+			float w = d2 / (d2 - d6);
+			return triangle.A + w * ac; // barycentric coordinates (1-w,0,w)
+		}
+
+		// Check if P in edge region of BC, if so return projection of P onto BC
+		float va = d3 * d6 - d5 * d4;
+		if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
+			float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+			return triangle.B + w * (triangle.C - triangle.B); // barycentric coordinates (0,1-w,w)
+		}
+
+		// P inside face region. Compute Q through its barycentric coordinates (u,v,w)
+		float denom = 1.0f / (va + vb + vc);
+		float v = vb * denom;
+		float w = vc * denom;
+		return triangle.A + ab * v + ac * w; // = u*a + v*b + w*c, u = va * denom = 1.0f-v-w
+	}
+
 	bool CollisionShape::Intersect(CollisionShape* shape) {
 		LOG_ERROR("Collision with none");
 		return false;
