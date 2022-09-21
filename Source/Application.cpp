@@ -360,15 +360,14 @@ namespace FLOOF {
 				}
 
                 //todo ball ball collision
-                for(auto [entity2, transform2, ball2, velocity2] : view.each()){
-                    if(&ball != &ball2 && ball.CollisionSphere.Intersect(&ball2.CollisionSphere)){
+                //for(auto [entity2, transform2, ball2, velocity2] : view.each()){
+                   // if(&ball != &ball2 && ball.CollisionSphere.Intersect(&ball2.CollisionSphere)){
                         //calculate new velocity
-                        velocity.Velocity = ((ball.Mass*velocity.Velocity)-(ball2.Mass*velocity2.Velocity))/(ball.Mass+ball2.Mass);
+                     //   velocity.Velocity = ((ball.Mass*velocity.Velocity)-(ball2.Mass*velocity2.Velocity))/(ball.Mass+ball2.Mass);
                         //((m1*v1) + (m2*v2))/(m1+m2)
                         //transform
-                    }
-
-                }
+                    //}
+                //}
 
                 //https://en.wikipedia.org/wiki/Verlet_integration
                 //transform
@@ -401,7 +400,7 @@ namespace FLOOF {
 		// Camera setup
 		auto extent = m_Renderer->GetExtent();
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
-		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.1f, 1000.f);
+		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 100.f);
 
 		if (m_DrawNormals == false) {	// Geometry pass
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
