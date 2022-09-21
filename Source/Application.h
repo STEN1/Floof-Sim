@@ -7,6 +7,7 @@
 #include "Logger.h"
 #include <memory>
 #include <chrono>
+#include "Physics.h"
 
 namespace FLOOF {
 	class Application {

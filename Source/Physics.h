@@ -4,6 +4,14 @@
 #include "Vertex.h"
 
 namespace FLOOF {
+	class AABB;
+	class Sphere;
+	class Plane;
+	class OBB;
+	class Triangle;
+	class Frustum;
+    class CameraComponent;
+
 	class Physics {
 	public:
 		Physics() = delete;
@@ -16,13 +24,6 @@ namespace FLOOF {
 
 	};
 
-	class AABB;
-	class Sphere;
-	class Plane;
-	class OBB;
-	class Frustum;
-    class CameraComponent;
-
 	class CollisionShape {
 	public:
 		enum class Shape : uint8_t {
@@ -31,6 +32,7 @@ namespace FLOOF {
 			Sphere,
 			Plane,
 			OBB,
+			Triangle,
 			Frustum
 		};
 		virtual bool Intersect(CollisionShape* shape);
@@ -48,6 +50,12 @@ namespace FLOOF {
 		static bool Intersect(Sphere* sphere, OBB* obb);
 		static bool Intersect(Plane* plane, OBB* obb);
 		static bool Intersect(OBB* a, OBB* b);
+
+		static bool Intersect(AABB* aabb, Triangle* triangle);
+		static bool Intersect(Sphere* sphere, Triangle* triangle);
+		static bool Intersect(Plane* plane, Triangle* triangle);
+		static bool Intersect(OBB* a, Triangle* triangle);
+		static bool Intersect(Triangle* a, Triangle* b);
 
 		static float DistanceFromPointToPlane(const glm::vec3& point, const glm::vec3& planePos, const glm::vec3& planeNormal);
 
@@ -82,6 +90,17 @@ namespace FLOOF {
 		virtual bool Intersect(CollisionShape* shape) override;
 		glm::vec3 extent{ 0.5f }; // half extent.
 		glm::vec3 normals[3];
+	};
+
+	class Triangle : public CollisionShape {
+	public:
+		Triangle();
+		virtual bool Intersect(CollisionShape* shape) override;
+		glm::vec3 A;
+		glm::vec3 B;
+		glm::vec3 C;
+		glm::vec3 N;
+		float FrictionConstant;
 	};
 
 	class Frustum : public CollisionShape {

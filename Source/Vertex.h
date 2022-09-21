@@ -119,12 +119,4 @@ namespace FLOOF {
 			return attributeDescriptions;
 		}
 	};
-
-    struct Triangle {
-        glm::vec3 A;
-        glm::vec3 B;
-        glm::vec3 C;
-        glm::vec3 N;
-        float FrictionConstant;
-    };
 }
