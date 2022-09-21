@@ -592,8 +592,8 @@ namespace FLOOF {
 
         const double minX{0};
         const double maxX{0.6};
-        const double minZ{0.0};
-        const double maxZ{-0.4};
+        const double minZ{-0.4};
+        const double maxZ{0.0};
 
         for(int i = 0; i < count; i++){
                 glm::vec3 loc(Math::RandDouble(minX,maxX),0.5f,Math::RandDouble(minZ,maxZ));
