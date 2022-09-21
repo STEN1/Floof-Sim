@@ -384,9 +384,9 @@ namespace FLOOF {
 	void Application::DebugInit() {
 		// Size is max size of cmdBuffer updates
 		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
-		uint32_t size = 65536 / sizeof(LineVertex);
+		uint32_t size = 65536 / sizeof(ColorVertex);
 		m_DebugLineBuffer.resize(size);
-		memset(m_DebugLineBuffer.data(), 0, m_DebugLineBuffer.size() * sizeof(LineVertex));
+		memset(m_DebugLineBuffer.data(), 0, m_DebugLineBuffer.size() * sizeof(ColorVertex));
 		m_DebugLineEntity = m_Registry.create();
 
 		// Make the line mesh buffer as large as max update size by initializing with a buffer of that size.
@@ -427,7 +427,7 @@ namespace FLOOF {
 	}
 
 	void Application::DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color) {
-		LineVertex v;
+		ColorVertex v;
 		v.Color = color;
 		v.Pos = start;
 		m_DebugLineBuffer.push_back(v);

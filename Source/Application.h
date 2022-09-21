@@ -43,7 +43,7 @@ namespace FLOOF {
 
 		// Draws triangle in world coords
 		void DebugDrawTriangle(const Triangle& triangle, const glm::vec3& color);
-		std::vector<LineVertex> m_DebugLineBuffer;
+		std::vector<ColorVertex> m_DebugLineBuffer;
 		entt::entity m_DebugLineEntity;
 
 		// Draws a sphere in world coords with specified radius

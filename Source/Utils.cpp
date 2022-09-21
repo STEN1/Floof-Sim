@@ -147,10 +147,10 @@ namespace FLOOF {
 			return true;
 		}
 
-		std::vector<LineVertex> LineVertexDataFromObj(const std::string& path) {
+		std::vector<ColorVertex> LineVertexDataFromObj(const std::string& path) {
 			auto [vertexData, indexData] = ObjLoader(path).GetIndexedData();
 
-			std::vector<LineVertex> out(indexData.size());
+			std::vector<ColorVertex> out(indexData.size());
 			glm::vec3 color(1.f);
 
 			for (size_t i = 0; i < indexData.size(); i++) {

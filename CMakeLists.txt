@@ -73,8 +73,8 @@ target_include_directories(Floof PUBLIC "Libs/HeaderOnly")
 
 exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.vert -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.vert.spv")
 exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.frag -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Basic.frag.spv")
-exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Line.vert -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Line.vert.spv")
-exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Line.frag -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Line.frag.spv")
+exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Color.vert -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Color.vert.spv")
+exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Color.frag -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Color.frag.spv")
 exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Normal.vert -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Normal.vert.spv")
 exec_program("glslc ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Normal.frag -o ${CMAKE_CURRENT_SOURCE_DIR}/Shaders/Normal.frag.spv")
 

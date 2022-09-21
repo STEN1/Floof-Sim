@@ -39,13 +39,13 @@ namespace FLOOF {
 		{
 			RenderPipelineParams params;
 			params.Flags = RenderPipelineFlags::AlphaBlend;
-			params.FragmentPath = "Shaders/Line.frag.spv";
-			params.VertexPath = "Shaders/Line.vert.spv";
+			params.FragmentPath = "Shaders/Color.frag.spv";
+			params.VertexPath = "Shaders/Color.vert.spv";
 			params.Key = RenderPipelineKeys::Line;
 			params.PolygonMode = VK_POLYGON_MODE_LINE;
 			params.Topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-			params.BindingDescription = LineVertex::GetBindingDescription();
-			params.AttributeDescriptions = LineVertex::GetAttributeDescriptions();
+			params.BindingDescription = ColorVertex::GetBindingDescription();
+			params.AttributeDescriptions = ColorVertex::GetAttributeDescriptions();
 			params.PushConstantSize = sizeof(LinePushConstants);
 			InitGraphicsPipeline(params);
 		}

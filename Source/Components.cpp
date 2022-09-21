@@ -194,7 +194,7 @@ namespace FLOOF {
 			vmaDestroyBuffer(renderer->m_Allocator, data.VertexBuffer.Buffer, data.VertexBuffer.Allocation);
 		}
 	}
-	LineMeshComponent::LineMeshComponent(const std::vector<LineVertex>& vertexData) {
+	LineMeshComponent::LineMeshComponent(const std::vector<ColorVertex>& vertexData) {
 		auto renderer = VulkanRenderer::Get();
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
@@ -213,13 +213,13 @@ namespace FLOOF {
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
 		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 	}
-	void LineMeshComponent::UpdateBuffer(VkCommandBuffer commandBuffer, const std::vector<LineVertex>& vertexData) {
+	void LineMeshComponent::UpdateBuffer(VkCommandBuffer commandBuffer, const std::vector<ColorVertex>& vertexData) {
 		if (vertexData.size() > MaxVertexCount) {
 			std::cout << "Cant update buffer with data larger than vkBuffer.\n";
 			return;
 		}
 		VertexCount = vertexData.size();
-		vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, {}, VertexCount * sizeof(LineVertex), vertexData.data());
+		vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, {}, VertexCount * sizeof(ColorVertex), vertexData.data());
 	}
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
 		Up = glm::vec3(0.f, -1.f, 0.f);

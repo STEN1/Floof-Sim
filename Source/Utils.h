@@ -11,6 +11,6 @@ namespace FLOOF {
 		std::vector<MeshVertex> MakeBall(int subdivisions, float radius);
 		glm::vec3 CalcBarycentric(glm::vec3 position, const Triangle& triangle);
 		bool IsPointInsideTriangle(const glm::vec3& position, const Triangle& triangle);
-		std::vector<LineVertex> LineVertexDataFromObj(const std::string& path);
+		std::vector<ColorVertex> LineVertexDataFromObj(const std::string& path);
 	}
 }
