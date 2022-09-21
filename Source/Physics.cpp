@@ -122,6 +122,26 @@ namespace FLOOF {
 		return true;
 	}
 
+	bool CollisionShape::Intersect(AABB* aabb, Triangle* triangle) {
+		return false;
+	}
+
+	bool CollisionShape::Intersect(Sphere* sphere, Triangle* triangle) {
+		return false;
+	}
+
+	bool CollisionShape::Intersect(Plane* plane, Triangle* triangle) {
+		return false;
+	}
+
+	bool CollisionShape::Intersect(OBB* a, Triangle* triangle) {
+		return false;
+	}
+
+	bool CollisionShape::Intersect(Triangle* a, Triangle* b) {
+		return false;
+	}
+
 	AABB::AABB() {
 		shape = Shape::AABB;
 	}
@@ -238,5 +258,11 @@ namespace FLOOF {
 
 	void Frustum::SetCamera(CameraComponent& camera) {
 		m_Camera = camera;
+	}
+	Triangle::Triangle() {
+		shape = Shape::Triangle;
+	}
+	bool Triangle::Intersect(CollisionShape* shape) {
+		return false;
 	}
 }
