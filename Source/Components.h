@@ -118,6 +118,7 @@ namespace FLOOF {
 
 	struct TerrainComponent {
 		TerrainComponent(std::vector<Triangle>&& vertexData);
+		TerrainComponent(const std::vector<Triangle>& vertexData);
 		std::vector<Triangle> Triangles;
 		void PrintTriangleData();
 	};

@@ -255,7 +255,9 @@ namespace FLOOF {
 	}
 	TerrainComponent::TerrainComponent(std::vector<Triangle>&& triangles) {
 		Triangles = triangles;
-
+	}
+	TerrainComponent::TerrainComponent(const std::vector<Triangle>& triangles) {
+		Triangles = triangles;
 	}
 	void TerrainComponent::PrintTriangleData() {
 		uint32_t triangleId = 0;
