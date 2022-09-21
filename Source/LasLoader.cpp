@@ -10,20 +10,17 @@ LasLoader::LasLoader(const std::string &path) : VertexData{} {
         return;
     }
 
-    uint32_t vertexCount{};
-    file >> vertexCount;
-    std::string s;
-    std::getline(file, s);
-    VertexData.resize(vertexCount);
-    for (FLOOF::MeshVertex& vertex : VertexData) {
-        std::string line;
-        std::getline(file, line);
+    std::string line;
+    FLOOF::ColorVertex tempVertex{};
+    while (std::getline(file, line)) {
         std::stringstream ss(line);
-        ss >> vertex.Pos.x;
-        ss >> vertex.Pos.y;
-        ss >> vertex.Pos.z;
+        ss >> tempVertex.Pos.x;
+        ss >> tempVertex.Pos.y;
+        ss >> tempVertex.Pos.z;
+
+        tempVertex.Color = glm::vec3(1.f,1.f,1.f);
+
+        VertexData.push_back(tempVertex);
     }
-
-
 
 }
