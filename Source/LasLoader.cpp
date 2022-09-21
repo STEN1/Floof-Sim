@@ -23,4 +23,19 @@ LasLoader::LasLoader(const std::string &path) : VertexData{} {
         VertexData.push_back(tempVertex);
     }
 
+    Downscale();
+
+}
+
+std::vector<FLOOF::ColorVertex> LasLoader::GetVertexData() {
+    return VertexData;
+}
+
+void LasLoader::Downscale() {
+
+    float multiplier{0.001};
+    glm::vec3 offset(-876831.f,-2260896.f,-348.f);
+    for (auto& vertex : VertexData) {
+        vertex.Pos = (vertex.Pos + offset) * multiplier;
+    }
 }

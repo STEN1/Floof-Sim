@@ -95,7 +95,7 @@ namespace FLOOF {
         {
 
             const auto PointCloudEntity = m_Registry.create();
-            m_Registry.emplace<PointCloudComponent>(PointCloudEntity, LasLoader("Assets/france2.txt").VertexData);
+            m_Registry.emplace<PointCloudComponent>(PointCloudEntity, LasLoader("Assets/france.txt").GetVertexData());
 
         }
 
