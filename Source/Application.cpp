@@ -292,6 +292,8 @@ namespace FLOOF {
                 m_BDebugLines[DebugLine::TerrainTriangle]  = !m_BDebugLines[DebugLine::TerrainTriangle];
             if(ImGui::Button("World Axis"))
                 m_BDebugLines[DebugLine::WorldAxis]  = !m_BDebugLines[DebugLine::WorldAxis];
+			if (ImGui::Button("Closest triangle point"))
+				m_BDebugLines[DebugLine::ClosestPointToBall] = !m_BDebugLines[DebugLine::ClosestPointToBall];
             //ImGui::Checkbox(("World Axis"), &m_BDebugLines["WorldAxis"]);
             ImGui::End();
 
