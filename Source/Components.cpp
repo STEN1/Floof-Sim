@@ -223,7 +223,25 @@ namespace FLOOF {
 			return;
 		}
 		VertexCount = vertexData.size();
-		vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, {}, VertexCount * sizeof(ColorVertex), vertexData.data());
+		// Max dataSize of vkCmdUpdateBuffer
+		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
+		static constexpr VkDeviceSize maxBufferUpdateSize = 65536;
+		VkDeviceSize bufferSize = VertexCount * sizeof(ColorVertex);
+		VkDeviceSize offset = 0;
+		if (bufferSize <= maxBufferUpdateSize) {
+			vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, offset, bufferSize, vertexData.data());
+		} else {
+			while (bufferSize > maxBufferUpdateSize) {
+				void* data = (void*)(vertexData.data() + offset);
+				vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, offset, maxBufferUpdateSize, data);
+				offset += maxBufferUpdateSize;
+				bufferSize -= maxBufferUpdateSize;
+			}
+			if (bufferSize > 0) {
+				void* data = (void*)(vertexData.data() + offset);
+				vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, offset, bufferSize, data);
+			}
+		}
 	}
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
 		Up = glm::vec3(0.f, -1.f, 0.f);
