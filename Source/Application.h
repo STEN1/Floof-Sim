@@ -46,6 +46,8 @@ namespace FLOOF {
         };
         std::unordered_map<DebugLine, bool> m_BDebugLines;
         std::chrono::high_resolution_clock::time_point m_Ballspawntime;
+
+        float m_DeltaTimeModifier{1.f};
 		// ----------- Debug utils ---------------
 		void DebugInit();
 		void DebugClearLineBuffer();
