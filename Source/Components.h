@@ -64,8 +64,8 @@ namespace FLOOF {
 		~LineMeshComponent();
 
 		void Draw(VkCommandBuffer commandBuffer);
-		// Dont call this in a renderpass
-		void UpdateBuffer(VkCommandBuffer commandBuffer, const std::vector<ColorVertex>& vertexData);
+
+		void UpdateBuffer(const std::vector<ColorVertex>& vertexData);
 		VulkanBuffer VertexBuffer{};
 		uint32_t VertexCount{};
 		uint32_t MaxVertexCount{};

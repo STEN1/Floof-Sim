@@ -482,13 +482,9 @@ namespace FLOOF {
 	}
 
 	void Application::DebugInit() {
-		uint32_t size = 1000000 * sizeof(ColorVertex);
-		m_DebugLineBuffer.resize(size);
-		memset(m_DebugLineBuffer.data(), 0, m_DebugLineBuffer.size() * sizeof(ColorVertex));
+		m_DebugLineBuffer.resize(100000);
 		m_DebugLineEntity = m_Registry.create();
-
-		// Make the line mesh buffer as large as max update size by initializing with a buffer of that size.
-		LineMeshComponent& lineMesh = m_Registry.emplace<LineMeshComponent>(m_DebugLineEntity, m_DebugLineBuffer);
+		m_Registry.emplace<LineMeshComponent>(m_DebugLineEntity, m_DebugLineBuffer);
 		m_Registry.emplace<DebugComponent>(m_DebugLineEntity);
 
 		m_DebugSphereEntity = m_Registry.create();
@@ -520,7 +516,7 @@ namespace FLOOF {
 	void Application::DebugUpdateLineBuffer() {
 		auto commandBuffer = m_Renderer->AllocateBeginOneTimeCommandBuffer();
 		auto& lineMesh = m_Registry.get<LineMeshComponent>(m_DebugLineEntity);
-		lineMesh.UpdateBuffer(commandBuffer, m_DebugLineBuffer);
+		lineMesh.UpdateBuffer(m_DebugLineBuffer);
 		m_Renderer->EndSubmitFreeCommandBuffer(commandBuffer);
 	}
 
