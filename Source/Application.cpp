@@ -53,7 +53,6 @@ namespace FLOOF {
 
 		// Register key callbacks
 		Input::Init(m_Window);
-		Input::RegisterKeyPressCallback(GLFW_KEY_N, std::bind(&Application::DebugToggle, this));
 		Input::RegisterKeyPressCallback(GLFW_KEY_R, std::bind(&Application::ResetBall, this));
 		//Input::RegisterKeyPressCallback(GLFW_KEY_F, std::bind(&Application::SpawnBall, this));
 		Input::RegisterKeyPressCallback(GLFW_KEY_M, std::bind(&Application::DebugToggleDrawNormals, this));
@@ -112,6 +111,9 @@ namespace FLOOF {
 			const auto ballEntity = m_Registry.create();
 			auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
 			auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
+            auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
+            time.CreationTime = Timer::GetTime();
+            time.LastPoint=time.CreationTime;
 			ball.Radius = 0.01f;
 			ball.Mass = .5f;
             ball.CollisionSphere.radius = ball.Radius;
@@ -189,7 +191,7 @@ namespace FLOOF {
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
-		if (m_DebugDraw) {
+		//if (m_DebugDraw) {
             // World axis
             if (m_BDebugLines[DebugLine::WorldAxis]) {
                 DebugDrawLine(glm::vec3(0.f), glm::vec3(100.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
@@ -204,7 +206,7 @@ namespace FLOOF {
 				for (auto &triangle: triangleSurface.Triangles) {
 					DebugDrawTriangle(triangle, surfaceTriangleColor);
 				}
-			}
+			//}
 
 			// Closest point on triangle to ball center
 			if (m_BDebugLines[DebugLine::ClosestPointToBall]) {
@@ -276,14 +278,17 @@ namespace FLOOF {
 				SpawnBall();
             if(ImGui::Button("Reset Ball"))
                 ResetBall();
+            if(ImGui::Button("DrawNormals")){
+                DebugToggleDrawNormals();
+            }
             ImGui::SliderFloat("Deltatime Modifer",&m_DeltaTimeModifier, 0.f, 1.f);
 			ImGui::End();
 
 
             ImGui::Begin("Toggle DebugLines");
             if(ImGui::Button("All Debug Lines"))
-                m_DebugDraw = !m_DebugDraw;
-            if(ImGui::Button("Velocity Vector"))
+                DebugToggleAllLines();
+                if(ImGui::Button("Velocity Vector"))
                 m_BDebugLines[DebugLine::Velocity]  = !m_BDebugLines[DebugLine::Velocity];
             if(ImGui::Button("Force Vector"))
                 m_BDebugLines[DebugLine::Force]  = !m_BDebugLines[DebugLine::Force];
@@ -299,6 +304,8 @@ namespace FLOOF {
 				m_BDebugLines[DebugLine::ClosestPointToBall] = !m_BDebugLines[DebugLine::ClosestPointToBall];
             if(ImGui::Button("Gravitational Pull"))
                 m_BDebugLines[DebugLine::GravitationalPull]  = !m_BDebugLines[DebugLine::GravitationalPull];
+            if(ImGui::Button("Path Trace"))
+                m_BDebugLines[DebugLine::Path]  = !m_BDebugLines[DebugLine::Path];
             //ImGui::Checkbox(("World Axis"), &m_BDebugLines["WorldAxis"]);
             ImGui::End();
 
@@ -319,8 +326,8 @@ namespace FLOOF {
             glm::vec3 acc(0.f, -Math::Gravity, 0.f);
             glm::vec3 fri(0.f);
 
-			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent>();
-			for (auto [entity, transform, ball, velocity] : view.each()) {
+			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent>();
+			for (auto [entity, transform, ball, velocity,time] : view.each()) {
 				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 
                 velocity.Force = Math::GravitationalPull * ball.Mass;
@@ -361,7 +368,7 @@ namespace FLOOF {
                         ball.TriangleIndex = -1;
 
                     //----- ball ball collision -----------
-                    for(auto[ent,transform2,ball2,velocity2]: view.each()){
+                    for(auto[ent,transform2,ball2,velocity2,time2]: view.each()){
 
                         if(ball.CollisionSphere.Intersect(&ball2.CollisionSphere) && &ball != &ball2){
                             //calculate velocity when collision with another ball
@@ -404,6 +411,15 @@ namespace FLOOF {
                 //set collision sphere location
                 ball.CollisionSphere.pos = transform.Position;
 
+                const float pointIntervall{0.1f};
+                //save ball path
+                if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall){
+                    time.LastPoint = Timer::GetTime();
+                    ball.Path.emplace_back(transform.Position);
+                }
+
+                if(m_BDebugLines[DebugLine::Path])
+                    DebugDrawPath(ball.Path);
                 //draw debug lines
                 if(m_BDebugLines[DebugLine::Friction])
                     DebugDrawLine(transform.Position, transform.Position + fri, glm::vec3(0.f, 125.f, 125.f));
@@ -421,7 +437,7 @@ namespace FLOOF {
                 //reset force
                 velocity.Force = glm::vec3(0.f);
 
-                //move ball when they fall
+                //move ball when they fall and reset path
                 if(transform.Position.y <= -0.5f){
                     const double minX{0};
                     const double maxX{0.6};
@@ -430,6 +446,7 @@ namespace FLOOF {
                     glm::vec3 loc(Math::RandDouble(minX,maxX),0.3f,Math::RandDouble(minZ,maxZ));
                     transform.Position = loc;
                     velocity.Velocity = glm::vec3(0.f);
+                    ball.Path.clear();
                 }
 
             }
@@ -539,6 +556,7 @@ namespace FLOOF {
 		m_BDebugLines[DebugLine::TerrainTriangle] = true;
 		m_BDebugLines[DebugLine::ClosestPointToBall] = false;
         m_BDebugLines[DebugLine::GravitationalPull] = false;
+        m_BDebugLines[DebugLine::Path] = false;
 	}
 
 	void Application::DebugClearLineBuffer() {
@@ -559,10 +577,6 @@ namespace FLOOF {
 		auto& lineMesh = m_Registry.get<LineMeshComponent>(m_DebugLineEntity);
 		lineMesh.UpdateBuffer(m_DebugLineBuffer);
 		m_Renderer->EndSubmitFreeCommandBuffer(commandBuffer);
-	}
-
-	void Application::DebugToggle() {
-		m_DebugDraw = !m_DebugDraw;
 	}
 
 	void Application::DebugToggleDrawNormals() {
@@ -591,7 +605,6 @@ namespace FLOOF {
 	}
 
 	void Application::ResetBall() {
-		m_Ballspawntime = std::chrono::high_resolution_clock::now();
 		auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent>();
 		for (auto [entity, transform, ball, velocity] : view.each()) {
 			transform.Position = glm::vec3(0.f, 0.125f, 0.f);
@@ -609,9 +622,13 @@ namespace FLOOF {
 		const auto ballEntity = m_Registry.create();
 		auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
 		auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
-		ball.Radius = 0.01f;
+        auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
+
+        ball.Radius = 0.01f;
 		ball.Mass = 0.50f;
-        
+        time.CreationTime = Timer::GetTime();
+        time.LastPoint = time.CreationTime;
+
 		auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
 		m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
 		m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
@@ -641,8 +658,12 @@ namespace FLOOF {
         const auto ballEntity = m_Registry.create();
         auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
         auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
+        auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
+
         ball.Radius = radius;
         ball.Mass = mass;
+        time.CreationTime = Timer::GetTime();
+        time.LastPoint=time.CreationTime;
 
         auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
         m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
@@ -653,6 +674,17 @@ namespace FLOOF {
 
         ball.CollisionSphere.radius = ball.Radius;
         ball.CollisionSphere.pos = transform.Position;
+
+    }
+
+    void Application::DebugToggleAllLines() {
+        m_DebugDraw = ! m_DebugDraw;
+    }
+
+    void Application::DebugDrawPath(std::vector<glm::vec3> &path) {
+        for(int i {1}; i < path.size(); i++){
+            DebugDrawLine(path[i-1],path[i],glm::vec3(255.f,255.f,255.f));
+        }
 
     }
 }

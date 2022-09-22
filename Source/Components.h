@@ -125,11 +125,12 @@ namespace FLOOF {
 
     struct BallComponent {
         Sphere CollisionSphere;
-        float Radius; // TODO dobbel lagring av radius !! fix
+        float Radius; // TODO dobbel lagring av radius !! fix??
         float Mass;
         int LastTriangleIndex{-1};
         int TriangleIndex{-1};
         float Elasticity{0.5f};
+        std::vector<glm::vec3> Path;
     };
     struct VelocityComponent {
         glm::vec3 Velocity;
@@ -137,5 +138,10 @@ namespace FLOOF {
 
     };
 	struct DebugComponent {};
+
+    struct TimeComponent{
+        std::chrono::high_resolution_clock::time_point CreationTime;
+        std::chrono::high_resolution_clock::time_point LastPoint;
+    };
 }
 
