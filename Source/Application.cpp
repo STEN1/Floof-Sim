@@ -400,7 +400,10 @@ namespace FLOOF {
 
                         if(ball.CollisionSphere.Intersect(&ball2.CollisionSphere) && &ball != &ball2){
                             //calculate velocity when collision with another ball
-                            auto contactNormal = glm::normalize(transform.Position-transform2.Position);
+                            glm::vec3 contactNormal{Math::GetSafeNormal()};
+                            if(glm::length(transform.Position-transform2.Position) != 0)
+                                contactNormal = glm::normalize(transform.Position-transform2.Position);
+
                             auto combinedMass = ball.Mass+ball2.Mass;
                             auto elasticity = ball.Elasticity*ball2.Elasticity;
                             auto relVelocity = velocity.Velocity - velocity2.Velocity;
@@ -413,17 +416,9 @@ namespace FLOOF {
                             const glm::vec3 vecImpulse = j*contactNormal;
                             velocity.Velocity += vecImpulse / combinedMass;
 
-                            //todo move balls out of each other
-                            //calculate overlap amount
-                            float overlap = glm::length(transform.Position+transform2.Position);
-
-                            auto moveamount = contactNormal*((ball.Radius+ball2.Radius-overlap)/overlap);
-                            //transform.Position += moveamount;
-
-                            //inside
-                            if(overlap >= (ball.Radius+ball2.Radius)){
-                                glm::vec3 up{0.f,1.f,0.f};
-                                //transform.Position += up*(ball.Radius/2.f);
+                            float dist = glm::length(transform.Position-transform2.Position);
+                            if(dist < (ball.Radius+ball2.Radius)){
+                                transform.Position += contactNormal*((ball.Radius+ball2.Radius)-dist);
                             }
 
 
