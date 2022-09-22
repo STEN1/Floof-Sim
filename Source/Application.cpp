@@ -9,6 +9,7 @@
 #include "stb_image.h"
 #include "imgui_impl_glfw.h"
 #include "LasLoader.h"
+#include "Octree.h"
 
 namespace FLOOF {
 	Application::Application() {
@@ -192,9 +193,9 @@ namespace FLOOF {
 	void Application::Update(double deltaTime) {
             // World axis
             if (m_BDebugLines[DebugLine::WorldAxis]) {
-                DebugDrawLine(glm::vec3(0.f), glm::vec3(100.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
-                DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 100.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-                DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 100.f), glm::vec3(0.f, 0.f, 1.f));
+                DebugDrawLine(glm::vec3(0.f), glm::vec3(10.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
+                DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 10.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+                DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 10.f), glm::vec3(0.f, 0.f, 1.f));
             }
 
 			// Terrain triangles
@@ -320,6 +321,26 @@ namespace FLOOF {
 	void Application::Simulate(double deltaTime) {
 
         deltaTime *= m_DeltaTimeModifier;
+
+		AABB worldExtents{};
+		worldExtents.extent = glm::vec3(1.f);
+		worldExtents.pos = glm::vec3(0.f);
+		Octree octree(worldExtents);
+
+		{
+			auto view = m_Registry.view<BallComponent>();
+			for (auto [entity, ball] : view.each()) {
+				octree.Insert(std::make_pair(entity, &ball.CollisionSphere));
+			}
+
+			std::vector<Octree*> leafNodes;
+			octree.GetActiveLeafNodes(leafNodes);
+
+			for (auto& node : leafNodes) {
+				auto aabb = node->GetAABB();
+				DebugDrawAABB(aabb.pos, aabb.extent);
+			}
+		}
 
 		{	// Calculate ball velocity
 
@@ -524,15 +545,19 @@ namespace FLOOF {
 			lineMesh.Draw(commandBuffer);
 
 			auto& sphereMesh = m_Registry.get<LineMeshComponent>(m_DebugSphereEntity);
-			TransformComponent transform;
-			for (auto& [pos, radius] : m_DebugSpherePositions) {
-				transform.Position = pos;
-				transform.Scale = glm::vec3(radius);
-				constants.MVP = vp * transform.GetLocalTransform();
-				
+			for (auto& transform : m_DebugSphereTransforms) {
+				constants.MVP = vp * transform;
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(ColorPushConstants), &constants);
 				sphereMesh.Draw(commandBuffer);
+			}
+
+			auto& boxMesh = m_Registry.get<LineMeshComponent>(m_DebugAABBEntity);
+			for (auto& transform : m_DebugAABBTransforms) {
+				constants.MVP = vp * transform;
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+					0, sizeof(ColorPushConstants), &constants);
+				boxMesh.Draw(commandBuffer);
 			}
 		}
 
@@ -556,6 +581,10 @@ namespace FLOOF {
 		m_Registry.emplace<LineMeshComponent>(m_DebugSphereEntity, Utils::LineVertexDataFromObj("Assets/Ball.obj"));
 		m_Registry.emplace<DebugComponent>(m_DebugSphereEntity);
 
+		m_DebugAABBEntity = m_Registry.create();
+		m_Registry.emplace<LineMeshComponent>(m_DebugAABBEntity, Utils::MakeBox(glm::vec3(1.f), glm::vec3(1.f, 0.f, 0.f)));
+		m_Registry.emplace<DebugComponent>(m_DebugAABBEntity);
+
 		m_BDebugLines[DebugLine::Velocity] = false;
 		m_BDebugLines[DebugLine::Friction] = false;
 		m_BDebugLines[DebugLine::Acceleration] = false;
@@ -572,12 +601,17 @@ namespace FLOOF {
 	}
 
 	void Application::DebugClearSpherePositions() {
-		m_DebugSpherePositions.clear();
+		m_DebugSphereTransforms.clear();
+	}
+
+	void Application::DebugClearAABBTransforms() {
+		m_DebugAABBTransforms.clear();
 	}
 
 	void Application::DebugClearDebugData() {
 		DebugClearLineBuffer();
 		DebugClearSpherePositions();
+		DebugClearAABBTransforms();
 	}
 
 	void Application::DebugUpdateLineBuffer() {
@@ -609,7 +643,21 @@ namespace FLOOF {
 	}
 
 	void Application::DebugDrawSphere(const glm::vec3& pos, float radius) {
-		m_DebugSpherePositions.emplace_back(pos, radius);
+		glm::mat4 transform = glm::translate(pos);
+		transform = glm::scale(transform, glm::vec3(radius));
+		m_DebugSphereTransforms.push_back(transform);
+	}
+
+	void Application::DebugDrawAABB(const glm::vec3& pos, const glm::vec3& extents) {
+		glm::mat4 transform(1.f);
+		transform[3].x = pos.x;
+		transform[3].y = pos.y;
+		transform[3].z = pos.z;
+
+		transform[0].x = extents.x;
+		transform[1].y = extents.y;
+		transform[2].z = extents.z;
+		m_DebugAABBTransforms.push_back(transform);
 	}
 
 	void Application::ResetBall() {

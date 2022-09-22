@@ -5,7 +5,7 @@ namespace FLOOF {
 		: m_AABB(aabb) {
 	}
 
-	void Octree::Insert(CollisionObject object) {
+	void Octree::Insert(const CollisionObject& object) {
 		if (!object.second->Intersect(&m_AABB))
 			return;
 		
@@ -24,10 +24,15 @@ namespace FLOOF {
 				}
 				m_CollisionObjects.clear();
 			}
+		} else {
+			// not a leaf. send down.
+			for (auto& node : m_ChildNodes) {
+				node->Insert(object);
+			}
 		}
 	}
 
-	void Octree::FindIntersectingObjects(CollisionObject object, std::vector<CollisionObject>& outVec) {
+	void Octree::FindIntersectingObjects(const CollisionObject& object, std::vector<CollisionObject>& outVec) {
 		for (auto& node : m_ChildNodes) {
 			node->FindIntersectingObjects(object, outVec);
 		}
@@ -104,13 +109,21 @@ namespace FLOOF {
 		m_ChildNodes.emplace_back(std::make_unique<Octree>(h));
 	}
 
-	void Octree::GetLeafNodes(std::vector<Octree*> outVec) {
+	void Octree::GetActiveLeafNodes(std::vector<Octree*>& outVec) {
 		for (auto& node : m_ChildNodes) {
-			node->GetLeafNodes(outVec);
+			node->GetActiveLeafNodes(outVec);
 		}
 
-		if (IsLeaf()) {
+		if (IsLeaf() && m_CollisionObjects.empty() == false) {
 			outVec.push_back(this);
 		}
+	}
+
+	void Octree::GetAllNodes(std::vector<Octree*>& outVec) {
+		for (auto& node : m_ChildNodes) {
+			node->GetAllNodes(outVec);
+		}
+
+		outVec.push_back(this);
 	}
 }

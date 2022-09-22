@@ -12,5 +12,6 @@ namespace FLOOF {
 		glm::vec3 CalcBarycentric(glm::vec3 position, const Triangle& triangle);
 		bool IsPointInsideTriangle(const glm::vec3& position, const Triangle& triangle);
 		std::vector<ColorVertex> LineVertexDataFromObj(const std::string& path);
+		std::vector<ColorVertex> MakeBox(glm::vec3 extents, glm::vec3 color);
 	}
 }
