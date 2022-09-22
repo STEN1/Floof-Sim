@@ -81,7 +81,7 @@ void LasLoader::Triangulate() {
 
     std::vector<Square> squares;
 
-    //create Squares
+    // Create right number of squares
     for (float z = min.z; z < max.z; z += resolution) {
         for (float x = min.x; x < max.y; x += resolution){
             Square tempSquare;
@@ -92,7 +92,7 @@ void LasLoader::Triangulate() {
         }
     }
 
-    // Put points in squares
+    // Put points in correct squares
     for (auto& vertex : VertexData){
         for (auto& currentSquare : squares) {
             if (vertex.Pos.x >= currentSquare.min.x
@@ -105,6 +105,16 @@ void LasLoader::Triangulate() {
         }
     }
 
+    // Find the average height of each square
+    for (auto& currentSquare : squares) {
+        currentSquare.averageHeight = 0.f;
+        for (auto& vertex : currentSquare.vertexes) {
+            currentSquare.averageHeight += vertex.Pos.y;
+        }
+        currentSquare.averageHeight /= currentSquare.vertexes.size();
+    }
+
+    
 
 }
 
