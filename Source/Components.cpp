@@ -197,51 +197,43 @@ namespace FLOOF {
 	LineMeshComponent::LineMeshComponent(const std::vector<ColorVertex>& vertexData) {
 		auto renderer = VulkanRenderer::Get();
 
-		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
 		VertexCount = vertexData.size();
 		MaxVertexCount = VertexCount;
+		VkBufferCreateInfo bufCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		bufCreateInfo.size = sizeof(ColorVertex) * VertexCount;
+		bufCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+
+		VmaAllocationCreateInfo allocCreateInfo = {};
+		allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+		allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+			VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+		vmaCreateBuffer(renderer->m_Allocator, &bufCreateInfo, &allocCreateInfo, &VertexBuffer.Buffer,
+			&VertexBuffer.Allocation, &VertexBuffer.AllocationInfo);
+
+		// Buffer is already mapped. You can access its memory.
+		memcpy(VertexBuffer.AllocationInfo.pMappedData, vertexData.data(), sizeof(ColorVertex) * VertexCount);
 	}
 	LineMeshComponent::~LineMeshComponent() {
 		auto renderer = VulkanRenderer::Get();
-
-		vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
+		if (VertexBuffer.Buffer != VK_NULL_HANDLE)
+			vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
 	}
 	void LineMeshComponent::Draw(VkCommandBuffer commandBuffer) {
-		auto renderer = VulkanRenderer::Get();
+		if (VertexCount == 0)
+			return;
 
 		VkDeviceSize offset{ 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
 		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 	}
-	void LineMeshComponent::UpdateBuffer(VkCommandBuffer commandBuffer, const std::vector<ColorVertex>& vertexData) {
-		if (vertexData.size() == 0) {
-			VertexCount = 0;
-			return;
-		}
-		if (vertexData.size() > MaxVertexCount) {
-			std::cout << "Cant update buffer with data larger than vkBuffer.\n";
-			return;
-		}
+	void LineMeshComponent::UpdateBuffer(const std::vector<ColorVertex>& vertexData) {
 		VertexCount = vertexData.size();
-		// Max dataSize of vkCmdUpdateBuffer
-		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
-		static constexpr VkDeviceSize maxBufferUpdateSize = 65536;
-		VkDeviceSize bufferSize = VertexCount * sizeof(ColorVertex);
-		VkDeviceSize offset = 0;
-		if (bufferSize <= maxBufferUpdateSize) {
-			vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, offset, bufferSize, vertexData.data());
-		} else {
-			while (bufferSize > maxBufferUpdateSize) {
-				void* data = (void*)(vertexData.data() + offset);
-				vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, offset, maxBufferUpdateSize, data);
-				offset += maxBufferUpdateSize;
-				bufferSize -= maxBufferUpdateSize;
-			}
-			if (bufferSize > 0) {
-				void* data = (void*)(vertexData.data() + offset);
-				vkCmdUpdateBuffer(commandBuffer, VertexBuffer.Buffer, offset, bufferSize, data);
-			}
+		if (VertexCount > MaxVertexCount) {
+			VertexCount = MaxVertexCount;
 		}
+		// Buffer is already mapped. You can access its memory.
+		memcpy(VertexBuffer.AllocationInfo.pMappedData, vertexData.data(), sizeof(ColorVertex) * VertexCount);
 	}
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
 		Up = glm::vec3(0.f, -1.f, 0.f);

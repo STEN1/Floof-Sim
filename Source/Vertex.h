@@ -8,9 +8,9 @@
 
 namespace FLOOF {
 	struct MeshVertex {
-		glm::vec3 Pos;
-		glm::vec3 Normal;
-		glm::vec2 UV;
+		glm::vec3 Pos{};
+		glm::vec3 Normal{};
+		glm::vec2 UV{};
 
 		bool operator == (const MeshVertex& other) const {
 			return Pos == other.Pos && Normal == other.Normal && UV == other.UV;
@@ -58,8 +58,8 @@ namespace FLOOF {
 	};
 
 	struct ColorVertex {
-		glm::vec3 Pos;
-		glm::vec3 Color;
+		glm::vec3 Pos{};
+		glm::vec3 Color{};
 
 		static VkVertexInputBindingDescription GetBindingDescription() {
 			VkVertexInputBindingDescription bindingDescription{};
@@ -89,8 +89,8 @@ namespace FLOOF {
 	};
 
 	struct NormalVertex {
-		glm::vec3 Pos;
-		glm::vec3 Normal;
+		glm::vec3 Pos{};
+		glm::vec3 Normal{};
 
 		static VkVertexInputBindingDescription GetBindingDescription() {
 			VkVertexInputBindingDescription bindingDescription{};

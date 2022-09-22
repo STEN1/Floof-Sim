@@ -276,6 +276,7 @@ namespace FLOOF {
 				SpawnBall();
             if(ImGui::Button("Reset Ball"))
                 ResetBall();
+            ImGui::SliderFloat("Deltatime Modifer",&m_DeltaTimeModifier, 0.f, 1.f);
 			ImGui::End();
 
 
@@ -311,7 +312,7 @@ namespace FLOOF {
 	}
 	void Application::Simulate(double deltaTime) {
 
-        //deltaTime *= 0.1f;
+        deltaTime *= m_DeltaTimeModifier;
 
 		{	// Calculate ball velocity
 
@@ -337,9 +338,11 @@ namespace FLOOF {
 
                         Triangle& triangle = terrain.Triangles[ball.TriangleIndex];
 
-                        float moveangle = glm::dot(velocity.Velocity,triangle.N);
+                        glm::vec3 norm = glm::normalize(CollisionShape::ClosestPointToPointOnTriangle(transform.Position, triangle)-transform.Position);
+
+                        float moveangle = glm::dot(velocity.Velocity,norm);
                         float j = -(1.f+ball.Elasticity) * moveangle / (1.f/ball.Mass);
-                        const glm::vec3 vecImpulse = j*triangle.N;
+                        const glm::vec3 vecImpulse = j*norm;
                         velocity.Velocity += vecImpulse / ball.Mass;
 
                         // Add friction
@@ -349,11 +352,7 @@ namespace FLOOF {
                         }
                         ball.LastTriangleIndex = ball.TriangleIndex;
                         foundCollision = true;
-                    }
 
-                    if(ball.CollisionSphere.Intersect(&terrain.Triangles[i])) {
-                        Triangle &triangle = terrain.Triangles[ball.TriangleIndex];
-                        //push ball on top of triangle
                         auto dist = (glm::dot(transform.Position - triangle.A, triangle.N));
                         transform.Position += glm::normalize(triangle.N) * (-dist + ball.Radius);
                     }
@@ -361,7 +360,7 @@ namespace FLOOF {
                     if(!foundCollision)
                         ball.TriangleIndex = -1;
 
-                    //----- ball ball collision
+                    //----- ball ball collision -----------
                     for(auto[ent,transform2,ball2,velocity2]: view.each()){
 
                         if(ball.CollisionSphere.Intersect(&ball2.CollisionSphere) && &ball != &ball2){
@@ -379,10 +378,20 @@ namespace FLOOF {
                             const glm::vec3 vecImpulse = j*contactNormal;
                             velocity.Velocity += vecImpulse / combinedMass;
 
-                            //todo move balls out of eachoter
+                            //todo move balls out of each other
                             //calculate overlap amount
                             float overlap = glm::length(transform.Position+transform2.Position);
-                            //transform.Position += contactNormal*(overlap);
+
+                            auto moveamount = contactNormal*((ball.Radius+ball2.Radius-overlap)/overlap);
+                            //transform.Position += moveamount;
+
+                            //inside
+                            if(overlap >= (ball.Radius+ball2.Radius)){
+                                glm::vec3 up{0.f,1.f,0.f};
+                                //transform.Position += up*(ball.Radius/2.f);
+                            }
+
+
                             //transform2.Position -= glm::normalize(transform.Position+transform2.Position)*(ball2.Radius-overlap);
                         }
                     }
@@ -450,7 +459,7 @@ namespace FLOOF {
 
 				mesh.Draw(commandBuffer);
 			}
-		} else if (m_DrawNormals == true) { // Debug drawing of normals for geometry
+		} else if (m_DrawNormals) { // Debug drawing of normals for geometry
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Normal);
 			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
 			for (auto [entity, transform, mesh, texture] : view.each()) {
@@ -513,13 +522,9 @@ namespace FLOOF {
 	}
 
 	void Application::DebugInit() {
-		uint32_t size = 1000000 * sizeof(ColorVertex);
-		m_DebugLineBuffer.resize(size);
-		memset(m_DebugLineBuffer.data(), 0, m_DebugLineBuffer.size() * sizeof(ColorVertex));
+		m_DebugLineBuffer.resize(100000);
 		m_DebugLineEntity = m_Registry.create();
-
-		// Make the line mesh buffer as large as max update size by initializing with a buffer of that size.
-		LineMeshComponent& lineMesh = m_Registry.emplace<LineMeshComponent>(m_DebugLineEntity, m_DebugLineBuffer);
+		m_Registry.emplace<LineMeshComponent>(m_DebugLineEntity, m_DebugLineBuffer);
 		m_Registry.emplace<DebugComponent>(m_DebugLineEntity);
 
 		m_DebugSphereEntity = m_Registry.create();
@@ -552,7 +557,7 @@ namespace FLOOF {
 	void Application::DebugUpdateLineBuffer() {
 		auto commandBuffer = m_Renderer->AllocateBeginOneTimeCommandBuffer();
 		auto& lineMesh = m_Registry.get<LineMeshComponent>(m_DebugLineEntity);
-		lineMesh.UpdateBuffer(commandBuffer, m_DebugLineBuffer);
+		lineMesh.UpdateBuffer(m_DebugLineBuffer);
 		m_Renderer->EndSubmitFreeCommandBuffer(commandBuffer);
 	}
 
