@@ -81,13 +81,16 @@ void LasLoader::Triangulate() {
 
     std::vector<Square> squares;
 
+    int xSquares = (max.x - min.x)/resolution;
+    int zSquares = (max.z - min.z)/resolution;
+
     // Create right number of squares
     for (float z = min.z; z < max.z; z += resolution) {
         for (float x = min.x; x < max.y; x += resolution){
             Square tempSquare;
             tempSquare.min = glm::vec2(x,z);
             tempSquare.max = glm::vec2(x+resolution,z+resolution);
-            tempSquare.mid = tempSquare.max/tempSquare.min;
+            tempSquare.pos = tempSquare.max/tempSquare.min;
             squares.push_back(tempSquare);
         }
     }
@@ -114,7 +117,36 @@ void LasLoader::Triangulate() {
         currentSquare.averageHeight /= currentSquare.vertexes.size();
     }
 
-    
+    std::vector<Triangle> tris;
+    // Create triangulation
+    for (int z = 0; z < zSquares; ++z) {
+        for (int x = 0; x < xSquares; ++x) {
+            Triangle temp1;
+            temp1.index[0] = x + (zSquares * z);
+            temp1.index[1] = x + 1 + (zSquares * z);
+            temp1.index[2] = x + 1 + (zSquares * (z + 1));
+
+            temp1.neighbor[0] = (x * 2) - 1; // Left triangle
+            temp1.neighbor[1] = (x * 2) + (zSquares * (z - 1)); // Below triangle
+            temp1.neighbor[2] = (x * 2) + 1; // Top of triangle
+
+            tris.push_back(temp1);
+
+            Triangle temp2;
+            temp2.index[0] = x + (zSquares * z);
+            temp2.index[1] = x + 1 + (zSquares * (z + 1));
+            temp2.index[2] = x + (zSquares * (z + 1));
+
+            temp2.neighbor[0] = (x * 2); // Below triangle
+            temp2.neighbor[1] = (x * 2) + 1; // Right triangle
+            temp2.neighbor[2] = (x * 2) + (zSquares * (z + 1)); // Top triangle
+
+            tris.push_back(temp2);
+
+        }
+    }
+
+    tris;
 
 }
 
