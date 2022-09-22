@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <limits>
-LasLoader::LasLoader(const std::string &path) : VertexData{} {
+LasLoader::LasLoader(const std::string &path) : PointData{} {
     std::ifstream file(path);
 
     if (!file.is_open()){
@@ -19,7 +19,7 @@ LasLoader::LasLoader(const std::string &path) : VertexData{} {
         ss >> tempVertex.Pos.z;
         ss >> tempVertex.Pos.y;
         tempVertex.Color = glm::vec3(1.f,1.f,1.f);
-        VertexData.push_back(tempVertex);
+        PointData.push_back(tempVertex);
     }
 
     //scale = 0.01f;
@@ -30,7 +30,7 @@ LasLoader::LasLoader(const std::string &path) : VertexData{} {
 }
 
 std::vector<FLOOF::ColorVertex> LasLoader::GetVertexData() {
-    return VertexData;
+    return PointData;
 }
 
 
@@ -43,7 +43,7 @@ void LasLoader::FindMinMax() {
     min = glm::vec3(std::numeric_limits<float>::max());
     max = glm::vec3(std::numeric_limits<float>::min());
 
-    for (auto& vertex : VertexData) {
+    for (auto& vertex : PointData) {
         if (min.x > vertex.Pos.x) {min.x = vertex.Pos.x;}
         else if (max.x < vertex.Pos.x) {max.x = vertex.Pos.x;}
         if (min.z > vertex.Pos.z) {min.z = vertex.Pos.z;}
@@ -68,7 +68,7 @@ void LasLoader::CalcCenter() {
 void LasLoader::UpdatePoints() {
 
     FindMinMax();
-    for (auto& vertex : VertexData) {
+    for (auto& vertex : PointData) {
         if (middle != glm::vec3(0.f))
             vertex.Pos -= middle;
         vertex.Pos *= scale;
@@ -96,7 +96,7 @@ void LasLoader::Triangulate() {
     }
 
     // Put points in correct squares
-    for (auto& vertex : VertexData){
+    for (auto& vertex : PointData){
         for (auto& currentSquare : squares) {
             if (vertex.Pos.x >= currentSquare.min.x
             && vertex.Pos.z >= currentSquare.min.y
@@ -108,46 +108,61 @@ void LasLoader::Triangulate() {
         }
     }
 
-    // Find the average height of each square
+    // Find the average height of each square and create vertex
     for (auto& currentSquare : squares) {
         currentSquare.averageHeight = 0.f;
         for (auto& vertex : currentSquare.vertexes) {
             currentSquare.averageHeight += vertex.Pos.y;
         }
         currentSquare.averageHeight /= currentSquare.vertexes.size();
+
+        FLOOF::MeshVertex tempVertex{};
+        tempVertex.Pos = glm::vec3(currentSquare.pos, currentSquare.averageHeight);
+        VertexData.push_back(tempVertex);
     }
 
-    std::vector<Triangle> tris;
-    // Create triangulation
+    // Create Index
     for (int z = 0; z < zSquares; ++z) {
         for (int x = 0; x < xSquares; ++x) {
-            Triangle temp1;
-            temp1.index[0] = x + (zSquares * z);
-            temp1.index[1] = x + 1 + (zSquares * z);
-            temp1.index[2] = x + 1 + (zSquares * (z + 1));
 
-            temp1.neighbor[0] = (x * 2) - 1; // Left triangle
-            temp1.neighbor[1] = (x * 2) + (zSquares * (z - 1)); // Below triangle
-            temp1.neighbor[2] = (x * 2) + 1; // Top of triangle
+            IndexData.emplace_back(x + (zSquares * z));
+            IndexData.emplace_back(x + 1 + (zSquares * z));
+            IndexData.emplace_back(x + 1 + (zSquares * (z + 1)));
 
-            tris.push_back(temp1);
-
-            Triangle temp2;
-            temp2.index[0] = x + (zSquares * z);
-            temp2.index[1] = x + 1 + (zSquares * (z + 1));
-            temp2.index[2] = x + (zSquares * (z + 1));
-
-            temp2.neighbor[0] = (x * 2); // Below triangle
-            temp2.neighbor[1] = (x * 2) + 1; // Right triangle
-            temp2.neighbor[2] = (x * 2) + (zSquares * (z + 1)); // Top triangle
-
-            tris.push_back(temp2);
-
+            IndexData.emplace_back(x + (zSquares * z));
+            IndexData.emplace_back(x + 1 + (zSquares * (z + 1)));
+            IndexData.emplace_back(x + (zSquares * (z + 1)));
         }
     }
 
-    tris;
+    int xmin = 1, xmax = xSquares, ymin = 1, ymax = zSquares; // The size to draw
 
+    for (int y = ymin; y < ymax - 1; y++)
+    {
+        for (int x = xmin; x < xmax - 1; x++)
+        {
+            glm::vec3 a(VertexData[x + (ymax * y)].Pos);
+            glm::vec3 b(VertexData[x + 1 + (ymax * y)].Pos);
+            glm::vec3 c(VertexData[x + 1 + (ymax * (y + 1))].Pos);
+            glm::vec3 d(VertexData[x + (ymax * (y + 1))].Pos);
+            glm::vec3 e(VertexData[x - 1 + (ymax * y)].Pos);
+            glm::vec3 f(VertexData[x - 1 + (ymax * (y - 1))].Pos);
+            glm::vec3 g(VertexData[x + (ymax * (y - 1))].Pos);
+
+            auto n0 = glm::cross(b - a, c - a);
+            auto n1 = glm::cross(c - a, d - a);
+            auto n2 = glm::cross(d - a, e - a);
+            auto n3 = glm::cross(e - a, f - a);
+            auto n4 = glm::cross(f - a, g - a);
+            auto n5 = glm::cross(g - a, b - a);
+
+            glm::vec3 normal = n0 + n1 + n2 + n3 + n4 + n5;
+            normal = glm::normalize(normal);
+
+            VertexData[x + (ymax * y)].Normal = normal;
+        }
+
+    }
 }
 
 
