@@ -388,8 +388,8 @@ namespace FLOOF {
 			}
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent>();
+			auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 			for (auto [entity, transform, ball, velocity,time] : view.each()) {
-				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 
                 velocity.Force = Math::GravitationalPull * ball.Mass;
 

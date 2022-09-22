@@ -26,7 +26,7 @@ LasLoader::LasLoader(const std::string &path) : PointData{} {
     CalcCenter();
     UpdatePoints();
 
-    Triangulate();
+    //Triangulate();
 }
 
 std::vector<FLOOF::ColorVertex> LasLoader::GetVertexData() {
