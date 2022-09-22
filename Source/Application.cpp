@@ -360,7 +360,10 @@ namespace FLOOF {
 				auto& collidingBall2 = obj2.Ball;
 
 				//calculate velocity when collision with another ball
-				auto contactNormal = glm::normalize(collidingTransform2.Position - collidingTransform1.Position);
+                glm::vec3 contactNormal{Math::GetSafeNormal()};
+                if(glm::length(collidingTransform1.Position-collidingTransform2.Position) != 0 )
+                    contactNormal = glm::normalize(collidingTransform2.Position - collidingTransform1.Position);
+
 				auto combinedMass = collidingBall2.Mass + collidingBall1.Mass;
 				auto elasticity = collidingBall2.Elasticity * collidingBall1.Elasticity;
 				auto relVelocity = collidingVelocity2.Velocity - collidingVelocity1.Velocity;
@@ -373,18 +376,11 @@ namespace FLOOF {
 				const glm::vec3 vecImpulse = j * contactNormal;
 				collidingVelocity2.Velocity += vecImpulse / combinedMass;
 
-				//todo move balls out of each other
-				//calculate overlap amount
-				float overlap = glm::length(collidingTransform2.Position + collidingTransform1.Position);
-
-				auto moveamount = contactNormal * ((collidingBall2.Radius + collidingBall1.Radius - overlap) / overlap);
-				//transform.Position += moveamount;
-
-				//inside
-				if (overlap >= (collidingBall2.Radius + collidingBall1.Radius)) {
-					glm::vec3 up{ 0.f,1.f,0.f };
-					//transform.Position += up*(ball.Radius/2.f);
-				}
+                //move ball when overlapping
+                float dist = glm::length(collidingTransform1.Position-collidingTransform2.Position);
+                if(dist < (collidingBall1.Radius+collidingBall2.Radius)) {
+                    collidingTransform2.Position += contactNormal * ((collidingBall1.Radius + collidingBall2.Radius) - dist);
+                }
 			}
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent>();
