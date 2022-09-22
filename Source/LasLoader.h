@@ -18,6 +18,26 @@ private:
     glm::vec3 min{0.f};
     glm::vec3 max{0.f};
     glm::vec3 middle{0.f};
-    float m_Scale{1.f};
+    float scale{1.f};
 
+    float resolution{5.f};
+
+
+    void Triangulate();
+
+
+
+};
+
+struct Square {
+    glm::vec2 min;
+    glm::vec2 max;
+    glm::vec2 mid;
+
+    std::vector<FLOOF::ColorVertex> vertexes;
+};
+
+struct Triangle {
+    int index[3];
+    int neighbor[3];
 };
