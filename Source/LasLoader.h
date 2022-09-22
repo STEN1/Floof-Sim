@@ -32,7 +32,7 @@ private:
 struct Square {
     glm::vec2 min;
     glm::vec2 max;
-    glm::vec2 mid;
+    glm::vec2 pos; //center
 
     float averageHeight{0};
     std::vector<FLOOF::ColorVertex> vertexes;

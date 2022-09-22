@@ -218,6 +218,62 @@ namespace FLOOF {
 
 			return triangles;
 		}
+
+		std::vector<ColorVertex> MakeBox(glm::vec3 extents, glm::vec3 color) {
+			glm::vec3 a = glm::vec3(-extents.x, extents.y, -extents.z);
+			glm::vec3 b = glm::vec3(extents.x, extents.y, -extents.z);
+			glm::vec3 c = glm::vec3(extents.x, extents.y, extents.z);
+			glm::vec3 d = glm::vec3(-extents.x, extents.y, extents.z);
+			glm::vec3 e = glm::vec3(-extents.x, -extents.y, -extents.z);
+			glm::vec3 f = glm::vec3(extents.x, -extents.y, -extents.z);
+			glm::vec3 g = glm::vec3(extents.x, -extents.y, extents.z);
+			glm::vec3 h = glm::vec3(-extents.x, -extents.y, extents.z);
+
+			std::vector<ColorVertex> vertexData = {
+			// Top
+			// ab
+			ColorVertex { a, color },
+			ColorVertex { b, color },
+			// bc
+			ColorVertex { b, color },
+			ColorVertex { c, color },
+			// cd
+			ColorVertex { c, color },
+			ColorVertex { d, color },
+			// da
+			ColorVertex { d, color },
+			ColorVertex { a, color },
+
+			// Sides
+			// ae
+			ColorVertex { a, color },
+			ColorVertex { e, color },
+			// bf
+			ColorVertex { b, color },
+			ColorVertex { f, color },
+			// cg
+			ColorVertex { c, color },
+			ColorVertex { g, color },
+			// dh
+			ColorVertex { d, color },
+			ColorVertex { h, color },
+
+			// Bottom
+			// ef
+			ColorVertex { e, color },
+			ColorVertex { f, color },
+			// fg
+			ColorVertex { f, color },
+			ColorVertex { g, color },
+			// gh
+			ColorVertex { g, color },
+			ColorVertex { h, color },
+			// he
+			ColorVertex { h, color },
+			ColorVertex { e, color },
+			};
+			return vertexData;
+		}
 	}
 }
 
