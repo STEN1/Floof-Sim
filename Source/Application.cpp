@@ -186,12 +186,10 @@ namespace FLOOF {
 
 		m_Renderer->FinishAllFrames();
 		m_Registry.clear();
-
-
+        
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
-		//if (m_DebugDraw) {
             // World axis
             if (m_BDebugLines[DebugLine::WorldAxis]) {
                 DebugDrawLine(glm::vec3(0.f), glm::vec3(100.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
@@ -200,14 +198,13 @@ namespace FLOOF {
             }
 
 			// Terrain triangles
-            if(m_BDebugLines[DebugLine::TerrainTriangle]) {	
-				TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
-				glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
-				for (auto &triangle: triangleSurface.Triangles) {
-					DebugDrawTriangle(triangle, surfaceTriangleColor);
-				}
-			//}
-
+            if(m_BDebugLines[DebugLine::TerrainTriangle]) {
+                TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+                glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
+                for (auto &triangle: triangleSurface.Triangles) {
+                    DebugDrawTriangle(triangle, surfaceTriangleColor);
+                }
+            }
 			// Closest point on triangle to ball center
 			if (m_BDebugLines[DebugLine::ClosestPointToBall]) {
 				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
@@ -221,7 +218,7 @@ namespace FLOOF {
 					}
 				}
 			}
-		}
+
 
             // Terrain triangles
             if (m_BDebugLines[DebugLine::TerrainTriangle]) {
