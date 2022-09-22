@@ -43,7 +43,8 @@ namespace FLOOF {
             CollisionShape,
 			ClosestPointToBall,
             GravitationalPull,
-            Force
+            Force,
+            Path
         };
         std::unordered_map<DebugLine, bool> m_BDebugLines;
         std::chrono::high_resolution_clock::time_point m_Ballspawntime;
@@ -55,8 +56,9 @@ namespace FLOOF {
 		void DebugClearSpherePositions();
 		void DebugClearDebugData();
 		void DebugUpdateLineBuffer();
-		void DebugToggle();
 		void DebugToggleDrawNormals();
+        void DebugToggleAllLines();
+        void DebugDrawPath(std::vector<glm::vec3>& path);
 
 		// Draws line in world coords
 		void DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color);

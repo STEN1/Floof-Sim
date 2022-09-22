@@ -18,6 +18,17 @@ namespace FLOOF {
 			m_DeltaPoint = now;
 			return delta;
 		}
+
+        static std::chrono::high_resolution_clock::time_point GetTime(){
+            return std::chrono::high_resolution_clock::now();
+        };
+
+        static double GetTimeSince(std::chrono::high_resolution_clock::time_point time){
+            std::chrono::high_resolution_clock::time_point currentTime = GetTime();
+            std::chrono::duration<double> elapsed_seconds = currentTime-time;
+          return elapsed_seconds.count();
+        };
+
 	private:
 		std::chrono::high_resolution_clock::time_point m_Creation;
 		std::chrono::high_resolution_clock::time_point m_DeltaPoint;
