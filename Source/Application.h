@@ -59,7 +59,8 @@ namespace FLOOF {
 		void DebugToggleDrawNormals();
         void DebugToggleAllLines();
         void DebugDrawPath(std::vector<glm::vec3>& path);
-
+        void HidePointCloud();
+        bool m_BShowPointcloud{false};
 		// Draws line in world coords
 		void DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color);
 

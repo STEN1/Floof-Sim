@@ -306,6 +306,9 @@ namespace FLOOF {
                 m_BDebugLines[DebugLine::GravitationalPull]  = !m_BDebugLines[DebugLine::GravitationalPull];
             if(ImGui::Button("Path Trace"))
                 m_BDebugLines[DebugLine::Path]  = !m_BDebugLines[DebugLine::Path];
+            if(ImGui::Button("Point Cloud")){
+                HidePointCloud();
+            }
             //ImGui::Checkbox(("World Axis"), &m_BDebugLines["WorldAxis"]);
             ImGui::End();
 
@@ -338,6 +341,13 @@ namespace FLOOF {
                     //------ new collision ------
                     if(ball.CollisionSphere.Intersect(&terrain.Triangles[i])){
                         ball.TriangleIndex = i;
+
+                        //first hit on ground
+                        if(ball.Path.empty()){
+                            time.LastPoint = Timer::GetTime();
+                            ball.Path.emplace_back(transform.Position);
+                        }
+
 
                         //draw debug triangle
                         if(m_BDebugLines[DebugLine::TerrainTriangle])
@@ -413,7 +423,7 @@ namespace FLOOF {
 
                 const float pointIntervall{0.1f};
                 //save ball path
-                if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall){
+                if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !ball.Path.empty()){
                     time.LastPoint = Timer::GetTime();
                     ball.Path.emplace_back(transform.Position);
                 }
@@ -492,6 +502,7 @@ namespace FLOOF {
 			}
 		}
 
+        if(m_BShowPointcloud)
 		{	// Draw point cloud
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Point);
 			auto view = m_Registry.view<PointCloudComponent>();
@@ -548,15 +559,15 @@ namespace FLOOF {
 		m_Registry.emplace<LineMeshComponent>(m_DebugSphereEntity, Utils::LineVertexDataFromObj("Assets/Ball.obj"));
 		m_Registry.emplace<DebugComponent>(m_DebugSphereEntity);
 
-		m_BDebugLines[DebugLine::Velocity] = true;
+		m_BDebugLines[DebugLine::Velocity] = false;
 		m_BDebugLines[DebugLine::Friction] = false;
 		m_BDebugLines[DebugLine::Acceleration] = false;
 		m_BDebugLines[DebugLine::CollisionShape] = false;
 		m_BDebugLines[DebugLine::WorldAxis] = true;
-		m_BDebugLines[DebugLine::TerrainTriangle] = true;
+		m_BDebugLines[DebugLine::TerrainTriangle] = false;
 		m_BDebugLines[DebugLine::ClosestPointToBall] = false;
         m_BDebugLines[DebugLine::GravitationalPull] = false;
-        m_BDebugLines[DebugLine::Path] = false;
+        m_BDebugLines[DebugLine::Path] = true;
 	}
 
 	void Application::DebugClearLineBuffer() {
@@ -686,6 +697,10 @@ namespace FLOOF {
             DebugDrawLine(path[i-1],path[i],glm::vec3(255.f,255.f,255.f));
         }
 
+    }
+
+    void Application::HidePointCloud() {
+        m_BShowPointcloud = !m_BShowPointcloud;
     }
 }
 
