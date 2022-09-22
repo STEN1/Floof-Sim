@@ -187,7 +187,7 @@ namespace FLOOF {
 
 		m_Renderer->FinishAllFrames();
 		m_Registry.clear();
-        
+
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
@@ -706,7 +706,7 @@ namespace FLOOF {
 
         for(int i = 0; i < count; i++){
                 glm::vec3 loc(Math::RandDouble(minX,maxX),0.3f,Math::RandDouble(minZ,maxZ));
-                SpawnBall(loc, 0.01f, .5f);
+                SpawnBall(loc, 0.007f, .01f);
         }
     }
 
