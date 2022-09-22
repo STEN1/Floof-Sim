@@ -328,9 +328,9 @@ namespace FLOOF {
 		Octree octree(worldExtents);
 
 		{
-			auto view = m_Registry.view<BallComponent>();
-			for (auto [entity, ball] : view.each()) {
-				octree.Insert(std::make_pair(entity, &ball.CollisionSphere));
+			auto view = m_Registry.view<TransformComponent, VelocityComponent, BallComponent>();
+			for (auto [entity, transform, velocity, ball] : view.each()) {
+				octree.Insert(Octree::CollisionObject(&ball.CollisionSphere, transform, velocity, ball));
 			}
 
 			std::vector<Octree*> leafNodes;
@@ -346,6 +346,46 @@ namespace FLOOF {
 
             glm::vec3 acc(0.f, -Math::Gravity, 0.f);
             glm::vec3 fri(0.f);
+
+			std::vector<std::pair<Octree::CollisionObject, Octree::CollisionObject>> collisionPairs;
+			octree.GetCollisionPairs(collisionPairs);
+
+			for (auto& [obj1, obj2] : collisionPairs) {
+				auto& collidingTransform1 = obj1.Transform;
+				auto& collidingVelocity1 = obj1.Velocity;
+				auto& collidingBall1 = obj1.Ball;
+
+				auto& collidingTransform2 = obj2.Transform;
+				auto& collidingVelocity2 = obj2.Velocity;
+				auto& collidingBall2 = obj2.Ball;
+
+				//calculate velocity when collision with another ball
+				auto contactNormal = glm::normalize(collidingTransform2.Position - collidingTransform1.Position);
+				auto combinedMass = collidingBall2.Mass + collidingBall1.Mass;
+				auto elasticity = collidingBall2.Elasticity * collidingBall1.Elasticity;
+				auto relVelocity = collidingVelocity2.Velocity - collidingVelocity1.Velocity;
+
+				float moveangle = glm::dot(relVelocity, contactNormal);
+				float j = -(1.f + elasticity) * moveangle / (1.f / combinedMass);
+				if (moveangle >= 0.f) { // moves opposite dirrections;
+					j = 0.f;
+				}
+				const glm::vec3 vecImpulse = j * contactNormal;
+				collidingVelocity2.Velocity += vecImpulse / combinedMass;
+
+				//todo move balls out of each other
+				//calculate overlap amount
+				float overlap = glm::length(collidingTransform2.Position + collidingTransform1.Position);
+
+				auto moveamount = contactNormal * ((collidingBall2.Radius + collidingBall1.Radius - overlap) / overlap);
+				//transform.Position += moveamount;
+
+				//inside
+				if (overlap >= (collidingBall2.Radius + collidingBall1.Radius)) {
+					glm::vec3 up{ 0.f,1.f,0.f };
+					//transform.Position += up*(ball.Radius/2.f);
+				}
+			}
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent>();
 			for (auto [entity, transform, ball, velocity,time] : view.each()) {
@@ -394,42 +434,6 @@ namespace FLOOF {
 
                     if(!foundCollision)
                         ball.TriangleIndex = -1;
-
-                    //----- ball ball collision -----------
-                    for(auto[ent,transform2,ball2,velocity2,time2]: view.each()){
-
-                        if(ball.CollisionSphere.Intersect(&ball2.CollisionSphere) && &ball != &ball2){
-                            //calculate velocity when collision with another ball
-                            auto contactNormal = glm::normalize(transform.Position-transform2.Position);
-                            auto combinedMass = ball.Mass+ball2.Mass;
-                            auto elasticity = ball.Elasticity*ball2.Elasticity;
-                            auto relVelocity = velocity.Velocity - velocity2.Velocity;
-
-                            float moveangle = glm::dot(relVelocity,contactNormal);
-                            float j = -(1.f+elasticity) * moveangle / (1.f/combinedMass);
-                            if(moveangle >= 0.f){ // moves opposite dirrections;
-                                j = 0.f;
-                            }
-                            const glm::vec3 vecImpulse = j*contactNormal;
-                            velocity.Velocity += vecImpulse / combinedMass;
-
-                            //todo move balls out of each other
-                            //calculate overlap amount
-                            float overlap = glm::length(transform.Position+transform2.Position);
-
-                            auto moveamount = contactNormal*((ball.Radius+ball2.Radius-overlap)/overlap);
-                            //transform.Position += moveamount;
-
-                            //inside
-                            if(overlap >= (ball.Radius+ball2.Radius)){
-                                glm::vec3 up{0.f,1.f,0.f};
-                                //transform.Position += up*(ball.Radius/2.f);
-                            }
-
-
-                            //transform2.Position -= glm::normalize(transform.Position+transform2.Position)*(ball2.Radius-overlap);
-                        }
-                    }
 				}
 
                 //https://en.wikipedia.org/wiki/Verlet_integration

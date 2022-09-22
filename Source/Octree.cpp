@@ -6,13 +6,14 @@ namespace FLOOF {
 	}
 
 	void Octree::Insert(const CollisionObject& object) {
-		if (!object.second->Intersect(&m_AABB))
+		if (!object.Shape->Intersect(&m_AABB))
 			return;
 		
 		if (IsLeaf()) {
 			// intersecting with node and node is leaf. insert.
 
 			m_CollisionObjects.push_back(object);
+			m_IsActive = true;
 
 			if (m_CollisionObjects.size() > s_MaxObjects && m_AABB.extent.x > s_MinExtent) {
 				// to many objects in node and extent is larger than min extent.
@@ -34,15 +35,40 @@ namespace FLOOF {
 
 	void Octree::FindIntersectingObjects(const CollisionObject& object, std::vector<CollisionObject>& outVec) {
 		for (auto& node : m_ChildNodes) {
-			node->FindIntersectingObjects(object, outVec);
+			if (node->m_IsActive)
+				node->FindIntersectingObjects(object, outVec);
 		}
 
 		if (IsLeaf()) {
 			for (auto& obj : m_CollisionObjects) {
-				if (obj.second->Intersect(object.second)) {
+				if (obj == object) {
+					continue;
+				}
+
+				if (obj.Shape->Intersect(object.Shape)) {
 					auto it = std::find(outVec.begin(), outVec.end(), obj);
 					if (it == outVec.end()) {
 						outVec.push_back(obj);
+					}
+				}
+			}
+		}
+	}
+
+	void Octree::GetCollisionPairs(std::vector<std::pair<CollisionObject, CollisionObject>>& outVec) {
+		for (auto& node : m_ChildNodes) {
+			if (node->m_IsActive)
+				node->GetCollisionPairs(outVec);
+		}
+
+		if (IsLeaf()) {
+			for (int i = 0; i < m_CollisionObjects.size() - 1; i++) {
+				for (int j = i + 1; j < m_CollisionObjects.size(); j++) {
+					if (m_CollisionObjects[i].Shape->Intersect(m_CollisionObjects[j].Shape)) {
+						auto outObjects = std::make_pair(m_CollisionObjects[i], m_CollisionObjects[j]);
+						auto it = std::find(outVec.begin(), outVec.end(), outObjects);
+						if (it == outVec.end())
+							outVec.emplace_back(outObjects);
 					}
 				}
 			}
@@ -111,10 +137,11 @@ namespace FLOOF {
 
 	void Octree::GetActiveLeafNodes(std::vector<Octree*>& outVec) {
 		for (auto& node : m_ChildNodes) {
-			node->GetActiveLeafNodes(outVec);
+			if (node->m_IsActive)
+				node->GetActiveLeafNodes(outVec);
 		}
 
-		if (IsLeaf() && m_CollisionObjects.empty() == false) {
+		if (IsLeaf()) {
 			outVec.push_back(this);
 		}
 	}
