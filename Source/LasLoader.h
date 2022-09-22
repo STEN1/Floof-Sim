@@ -12,10 +12,11 @@ private:
     std::vector<FLOOF::ColorVertex> VertexData;
     glm::vec3 offset{};
     void Downscale(float multiplier);
-    void FindMinMax();
-    glm::vec3 min{};
-    glm::vec3 max{};
 
+    void OffsetCenter();
+    void FindMinMax();
+    glm::vec3 min{0.f};
+    glm::vec3 max{0.f};
 
 
 };
