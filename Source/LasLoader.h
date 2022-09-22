@@ -9,7 +9,9 @@ public:
     LasLoader(const std::string& path);
     std::vector<FLOOF::ColorVertex> GetVertexData();
 private:
-    std::vector<FLOOF::ColorVertex> VertexData;
+    std::vector<FLOOF::ColorVertex> PointData;
+    std::vector<FLOOF::MeshVertex> VertexData;
+    std::vector<uint32_t> IndexData;
     glm::vec3 offset{};
 
     void CalcCenter();
