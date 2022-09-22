@@ -392,7 +392,7 @@ namespace FLOOF {
                         transform.Position += glm::normalize(triangle.N) * (-dist + ball.Radius);
                     }
 
-                    if(!foundCollision)
+                    if(!foundCollision) 
                         ball.TriangleIndex = -1;
 
                     //----- ball ball collision -----------
