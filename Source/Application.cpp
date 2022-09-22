@@ -284,8 +284,8 @@ namespace FLOOF {
                 m_DebugDraw = !m_DebugDraw;
             if(ImGui::Button("Velocity Vector"))
                 m_BDebugLines[DebugLine::Velocity]  = !m_BDebugLines[DebugLine::Velocity];
-            if(ImGui::Button("Acceleration Vector"))
-                m_BDebugLines[DebugLine::Acceleration]  = !m_BDebugLines[DebugLine::Acceleration];
+            if(ImGui::Button("Force Vector"))
+                m_BDebugLines[DebugLine::Force]  = !m_BDebugLines[DebugLine::Force];
             if(ImGui::Button("Friction Vector"))
                 m_BDebugLines[DebugLine::Friction]  = !m_BDebugLines[DebugLine::Friction];
             if(ImGui::Button("Collision shapes"))
@@ -311,7 +311,7 @@ namespace FLOOF {
 	}
 	void Application::Simulate(double deltaTime) {
 
-        //deltaTime *= 0.2f;
+        //deltaTime *= 0.1f;
 
 		{	// Calculate ball velocity
 
@@ -402,10 +402,8 @@ namespace FLOOF {
                     DebugDrawSphere(ball.CollisionSphere.pos,ball.CollisionSphere.radius);
                 if(m_BDebugLines[DebugLine::Velocity])
 				    DebugDrawLine(transform.Position, transform.Position + velocity.Velocity, glm::vec3(0.f, 0.f, 255.f));
-				if(m_BDebugLines[DebugLine::Acceleration])
-                    DebugDrawLine(transform.Position, transform.Position + acc, glm::vec3(255.f, 0.f, 0.f));
-				if(m_BDebugLines[DebugLine::Acceleration] && m_BDebugLines[DebugLine::Friction])
-                    DebugDrawLine(transform.Position, transform.Position + (acc+fri), glm::vec3(125.f, 125.f, 0.f));
+				if(m_BDebugLines[DebugLine::Force])
+                    DebugDrawLine(transform.Position, transform.Position + velocity.Force, glm::vec3(255.f, 0.f, 0.f));
                 if(m_BDebugLines[DebugLine::GravitationalPull])
                     DebugDrawLine(transform.Position,transform.Position+Math::GravitationalPull, glm::vec3(255.f, 255.f, 255.f));
 
