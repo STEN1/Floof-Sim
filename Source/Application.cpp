@@ -657,8 +657,10 @@ namespace FLOOF {
         const double maxZ{0.0};
 
         for(int i = 0; i < count; i++){
+            float rad = Math::RandDouble(0.007f,0.01f);
+            float mass = rad*10.f;
                 glm::vec3 loc(Math::RandDouble(minX,maxX),0.3f,Math::RandDouble(minZ,maxZ));
-                SpawnBall(loc, 0.007f, .01f);
+                SpawnBall(loc, rad, mass);
         }
     }
 
