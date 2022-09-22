@@ -34,7 +34,7 @@ LasLoader::LasLoader(const std::string &path) : VertexData{} {
         ss >> tempVertex.Pos.z;
         ss >> tempVertex.Pos.y;
 
-        tempVertex.Pos -= offset;
+        //tempVertex.Pos -= offset;
 
         tempVertex.Color = glm::vec3(1.f,1.f,1.f);
 
@@ -42,8 +42,7 @@ LasLoader::LasLoader(const std::string &path) : VertexData{} {
     }
 
     Downscale(0.01);
-
-
+    OffsetCenter();
 
 }
 
@@ -55,6 +54,13 @@ void LasLoader::Downscale(float multiplier) {
     for (auto& vertex : VertexData) {
         vertex.Pos *= multiplier;
     }
+
+    // Check if min/max already found
+    if (min != glm::vec3(0.f) && max != glm::vec3(0.f)){
+        min *= multiplier;
+        max *= multiplier;
+    }
+
 }
 
 void LasLoader::FindMinMax() {
@@ -63,11 +69,30 @@ void LasLoader::FindMinMax() {
     max = glm::vec3(std::numeric_limits<float>::min());
 
     for (auto& vertex : VertexData) {
-        if (min.x < vertex.Pos.x) {min.x = vertex.Pos.x;}
-        else if (max.x > vertex.Pos.x) {max.x = vertex.Pos.x;}
-        if (min.z < vertex.Pos.z) {min.z = vertex.Pos.z;}
-        else if (max.z > vertex.Pos.z) {max.z = vertex.Pos.z;}
-        if (min.y < vertex.Pos.y) {min.y = vertex.Pos.y;}
-        else if (max.y > vertex.Pos.y) {max.y = vertex.Pos.y;}
+        if (min.x > vertex.Pos.x) {min.x = vertex.Pos.x;}
+        else if (max.x < vertex.Pos.x) {max.x = vertex.Pos.x;}
+        if (min.z > vertex.Pos.z) {min.z = vertex.Pos.z;}
+        else if (max.z < vertex.Pos.z) {max.z = vertex.Pos.z;}
+        if (min.y > vertex.Pos.y) {min.y = vertex.Pos.y;}
+        else if (max.y < vertex.Pos.y) {max.y = vertex.Pos.y;}
     }
+}
+
+void LasLoader::OffsetCenter() {
+
+    // Check if min/max already found
+    if (min == glm::vec3(0.f) && max == glm::vec3(0.f)){
+        FindMinMax();
+    }
+    // Find middle
+    glm::vec3 middle =min + (max-min)/2.f;
+
+    // Move all points
+    for (auto& vertex : VertexData) {
+        vertex.Pos -= middle;
+    }
+
+    // Update min/max
+    min -= middle;
+    max -= middle;
 }
