@@ -24,5 +24,6 @@ namespace FLOOF{
             std::uniform_int_distribution<> dist(min, max);
             return dist(Generator);
         }
+
     }
 }
