@@ -675,7 +675,7 @@ namespace FLOOF {
 
         auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
         m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
-        m_Registry.emplace<TextureComponent>(ballEntity, "Assets/WaterTexture.png");
+        m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
 
         transform.Position = location;
         transform.Scale = glm::vec3(ball.Radius);
