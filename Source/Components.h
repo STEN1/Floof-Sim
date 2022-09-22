@@ -129,7 +129,7 @@ namespace FLOOF {
         float Mass;
         int LastTriangleIndex{-1};
         int TriangleIndex{-1};
-        float Elasticity{0.1f};
+        float Elasticity{0.01f};
         std::vector<glm::vec3> Path;
     };
     struct VelocityComponent {
