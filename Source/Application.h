@@ -54,6 +54,7 @@ namespace FLOOF {
 		void DebugInit();
 		void DebugClearLineBuffer();
 		void DebugClearSpherePositions();
+		void DebugClearAABBTransforms();
 		void DebugClearDebugData();
 		void DebugUpdateLineBuffer();
 		void DebugToggleDrawNormals();
@@ -71,8 +72,13 @@ namespace FLOOF {
 
 		// Draws a sphere in world coords with specified radius
 		void DebugDrawSphere(const glm::vec3& pos, float radius);
-		std::vector<std::pair<glm::vec3, float>> m_DebugSpherePositions;
+		std::vector<glm::mat4> m_DebugSphereTransforms;
 		entt::entity m_DebugSphereEntity;
+
+		// Draws a AABB in world coords
+		void DebugDrawAABB(const glm::vec3& pos, const glm::vec3& extents);
+		std::vector<glm::mat4> m_DebugAABBTransforms;
+		entt::entity m_DebugAABBEntity;
 
 		bool m_DebugDraw = true;
 		bool m_DrawNormals = false;

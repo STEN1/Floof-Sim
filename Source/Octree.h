@@ -10,10 +10,12 @@ namespace FLOOF {
 		using CollisionObject = std::pair<entt::entity, CollisionShape*>;
 
 		Octree(const AABB& aabb);
-		void Insert(CollisionObject object);
-		void FindIntersectingObjects(CollisionObject object, std::vector<CollisionObject>& outVec);
+		void Insert(const CollisionObject& object);
+		void FindIntersectingObjects(const CollisionObject& object, std::vector<CollisionObject>& outVec);
 		void Divide();
-		void GetLeafNodes(std::vector<Octree*> outVec);
+		void GetActiveLeafNodes(std::vector<Octree*>& outVec);
+		void GetAllNodes(std::vector<Octree*>& outVec);
+		AABB GetAABB() { return m_AABB; }
 	private:
 		AABB m_AABB;
 		bool IsLeaf();
