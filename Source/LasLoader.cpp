@@ -1,7 +1,6 @@
 #include "LasLoader.h"
 #include <fstream>
 #include <sstream>
-#include <set>
 #include <limits>
 LasLoader::LasLoader(const std::string &path) : VertexData{} {
     std::ifstream file(path);
@@ -14,35 +13,18 @@ LasLoader::LasLoader(const std::string &path) : VertexData{} {
     std::string line;
     FLOOF::ColorVertex tempVertex{};
 
-    std::multiset<float> xValues;
-    std::multiset<float> zValues;
-    std::multiset<float> yValues;
-
-    {
-        std::getline(file, line);
-        std::stringstream ss(line);
-        ss >> offset.x;
-        ss >> offset.z;
-        ss >> offset.y;
-        file.clear();
-        file.seekg (0);
-    }
-
     while (std::getline(file, line)) {
         std::stringstream ss(line);
         ss >> tempVertex.Pos.x;
         ss >> tempVertex.Pos.z;
         ss >> tempVertex.Pos.y;
-
-        //tempVertex.Pos -= offset;
-
         tempVertex.Color = glm::vec3(1.f,1.f,1.f);
-
         VertexData.push_back(tempVertex);
     }
 
-    Downscale(0.01);
-    OffsetCenter();
+    m_Scale = 0.01f;
+    CalcCenter();
+    UpdatePoints();
 
 }
 
@@ -50,21 +32,13 @@ std::vector<FLOOF::ColorVertex> LasLoader::GetVertexData() {
     return VertexData;
 }
 
-void LasLoader::Downscale(float multiplier) {
-    for (auto& vertex : VertexData) {
-        vertex.Pos *= multiplier;
-    }
-
-    // Check if min/max already found
-    if (min != glm::vec3(0.f) && max != glm::vec3(0.f)){
-        min *= multiplier;
-        max *= multiplier;
-    }
-
-}
 
 void LasLoader::FindMinMax() {
 
+    // Check if min/max already found
+    if (min != glm::vec3(0.f) && max != glm::vec3(0.f)){
+        return;
+    }
     min = glm::vec3(std::numeric_limits<float>::max());
     max = glm::vec3(std::numeric_limits<float>::min());
 
@@ -78,21 +52,26 @@ void LasLoader::FindMinMax() {
     }
 }
 
-void LasLoader::OffsetCenter() {
+void LasLoader::CalcCenter() {
 
-    // Check if min/max already found
-    if (min == glm::vec3(0.f) && max == glm::vec3(0.f)){
-        FindMinMax();
-    }
+    FindMinMax();
+
     // Find middle
-    glm::vec3 middle =min + (max-min)/2.f;
-
-    // Move all points
-    for (auto& vertex : VertexData) {
-        vertex.Pos -= middle;
-    }
+    middle = min + (max-min)/2.f;
 
     // Update min/max
     min -= middle;
     max -= middle;
+}
+
+void LasLoader::UpdatePoints() {
+
+    FindMinMax();
+    for (auto& vertex : VertexData) {
+        if (middle != glm::vec3(0.f))
+            vertex.Pos -= middle;
+        vertex.Pos *= m_Scale;
+    }
+    min *= m_Scale;
+    max *= m_Scale;
 }
