@@ -120,8 +120,8 @@ void LasLoader::Triangulate() {
         currentSquare.averageHeight /= currentSquare.vertexes.size();
 
         FLOOF::MeshVertex tempVertex{};
-        //tempVertex.Pos = glm::vec3(currentSquare.pos.x, currentSquare.averageHeight, currentSquare.pos.y);
-        tempVertex.Pos = glm::vec3(currentSquare.pos, currentSquare.averageHeight);
+        tempVertex.Pos = glm::vec3(currentSquare.pos.x, currentSquare.averageHeight, currentSquare.pos.y);
+        //tempVertex.Pos = glm::vec3(currentSquare.pos, currentSquare.averageHeight);
 
         VertexData.push_back(tempVertex);
     }
@@ -131,12 +131,13 @@ void LasLoader::Triangulate() {
         for (int x = 1; x < xSquares - 1; ++x) {
 
             IndexData.emplace_back(x + (zSquares * z));
+        	IndexData.emplace_back(x + 1 + (zSquares * (z + 1)));
             IndexData.emplace_back(x + 1 + (zSquares * z));
-            IndexData.emplace_back(x + 1 + (zSquares * (z + 1)));
 
             IndexData.emplace_back(x + (zSquares * z));
-            IndexData.emplace_back(x + 1 + (zSquares * (z + 1)));
             IndexData.emplace_back(x + (zSquares * (z + 1)));
+            IndexData.emplace_back(x + 1 + (zSquares * (z + 1)));
+
         }
     }
 
