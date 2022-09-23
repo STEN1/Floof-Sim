@@ -26,7 +26,7 @@ LasLoader::LasLoader(const std::string &path) : PointData{} {
     CalcCenter();
     UpdatePoints();
 
-    //Triangulate();
+    Triangulate();
 }
 
 std::vector<FLOOF::ColorVertex> LasLoader::GetVertexData() {
@@ -86,7 +86,7 @@ void LasLoader::Triangulate() {
 
     // Create right number of squares
     for (float z = min.z; z < max.z; z += resolution) {
-        for (float x = min.x; x < max.y; x += resolution){
+        for (float x = min.x; x < max.x; x += resolution){
             Square tempSquare;
             tempSquare.min = glm::vec2(x,z);
             tempSquare.max = glm::vec2(x+resolution,z+resolution);
