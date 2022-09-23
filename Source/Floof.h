@@ -9,7 +9,7 @@ namespace FLOOF {
 #ifndef NDEBUG
 #define ASSERT(expr) assert(expr)
 #else
-#define ASSERT(expr, msg, ...)
+#define ASSERT(expr)
 #endif // !NDEBUG
 }
 
