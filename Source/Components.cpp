@@ -301,4 +301,50 @@ namespace FLOOF {
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
 		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 	}
+
+	BSplineComponent::BSplineComponent(const std::vector<glm::vec3>& controllPoints) {
+		Update(controllPoints);
+	}
+
+	void BSplineComponent::Update(const std::vector<glm::vec3>& controllPoints) {
+		ASSERT(controllPoints.size() >= D + 1);
+		ControllPoints = controllPoints;
+		KnotPoints.resize(controllPoints.size() + D + 1);
+		KnotPoints[0] = 0;
+		KnotPoints[1] = 0;
+		KnotPoints[2] = 0;
+		int i = 3;
+		while (i < KnotPoints.size() - 3) {
+			i++;
+			KnotPoints[i] = i - D;
+		}
+	}
+
+	int BSplineComponent::FindKnotInterval(float t) {
+		int my = ControllPoints.size() - 1;
+		while (t < KnotPoints[my] && my > D) {
+			my--;
+		}
+		return my;
+	}
+
+	glm::vec3 BSplineComponent::EvaluateBSpline(float t) {
+		int my = FindKnotInterval(t);
+
+		std::vector<glm::vec3> a(D + 1);
+
+		for (int i = 0; i <= D; i++) {
+			a[D - i] = ControllPoints[my - i];
+		}
+
+		for (int k = D; k > 0; k--) {
+			int j = my - k;
+			for (int i = 0; i < k; i++) {
+				j++;
+				float w = (t - KnotPoints[j]) / (KnotPoints[j + k] - KnotPoints[j]);
+				a[i] = a[i] * (1.f - w) + a[i + 1] * w;
+			}
+		}
+		return a[0];
+	}
 }
