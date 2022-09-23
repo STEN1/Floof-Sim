@@ -16,6 +16,7 @@ namespace FLOOF {
 			TransformComponent& Transform;
 			VelocityComponent& Velocity;
 			BallComponent& Ball;
+			std::vector<CollisionShape*> OverlappingShapes;
 
 			bool operator == (const CollisionObject& other) const {
 				return Shape == other.Shape;

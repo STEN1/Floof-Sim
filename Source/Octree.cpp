@@ -64,12 +64,26 @@ namespace FLOOF {
 		if (IsLeaf()) {
 			for (int i = 0; i < m_CollisionObjects.size() - 1; i++) {
 				for (int j = i + 1; j < m_CollisionObjects.size(); j++) {
-					if (m_CollisionObjects[i].Shape->Intersect(m_CollisionObjects[j].Shape)) {
-						auto outObjects = std::make_pair(m_CollisionObjects[i], m_CollisionObjects[j]);
-						auto it = std::find(outVec.begin(), outVec.end(), outObjects);
-						if (it == outVec.end())
-							outVec.emplace_back(outObjects);
+					// Continue if not intersecting.
+					if (!m_CollisionObjects[i].Shape->Intersect(m_CollisionObjects[j].Shape)) {
+						continue;
 					}
+
+					// Look for j in i. i should then also be in j so dont need to check.
+					auto it = std::find(m_CollisionObjects[i].OverlappingShapes.begin(),
+						m_CollisionObjects[i].OverlappingShapes.end(), m_CollisionObjects[i].Shape);
+
+					// Continue if found.
+					if (it != m_CollisionObjects[i].OverlappingShapes.end()) {
+						continue;
+					}
+
+					// We are now intersecting and not in overlapping arrays.
+					// In each overlapping array and push to outVec.
+					m_CollisionObjects[i].OverlappingShapes.push_back(m_CollisionObjects[j].Shape);
+					m_CollisionObjects[j].OverlappingShapes.push_back(m_CollisionObjects[i].Shape);
+
+					outVec.emplace_back(std::make_pair(m_CollisionObjects[i], m_CollisionObjects[j]));
 				}
 			}
 		}
