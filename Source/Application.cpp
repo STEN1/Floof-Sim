@@ -322,7 +322,7 @@ namespace FLOOF {
 
             ImGui::Begin("Oppgaver");
             static int raincount = 10;
-            ImGui::SliderInt("Rain Ball Count", &raincount, 0, 100);
+            ImGui::SliderInt("Rain Ball Count", &raincount, 0, 1000);
             if(ImGui::Button("Spawn Rain"))
                 SpawnRain(raincount);
             ImGui::End();
