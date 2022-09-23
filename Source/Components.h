@@ -137,6 +137,19 @@ namespace FLOOF {
         glm::vec3 Force;
 
     };
+
+	class BSplineComponent {
+	public:
+		BSplineComponent(const std::vector<glm::vec3>& controllPoints);
+		void Update(const std::vector<glm::vec3>& controllPoints);
+		glm::vec3 EvaluateBSpline(float t);
+	private:
+		std::vector<int> KnotPoints;
+		std::vector<glm::vec3> ControllPoints;
+		inline static constexpr int D = 2;
+		int FindKnotInterval(float t);
+	};
+
 	struct DebugComponent {};
 
     struct TimeComponent{
