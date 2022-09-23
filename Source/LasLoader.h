@@ -3,12 +3,15 @@
 #include <vector>
 #include "Floof.h"
 #include "Vertex.h"
+#include "Physics.h"
 class LasLoader {
 
 public:
     LasLoader(const std::string& path);
     std::vector<FLOOF::ColorVertex> GetPointData();
     std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> GetIndexedData();
+    std::vector<FLOOF::MeshVertex> GetVertexData();
+    std::vector<FLOOF::Triangle> GetTriangles();
 
 private:
     std::vector<FLOOF::ColorVertex> PointData;
@@ -24,7 +27,7 @@ private:
     glm::vec3 middle{0.f};
     float scale{1.f};
 
-    float resolution{5.f};
+    float resolution{2.f};
 
 
     void Triangulate();
