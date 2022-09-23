@@ -30,7 +30,7 @@ LasLoader::LasLoader(const std::string &path) : PointData{} {
 }
 
 std::vector<FLOOF::ColorVertex> LasLoader::GetPointData() {
-    return PointData;
+    return LasLoader::PointData;
 }
 
 
@@ -91,7 +91,7 @@ void LasLoader::Triangulate() {
             Square tempSquare;
             tempSquare.min = glm::vec2(x,z);
             tempSquare.max = glm::vec2(x+resolution,z+resolution);
-            tempSquare.pos = tempSquare.max/tempSquare.min;
+            tempSquare.pos = tempSquare.min + (tempSquare.max - tempSquare.min)/glm::vec2(2.f);
             squares.push_back(tempSquare);
         }
     }
@@ -169,7 +169,7 @@ void LasLoader::Triangulate() {
 }
 
 std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> LasLoader::GetIndexedData() {
-    return {VertexData, IndexData};
+    return {LasLoader::VertexData, LasLoader::IndexData};
 }
 
 
