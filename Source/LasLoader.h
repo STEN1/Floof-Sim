@@ -7,7 +7,9 @@ class LasLoader {
 
 public:
     LasLoader(const std::string& path);
-    std::vector<FLOOF::ColorVertex> GetVertexData();
+    std::vector<FLOOF::ColorVertex> GetPointData();
+    std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> GetIndexedData();
+
 private:
     std::vector<FLOOF::ColorVertex> PointData;
     std::vector<FLOOF::MeshVertex> VertexData;

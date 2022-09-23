@@ -26,11 +26,11 @@ LasLoader::LasLoader(const std::string &path) : PointData{} {
     CalcCenter();
     UpdatePoints();
 
-    //Triangulate();
+    Triangulate();
 }
 
-std::vector<FLOOF::ColorVertex> LasLoader::GetVertexData() {
-    return PointData;
+std::vector<FLOOF::ColorVertex> LasLoader::GetPointData() {
+    return LasLoader::PointData;
 }
 
 
@@ -79,6 +79,7 @@ void LasLoader::UpdatePoints() {
 
 void LasLoader::Triangulate() {
 
+    // Squares just use vec2, not vec3, so y = z
     std::vector<Square> squares;
 
     int xSquares = (max.x - min.x)/resolution;
@@ -86,11 +87,11 @@ void LasLoader::Triangulate() {
 
     // Create right number of squares
     for (float z = min.z; z < max.z; z += resolution) {
-        for (float x = min.x; x < max.y; x += resolution){
+        for (float x = min.x; x < max.x; x += resolution){
             Square tempSquare;
             tempSquare.min = glm::vec2(x,z);
             tempSquare.max = glm::vec2(x+resolution,z+resolution);
-            tempSquare.pos = tempSquare.max/tempSquare.min;
+            tempSquare.pos = tempSquare.min + (tempSquare.max - tempSquare.min)/glm::vec2(2.f);
             squares.push_back(tempSquare);
         }
     }
@@ -113,6 +114,8 @@ void LasLoader::Triangulate() {
         currentSquare.averageHeight = 0.f;
         for (auto& vertex : currentSquare.vertexes) {
             currentSquare.averageHeight += vertex.Pos.y;
+            ASSERT(!currentSquare.vertexes.empty());
+            // TODO : Calculate average neighbor height if no vertexes
         }
         currentSquare.averageHeight /= currentSquare.vertexes.size();
 
@@ -135,19 +138,19 @@ void LasLoader::Triangulate() {
         }
     }
 
-    int xmin = 1, xmax = xSquares, ymin = 1, ymax = zSquares; // The size to draw
+    int xmin = 1, xmax = xSquares, zmin = 1, zmax = zSquares; // The size to draw
 
-    for (int y = ymin; y < ymax - 1; y++)
+    for (int y = zmin; y < zmax - 1; y++)
     {
         for (int x = xmin; x < xmax - 1; x++)
         {
-            glm::vec3 a(VertexData[x + (ymax * y)].Pos);
-            glm::vec3 b(VertexData[x + 1 + (ymax * y)].Pos);
-            glm::vec3 c(VertexData[x + 1 + (ymax * (y + 1))].Pos);
-            glm::vec3 d(VertexData[x + (ymax * (y + 1))].Pos);
-            glm::vec3 e(VertexData[x - 1 + (ymax * y)].Pos);
-            glm::vec3 f(VertexData[x - 1 + (ymax * (y - 1))].Pos);
-            glm::vec3 g(VertexData[x + (ymax * (y - 1))].Pos);
+            glm::vec3 a(VertexData[x + (zmax * y)].Pos);
+            glm::vec3 b(VertexData[x + 1 + (zmax * y)].Pos);
+            glm::vec3 c(VertexData[x + 1 + (zmax * (y + 1))].Pos);
+            glm::vec3 d(VertexData[x + (zmax * (y + 1))].Pos);
+            glm::vec3 e(VertexData[x - 1 + (zmax * y)].Pos);
+            glm::vec3 f(VertexData[x - 1 + (zmax * (y - 1))].Pos);
+            glm::vec3 g(VertexData[x + (zmax * (y - 1))].Pos);
 
             auto n0 = glm::cross(b - a, c - a);
             auto n1 = glm::cross(c - a, d - a);
@@ -159,10 +162,14 @@ void LasLoader::Triangulate() {
             glm::vec3 normal = n0 + n1 + n2 + n3 + n4 + n5;
             normal = glm::normalize(normal);
 
-            VertexData[x + (ymax * y)].Normal = normal;
+            VertexData[x + (zmax * y)].Normal = normal;
         }
 
     }
+}
+
+std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> LasLoader::GetIndexedData() {
+    return {LasLoader::VertexData, LasLoader::IndexData};
 }
 
 
