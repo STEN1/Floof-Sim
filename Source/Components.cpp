@@ -283,7 +283,19 @@ namespace FLOOF {
 			std::cout << "Normal: " << triangle.N << std::endl;
 		}
 	}
-	PointCloudComponent::PointCloudComponent(const std::vector<ColorVertex>& vertexData) {
+
+    std::vector<Triangle *> TerrainComponent::GetOverlappingTriangles(CollisionShape *shape) {
+       std::vector<Triangle*> overlapping;
+
+        for(auto& triangle: Triangles){
+            if(triangle.Intersect(shape)){
+                overlapping.emplace_back(&triangle);
+            }
+        }
+        return overlapping;
+    }
+
+    PointCloudComponent::PointCloudComponent(const std::vector<ColorVertex>& vertexData) {
 		auto renderer = VulkanRenderer::Get();
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);

@@ -26,7 +26,7 @@ namespace FLOOF {
 		VulkanRenderer* m_Renderer;
 		entt::entity m_CameraEntity;
 		entt::entity m_TerrainEntity;
-
+        entt::entity m_PointCloudEntity;
 
         // ----------- Physics utils -------------
         void ResetBall();
@@ -44,7 +44,8 @@ namespace FLOOF {
 			ClosestPointToBall,
             GravitationalPull,
             Force,
-            Path
+            Path,
+            OctTree
         };
         std::unordered_map<DebugLine, bool> m_BDebugLines;
         std::chrono::high_resolution_clock::time_point m_Ballspawntime;

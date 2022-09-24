@@ -96,13 +96,14 @@ namespace FLOOF {
         {
 
             auto map = LasLoader("Assets/france.txt");
-            const auto PointCloudEntity = m_Registry.create();
-            m_Registry.emplace<PointCloudComponent>(PointCloudEntity, map.GetPointData());
+           m_PointCloudEntity = m_Registry.create();
+            m_Registry.emplace<PointCloudComponent>(m_PointCloudEntity, map.GetPointData());
 			auto [vData, iData] = map.GetIndexedData();
 			//m_Registry.emplace<MeshComponent>(PointCloudEntity, vData, iData);
-			m_Registry.emplace<MeshComponent>(PointCloudEntity, map.GetVertexData());
-			m_Registry.emplace<TextureComponent>(PointCloudEntity, "Assets/HappyTree.png");
-			m_Registry.emplace<TransformComponent>(PointCloudEntity);
+			m_Registry.emplace<MeshComponent>(m_PointCloudEntity, map.GetVertexData());
+			m_Registry.emplace<TextureComponent>(m_PointCloudEntity, "Assets/HappyTree.png");
+			m_Registry.emplace<TransformComponent>(m_PointCloudEntity);
+            m_Registry.emplace<TerrainComponent>(m_PointCloudEntity,map.GetTriangles());
             //m_Registry.emplace<TerrainComponent>(PointCloudEntity, map.GetTriangles());
 
 
@@ -314,6 +315,8 @@ namespace FLOOF {
                 m_BDebugLines[DebugLine::GravitationalPull]  = !m_BDebugLines[DebugLine::GravitationalPull];
             if(ImGui::Button("Path Trace"))
                 m_BDebugLines[DebugLine::Path]  = !m_BDebugLines[DebugLine::Path];
+            if(ImGui::Button("Oct Tree"))
+                m_BDebugLines[DebugLine::OctTree]  = !m_BDebugLines[DebugLine::OctTree];
             if(ImGui::Button("Point Cloud")){
                 HidePointCloud();
             }
@@ -333,7 +336,7 @@ namespace FLOOF {
         deltaTime *= m_DeltaTimeModifier;
 
 		AABB worldExtents{};
-		worldExtents.extent = glm::vec3(1.f);
+		worldExtents.extent = glm::vec3(1000.f);
 		worldExtents.pos = glm::vec3(0.f);
 		Octree octree(worldExtents);
 
@@ -346,10 +349,13 @@ namespace FLOOF {
 			std::vector<Octree*> leafNodes;
 			octree.GetActiveLeafNodes(leafNodes);
 
-			for (auto& node : leafNodes) {
-				auto aabb = node->GetAABB();
-				DebugDrawAABB(aabb.pos, aabb.extent);
-			}
+            if(m_BDebugLines[DebugLine::OctTree]){
+                for (auto& node : leafNodes) {
+                    auto aabb = node->GetAABB();
+                    DebugDrawAABB(aabb.pos, aabb.extent);
+                }
+            }
+
 		}
 
 		{	// Calculate ball velocity
@@ -395,11 +401,47 @@ namespace FLOOF {
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent>();
 			auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+            auto & pointCloud = m_Registry.get<TerrainComponent>(m_PointCloudEntity);
 			for (auto [entity, transform, ball, velocity,time] : view.each()) {
 
                 velocity.Force = Math::GravitationalPull * ball.Mass;
 
                 bool foundCollision = false;
+               auto collisions = pointCloud.GetOverlappingTriangles(&ball.CollisionSphere);
+               for(auto& tri: collisions){
+
+                    Triangle triangle = *tri;
+                    //first hit on ground
+                    if(ball.Path.empty()){
+                        time.LastPoint = Timer::GetTime();
+                        ball.Path.emplace_back(transform.Position);
+                    }
+
+                    if(m_BDebugLines[DebugLine::TerrainTriangle])
+                        DebugDrawTriangle(triangle, glm::vec3(0.f, 255.f, 0.f));
+
+                    glm::vec3 norm = glm::normalize(CollisionShape::ClosestPointToPointOnTriangle(transform.Position, triangle)-transform.Position);
+
+                    float moveangle = glm::dot(velocity.Velocity,norm);
+                    float j = -(1.f+ball.Elasticity) * moveangle / (1.f/ball.Mass);
+                    const glm::vec3 vecImpulse = j*norm;
+                    velocity.Velocity += vecImpulse / ball.Mass;
+
+                    // Add friction
+                    if (glm::length(velocity.Velocity) > 0.f) {
+                        const float frictionConstant = triangle.FrictionConstant;
+                        fri = -glm::normalize(velocity.Velocity) * (frictionConstant * ball.Mass);
+                    }
+                    ball.LastTriangleIndex = ball.TriangleIndex;
+                    foundCollision = true;
+
+                    auto dist = (glm::dot(transform.Position - triangle.A, triangle.N));
+                    transform.Position += glm::normalize(triangle.N) * (-dist + ball.Radius);
+
+                }
+
+
+                //small terrain
 				for (int i{ 0 }; i < terrain.Triangles.size(); i++) {
 
                     //------ new collision ------
@@ -442,6 +484,7 @@ namespace FLOOF {
                         ball.TriangleIndex = -1;
 				}
 
+
                 //https://en.wikipedia.org/wiki/Verlet_integration
                 transform.Position += (velocity.Velocity*static_cast<float>(deltaTime)) +(((velocity.Force)+fri)*(static_cast<float>(deltaTime)*static_cast<float>(deltaTime)*0.5f));
                 velocity.Velocity += (((velocity.Force/ball.Mass)+fri)*static_cast<float>(deltaTime)*0.5f);
@@ -476,12 +519,12 @@ namespace FLOOF {
                 velocity.Force = glm::vec3(0.f);
 
                 //move ball when they fall and reset path
-                if(transform.Position.y <= -0.5f){
-                    const double minX{0};
-                    const double maxX{0.6};
-                    const double minZ{-0.4};
-                    const double maxZ{0.0};
-                    glm::vec3 loc(Math::RandDouble(minX,maxX),0.3f,Math::RandDouble(minZ,maxZ));
+                if(transform.Position.y <= -100.f){
+                    const double minX{-10};
+                    const double maxX{10};
+                    const double minZ{-10};
+                    const double maxZ{10};
+                    glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
                     transform.Position = loc;
                     velocity.Velocity = glm::vec3(0.f);
                     ball.Path.clear();
@@ -604,6 +647,7 @@ namespace FLOOF {
 		m_BDebugLines[DebugLine::ClosestPointToBall] = false;
         m_BDebugLines[DebugLine::GravitationalPull] = false;
         m_BDebugLines[DebugLine::Path] = true;
+        m_BDebugLines[DebugLine::OctTree] = true;
 	}
 
 	void Application::DebugClearLineBuffer() {
@@ -709,15 +753,15 @@ namespace FLOOF {
 
     const void Application::SpawnRain(const int count) {
 
-        const double minX{0};
-        const double maxX{0.6};
-        const double minZ{-0.4};
-        const double maxZ{0.0};
+        const double minX{-10};
+        const double maxX{10};
+        const double minZ{-10};
+        const double maxZ{10};
 
         for(int i = 0; i < count; i++){
-            float rad = Math::RandDouble(0.007f,0.01f);
+            float rad = Math::RandDouble(0.1f,0.5f);
             float mass = rad*10.f;
-                glm::vec3 loc(Math::RandDouble(minX,maxX),0.3f,Math::RandDouble(minZ,maxZ));
+                glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
                 SpawnBall(loc, rad, mass);
         }
     }
@@ -735,7 +779,7 @@ namespace FLOOF {
 
         auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
         m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
-        m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
+        m_Registry.emplace<TextureComponent>(ballEntity, "Assets/LightBlue.png");
 
         transform.Position = location;
         transform.Scale = glm::vec3(ball.Radius);

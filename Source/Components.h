@@ -121,6 +121,7 @@ namespace FLOOF {
 		TerrainComponent(const std::vector<Triangle>& vertexData);
 		std::vector<Triangle> Triangles;
 		void PrintTriangleData();
+        std::vector<Triangle*> GetOverlappingTriangles(CollisionShape* shape);
 	};
 
     struct BallComponent {
