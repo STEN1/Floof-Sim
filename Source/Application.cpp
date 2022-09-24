@@ -340,7 +340,7 @@ namespace FLOOF {
 		{
 			auto view = m_Registry.view<TransformComponent, VelocityComponent, BallComponent>();
 			for (auto [entity, transform, velocity, ball] : view.each()) {
-				octree.Insert(Octree::CollisionObject(&ball.CollisionSphere, transform, velocity, ball));
+				octree.Insert(std::make_shared<Octree::CollisionObject>(&ball.CollisionSphere, transform, velocity, ball));
 			}
 
 			std::vector<Octree*> leafNodes;
@@ -357,17 +357,17 @@ namespace FLOOF {
             glm::vec3 acc(0.f, -Math::Gravity, 0.f);
             glm::vec3 fri(0.f);
 
-			std::vector<std::pair<Octree::CollisionObject, Octree::CollisionObject>> collisionPairs;
+			std::vector<std::pair<Octree::CollisionObject*, Octree::CollisionObject*>> collisionPairs;
 			octree.GetCollisionPairs(collisionPairs);
 
 			for (auto& [obj1, obj2] : collisionPairs) {
-				auto& collidingTransform1 = obj1.Transform;
-				auto& collidingVelocity1 = obj1.Velocity;
-				auto& collidingBall1 = obj1.Ball;
+				auto& collidingTransform1 = obj1->Transform;
+				auto& collidingVelocity1 = obj1->Velocity;
+				auto& collidingBall1 = obj1->Ball;
 
-				auto& collidingTransform2 = obj2.Transform;
-				auto& collidingVelocity2 = obj2.Velocity;
-				auto& collidingBall2 = obj2.Ball;
+				auto& collidingTransform2 = obj2->Transform;
+				auto& collidingVelocity2 = obj2->Velocity;
+				auto& collidingBall2 = obj2->Ball;
 
 				//calculate velocity when collision with another ball
                 glm::vec3 contactNormal{Math::GetSafeNormal()};

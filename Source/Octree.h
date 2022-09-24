@@ -24,9 +24,9 @@ namespace FLOOF {
 		};
 
 		Octree(const AABB& aabb);
-		void Insert(const CollisionObject& object);
-		void FindIntersectingObjects(const CollisionObject& object, std::vector<CollisionObject>& outVec);
-		void GetCollisionPairs(std::vector<std::pair<CollisionObject, CollisionObject>>& outVec);
+		void Insert(std::shared_ptr<CollisionObject> object);
+		void FindIntersectingObjects(const CollisionObject& object, std::vector<CollisionObject*>& outVec);
+		void GetCollisionPairs(std::vector<std::pair<CollisionObject*, CollisionObject*>>& outVec);
 		void Divide();
 		void GetActiveLeafNodes(std::vector<Octree*>& outVec);
 		void GetAllNodes(std::vector<Octree*>& outVec);
@@ -36,7 +36,7 @@ namespace FLOOF {
 		bool m_IsActive = false;
 		bool IsLeaf();
 		std::vector<std::unique_ptr<Octree>> m_ChildNodes;
-		std::vector<CollisionObject> m_CollisionObjects;
+		std::vector<std::shared_ptr<CollisionObject>> m_CollisionObjects;
 		inline static uint32_t s_MaxObjects = 20;
 		inline static float s_MinExtent = 0.025f;
 	};

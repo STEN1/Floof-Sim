@@ -5,8 +5,8 @@ namespace FLOOF {
 		: m_AABB(aabb) {
 	}
 
-	void Octree::Insert(const CollisionObject& object) {
-		if (!object.Shape->Intersect(&m_AABB))
+	void Octree::Insert(std::shared_ptr<CollisionObject> object) {
+		if (!object->Shape->Intersect(&m_AABB))
 			return;
 		
 		if (IsLeaf()) {
@@ -33,7 +33,7 @@ namespace FLOOF {
 		}
 	}
 
-	void Octree::FindIntersectingObjects(const CollisionObject& object, std::vector<CollisionObject>& outVec) {
+	void Octree::FindIntersectingObjects(const CollisionObject& object, std::vector<CollisionObject*>& outVec) {
 		for (auto& node : m_ChildNodes) {
 			if (node->m_IsActive)
 				node->FindIntersectingObjects(object, outVec);
@@ -41,21 +41,28 @@ namespace FLOOF {
 
 		if (IsLeaf()) {
 			for (auto& obj : m_CollisionObjects) {
-				if (obj == object) {
+				if (obj->Shape == object.Shape) {
 					continue;
 				}
 
-				if (obj.Shape->Intersect(object.Shape)) {
-					auto it = std::find(outVec.begin(), outVec.end(), obj);
-					if (it == outVec.end()) {
-						outVec.push_back(obj);
+				if (obj->Shape->Intersect(object.Shape)) {
+					bool found = false;
+					for (auto outObject : outVec) {
+						if (obj->Shape == outObject->Shape) {
+							found = true;
+							break;
+						}
 					}
+					if (found) {
+						continue;
+					}
+					outVec.push_back(obj.get());
 				}
 			}
 		}
 	}
 
-	void Octree::GetCollisionPairs(std::vector<std::pair<CollisionObject, CollisionObject>>& outVec) {
+	void Octree::GetCollisionPairs(std::vector<std::pair<CollisionObject*, CollisionObject*>>& outVec) {
 		for (auto& node : m_ChildNodes) {
 			if (node->m_IsActive)
 				node->GetCollisionPairs(outVec);
@@ -65,25 +72,25 @@ namespace FLOOF {
 			for (int i = 0; i < m_CollisionObjects.size() - 1; i++) {
 				for (int j = i + 1; j < m_CollisionObjects.size(); j++) {
 					// Continue if not intersecting.
-					if (!m_CollisionObjects[i].Shape->Intersect(m_CollisionObjects[j].Shape)) {
+					if (!m_CollisionObjects[i]->Shape->Intersect(m_CollisionObjects[j]->Shape)) {
 						continue;
 					}
 
 					// Look for j in i. i should then also be in j so dont need to check.
-					auto it = std::find(m_CollisionObjects[i].OverlappingShapes.begin(),
-						m_CollisionObjects[i].OverlappingShapes.end(), m_CollisionObjects[i].Shape);
+					auto it = std::find(m_CollisionObjects[i]->OverlappingShapes.begin(),
+						m_CollisionObjects[i]->OverlappingShapes.end(), m_CollisionObjects[i]->Shape);
 
 					// Continue if found.
-					if (it != m_CollisionObjects[i].OverlappingShapes.end()) {
+					if (it != m_CollisionObjects[i]->OverlappingShapes.end()) {
 						continue;
 					}
 
 					// We are now intersecting and not in overlapping arrays.
 					// In each overlapping array and push to outVec.
-					m_CollisionObjects[i].OverlappingShapes.push_back(m_CollisionObjects[j].Shape);
-					m_CollisionObjects[j].OverlappingShapes.push_back(m_CollisionObjects[i].Shape);
+					m_CollisionObjects[i]->OverlappingShapes.push_back(m_CollisionObjects[j]->Shape);
+					m_CollisionObjects[j]->OverlappingShapes.push_back(m_CollisionObjects[i]->Shape);
 
-					outVec.emplace_back(std::make_pair(m_CollisionObjects[i], m_CollisionObjects[j]));
+					outVec.emplace_back(std::make_pair(m_CollisionObjects[i].get(), m_CollisionObjects[j].get()));
 				}
 			}
 		}
