@@ -30,7 +30,7 @@ add_executable(Floof
     Source/LasLoader.cpp 
 	Source/LasLoader.h 
 	Source/Octree.h 
-	Source/Octree.cpp)
+	Source/Octree.cpp Source/Simulate.cpp Source/Simulate.h)
 
 
 find_package(Vulkan REQUIRED)
