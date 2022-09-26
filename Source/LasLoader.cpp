@@ -167,7 +167,7 @@ void LasLoader::Triangulate() {
             auto n5 = glm::cross(g - a, b - a);
 
             glm::vec3 normal = n0 + n1 + n2 + n3 + n4 + n5;
-            normal = glm::normalize(normal);
+            normal = glm::normalize(-normal);
 
             VertexData[x + (zmax * z)].Normal = normal;
         }
