@@ -322,15 +322,37 @@ namespace FLOOF {
 	void BSplineComponent::Update(const std::vector<glm::vec3>& controllPoints) {
 		ASSERT(controllPoints.size() >= D + 1);
 		ControllPoints = controllPoints;
-		KnotPoints.resize(controllPoints.size() + D + 1);
-		KnotPoints[0] = 0;
-		KnotPoints[1] = 0;
-		KnotPoints[2] = 0;
-		int i = 3;
-		while (i < KnotPoints.size() - 3) {
-			i++;
-			KnotPoints[i] = i - D;
+
+		KnotPoints.resize(ControllPoints.size() + D + 1);
+
+		int tValue = 0;
+		for (uint32_t i = 0; i < (D + 1); i++) {
+			KnotPoints[i] = tValue;
 		}
+
+		tValue++;
+
+		for (uint32_t i = (D + 1); i < (KnotPoints.size() - (D + 1)); i++) {
+			KnotPoints[i] = tValue++;
+		}
+
+		for (uint32_t i = (KnotPoints.size() - (D + 1)); i < KnotPoints.size(); i++) {
+			KnotPoints[i] = tValue;
+		}
+
+		TMax = static_cast<float>(tValue);
+	}
+
+	void BSplineComponent::AddControllPoint(const glm::vec3& point) {
+		ASSERT(ControllPoints.size() >= D + 1);
+		ControllPoints.push_back(point);
+		KnotPoints.push_back(KnotPoints[KnotPoints.size() - 1]);
+
+		for (uint32_t i = (KnotPoints.size() - (D + 1)); i < KnotPoints.size(); i++) {
+			KnotPoints[i]++;
+		}
+
+		TMax = KnotPoints[KnotPoints.size() - 1];
 	}
 
 	int BSplineComponent::FindKnotInterval(float t) {

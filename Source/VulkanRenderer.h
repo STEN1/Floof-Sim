@@ -59,9 +59,10 @@ namespace FLOOF {
 		None = 0,
 		Basic = 1,
 		Line = 2,
-		Lit = 3,
-		Normal = 4,
-		Point = 5,
+		LineStrip = 3,
+		Lit = 4,
+		Normal = 5,
+		Point = 6,
 	};
 
 	inline RenderPipelineFlags operator | (RenderPipelineFlags lhs, RenderPipelineFlags rhs) {
