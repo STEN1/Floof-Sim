@@ -70,7 +70,7 @@ namespace FLOOF {
 		}
 
 		if (IsLeaf()) {
-			for (int i = 0; i < m_CollisionObjects.size() - 1; i++) {
+			for (int i = 0; i < (int)m_CollisionObjects.size() - 1; i++) {
 				for (int j = i + 1; j < m_CollisionObjects.size(); j++) {
 					// Continue if not intersecting.
 					if (!m_CollisionObjects[i]->Shape->Intersect(m_CollisionObjects[j]->Shape)) {

@@ -361,8 +361,8 @@ namespace FLOOF {
         deltaTime *= m_DeltaTimeModifier;
 
 		AABB worldExtents{};
-		worldExtents.extent = glm::vec3(1000.f);
-		worldExtents.pos = glm::vec3(0.f);
+		worldExtents.extent = glm::vec3(200.f);
+		worldExtents.pos = worldExtents.extent / 2.f;
 		Octree octree(worldExtents);
 
 		{
@@ -489,7 +489,7 @@ namespace FLOOF {
 		// Camera setup
 		auto extent = m_Renderer->GetExtent();
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
-		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 100.f);
+		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 500.f);
 
 		if (m_DrawNormals == false) {	// Geometry pass
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
