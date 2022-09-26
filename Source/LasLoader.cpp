@@ -82,8 +82,8 @@ void LasLoader::Triangulate() {
     // Squares just use vec2, not vec3, so y = z
     std::vector<Square> squares;
 
-    int xSquares = (max.x - min.x)/resolution;
-    int zSquares = (max.z - min.z)/resolution;
+	xSquares = (max.x - min.x)/resolution;
+	zSquares = (max.z - min.z)/resolution;
 
     // Create right number of squares
     for (float z = min.z; z < max.z; z += resolution) {
@@ -95,6 +95,8 @@ void LasLoader::Triangulate() {
             squares.push_back(tempSquare);
         }
     }
+
+    glm::vec2 startPos = squares[0].pos;
 
     // Put points in correct squares
     for (auto& vertex : PointData){
@@ -108,6 +110,8 @@ void LasLoader::Triangulate() {
             }
         }
     }
+
+    startSquare = glm::vec2(squares[0].pos);
 
     // Find the average height of each square and create vertex
     for (auto& currentSquare : squares) {
@@ -177,6 +181,9 @@ std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> LasLoader::GetI
 
 std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData()
 {
+    if (!TriangulatedVertexData.empty())
+        return TriangulatedVertexData;
+
     std::vector<FLOOF::MeshVertex> verts;
     int i = 0;
     while (i != IndexData.size()) {
@@ -212,13 +219,15 @@ std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData()
         verts.push_back(tempC);
 
     }
+    TriangulatedVertexData = verts;
 
-    return verts;
+    return TriangulatedVertexData;
 }
 
 std::vector<FLOOF::Triangle> LasLoader::GetTriangles() {
 
-    std::vector<FLOOF::Triangle> tris;
+	if (!triangles.empty())
+        return triangles;
 
     int i = 0;
     while (i != IndexData.size()) {
@@ -239,10 +248,35 @@ std::vector<FLOOF::Triangle> LasLoader::GetTriangles() {
         auto ac = tempTri.A - tempTri.C;
         tempTri.N = glm::normalize(glm::cross(ab, ac));
 
-        tris.push_back(tempTri);
+        triangles.push_back(tempTri);
     }
 
-    return tris;
+    return triangles;
+}
+
+std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, float radius)
+{
+
+    std::vector<FLOOF::Triangle*> returntris;
+
+    int centerX = pos.x - startSquare.y / resolution;
+    int centerZ = pos.y - startSquare.y / resolution;
+
+    int minX = centerX - radius;
+    int minZ = centerZ - radius;
+
+    int maxX = centerX + radius;
+    int maxZ = centerZ + radius;
+
+    for (int x = minX; x <= maxX; ++x)
+    {
+	    for (int z = minZ; z <= maxZ; ++z)
+	    {
+            int currentIndex = x + (z * zSquares);
+            returntris.push_back(&triangles[currentIndex]);
+	    }
+    }
+    return returntris;
 }
 
 
