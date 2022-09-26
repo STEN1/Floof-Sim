@@ -259,7 +259,6 @@ std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, floa
 
     std::vector<FLOOF::Triangle*> returntris;
 
-
     int centerX = pos.x - startSquare.y / resolution;
     int centerZ = pos.y - startSquare.y / resolution;
 
@@ -271,11 +270,10 @@ std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, floa
 
     for (int x = minX; x <= maxX; ++x)
     {
-	    for (int z = 0; z <= maxZ; ++z)
+	    for (int z = minZ; z <= maxZ; ++z)
 	    {
             int currentIndex = x + (z * zSquares);
             returntris.push_back(&triangles[currentIndex]);
-
 	    }
     }
     return returntris;
