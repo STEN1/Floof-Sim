@@ -26,6 +26,7 @@ private:
     void UpdatePoints();
     void Triangulate();
 
+
     glm::vec3 min{0.f};
     glm::vec3 max{0.f};
     glm::vec3 middle{0.f};

@@ -168,7 +168,23 @@ void LasLoader::Triangulate() {
         }
     }
 
-    int xmin = 1, xmax = xSquares, zmin = 1, zmax = zSquares; // The size to draw
+    int xmin = 0, xmax = xSquares, zmin = 0, zmax = zSquares; // The size to draw
+
+    for (int x = 0; x < xmax-1; ++x)
+    {
+        int z = 0;
+        glm::vec3 normal(0.f, 1.f, 0.f);
+        VertexData[x].Normal = normal;
+    }
+
+    for (int z = 0; z < zmax - 1; ++z)
+    {
+        int x = 0;
+        glm::vec3 normal(0.f, 1.f, 0.f);
+        VertexData[z * zmax].Normal = normal;
+    }
+    xmin++;
+    zmin++;
 
     for (int z = zmin; z < zmax - 1; z++)
     {
