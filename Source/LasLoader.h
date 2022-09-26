@@ -12,27 +12,30 @@ public:
     std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> GetIndexedData();
     std::vector<FLOOF::MeshVertex> GetVertexData();
     std::vector<FLOOF::Triangle> GetTriangles();
+    std::vector<FLOOF::Triangle*> GetCurrentTriangles(glm::vec3 pos, float radius);
 
 private:
     std::vector<FLOOF::ColorVertex> PointData;
     std::vector<FLOOF::MeshVertex> VertexData;
     std::vector<uint32_t> IndexData;
+    std::vector<FLOOF::MeshVertex> TriangulatedVertexData;
+    std::vector<FLOOF::Triangle> triangles;
     glm::vec3 offset{};
 
     void CalcCenter();
     void FindMinMax();
     void UpdatePoints();
+    void Triangulate();
+
     glm::vec3 min{0.f};
     glm::vec3 max{0.f};
     glm::vec3 middle{0.f};
     float scale{1.f};
 
+    int xSquares{ 0 };
+    int zSquares{ 0 };
     float resolution{2.f};
-
-
-    void Triangulate();
-
-
+    glm::vec2 startSquare{ 0.f };
 
 };
 
