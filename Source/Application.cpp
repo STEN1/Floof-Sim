@@ -99,8 +99,8 @@ namespace FLOOF {
            m_PointCloudEntity = m_Registry.create();
             m_Registry.emplace<PointCloudComponent>(m_PointCloudEntity, map.GetPointData());
 			auto [vData, iData] = map.GetIndexedData();
-			//m_Registry.emplace<MeshComponent>(m_PointCloudEntity, vData, iData); // smooth shade
-			m_Registry.emplace<MeshComponent>(m_PointCloudEntity, map.GetVertexData()); // flat shade
+			m_Registry.emplace<MeshComponent>(m_PointCloudEntity, vData, iData); // smooth shade
+			//m_Registry.emplace<MeshComponent>(m_PointCloudEntity, map.GetVertexData()); // flat shade
 			m_Registry.emplace<TextureComponent>(m_PointCloudEntity, "Assets/HappyTree.png");
 			m_Registry.emplace<TransformComponent>(m_PointCloudEntity);
             m_Registry.emplace<TerrainComponent>(m_PointCloudEntity,map.GetTriangles());
