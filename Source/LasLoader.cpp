@@ -37,7 +37,7 @@ std::vector<FLOOF::ColorVertex> LasLoader::GetPointData() {
 void LasLoader::FindMinMax() {
 
     // Check if min/max already found
-    if (min != glm::vec3(0.f) && max != glm::vec3(0.f)){
+    if (max != glm::vec3(0.f)){
         return;
     }
     min = glm::vec3(std::numeric_limits<float>::max());
@@ -59,18 +59,19 @@ void LasLoader::CalcCenter() {
 
     // Find middle
     middle = min + (max-min)/2.f;
-
+    offset = min;
+    //offset.y = middle.y;
     // Update min/max
-    min -= middle;
-    max -= middle;
+    min -= offset;
+    max -= offset;
 }
 
 void LasLoader::UpdatePoints() {
 
-    FindMinMax();
+    //FindMinMax();
     for (auto& vertex : PointData) {
         if (middle != glm::vec3(0.f))
-            vertex.Pos -= middle;
+            vertex.Pos -= offset;
         vertex.Pos *= scale;
     }
     min *= scale;
@@ -124,15 +125,37 @@ void LasLoader::Triangulate() {
         currentSquare.averageHeight /= currentSquare.vertexes.size();
 
         FLOOF::MeshVertex tempVertex{};
-        tempVertex.Pos = glm::vec3(currentSquare.pos.x, currentSquare.averageHeight, currentSquare.pos.y);
+
+        // Offset so first vertex starts at  zero
+        float off{ resolution / 2.f };
+        tempVertex.Pos = glm::vec3(currentSquare.pos.x - off, currentSquare.averageHeight - max.y, currentSquare.pos.y-off);
         //tempVertex.Pos = glm::vec3(currentSquare.pos, currentSquare.averageHeight);
 
         VertexData.push_back(tempVertex);
     }
 
+    // If no points in square
+  //  for (int z = 0; z < zSquares; ++z)
+  //  {
+	 //   for (int x = 0; x < xSquares; ++x)
+	 //   {
+  //          if (squares[x + (z * zSquares)].averageHeight == 0.f)
+  //          {
+  //              float average{ 0.f };
+  //              int count{ 0 };
+  //              if (x != 0) {average += squares[x - 1 + (z * zSquares)].averageHeight;count++;}
+  //              else if (x != xSquares) {average += squares[x + 1 + (z * zSquares)].averageHeight;count++;}
+  //              if (z != 0) {average += squares[x + (z - 1 * zSquares)].averageHeight;}
+  //              else if (z != zSquares) {average += squares[x + (z + 1 * zSquares)].averageHeight; count++;}
+  //          	squares[x + (z * zSquares)].averageHeight = average / count;
+		//	}
+		//}
+  //  }
+
+
     // Create Index
-    for (int z = 1; z < zSquares - 1; ++z) {
-        for (int x = 1; x < xSquares - 1; ++x) {
+    for (int z = 0; z < zSquares - 1; ++z) {
+        for (int x = 0; x < xSquares - 1; ++x) {
 
             IndexData.emplace_back(x + (zSquares * z));
         	IndexData.emplace_back(x + 1 + (zSquares * (z + 1)));
@@ -167,7 +190,7 @@ void LasLoader::Triangulate() {
             auto n5 = glm::cross(g - a, b - a);
 
             glm::vec3 normal = n0 + n1 + n2 + n3 + n4 + n5;
-            normal = glm::normalize(normal);
+            normal = glm::normalize(-normal);
 
             VertexData[x + (zmax * z)].Normal = normal;
         }
@@ -259,22 +282,33 @@ std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, floa
 
     std::vector<FLOOF::Triangle*> returntris;
 
-    int centerX = pos.x - startSquare.y / resolution;
-    int centerZ = pos.y - startSquare.y / resolution;
+    if (pos.x < min.x || pos.z < min.z || pos.x > max.x || pos.z > max.z)
+        return returntris;
 
-    int minX = centerX - radius;
-    int minZ = centerZ - radius;
+    int posX = pos.x / resolution;
+    int posZ = pos.z / resolution;
 
-    int maxX = centerX + radius;
-    int maxZ = centerZ + radius;
+    int minX = posX - radius;
+    if (minX < 0)
+        minX = 0;
+    int minZ = pos.z - radius;
+    if (minZ < 0)
+        minZ = 0;
+    int maxX = posZ + radius;
+    if (maxX > xSquares)
+        maxX = xSquares;
+    int maxZ = posZ + radius;
+    if (maxZ > zSquares)
+        maxZ = zSquares;
 
-    for (int x = minX; x <= maxX; ++x)
+
+    for (int z = minZ; z <= maxZ; ++z)
     {
-	    for (int z = minZ; z <= maxZ; ++z)
-	    {
-            int currentIndex = x + (z * zSquares);
+        for (int x = minX; x <= maxX; ++x)
+        {
+            int currentIndex = x + (z * zSquares*2);
             returntris.push_back(&triangles[currentIndex]);
-	    }
+        }
     }
     return returntris;
 }

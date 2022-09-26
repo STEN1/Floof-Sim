@@ -20,7 +20,6 @@ private:
     std::vector<uint32_t> IndexData;
     std::vector<FLOOF::MeshVertex> TriangulatedVertexData;
     std::vector<FLOOF::Triangle> triangles;
-    glm::vec3 offset{};
 
     void CalcCenter();
     void FindMinMax();
@@ -30,11 +29,12 @@ private:
     glm::vec3 min{0.f};
     glm::vec3 max{0.f};
     glm::vec3 middle{0.f};
+    glm::vec3 offset{ 0.f };
     float scale{1.f};
 
     int xSquares{ 0 };
     int zSquares{ 0 };
-    float resolution{2.f};
+    float resolution{1.f};
     glm::vec2 startSquare{ 0.f };
 
 };
