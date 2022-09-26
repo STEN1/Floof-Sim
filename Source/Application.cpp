@@ -154,6 +154,30 @@ namespace FLOOF {
 			camera.Pitch(0.5f);
 		}
 
+		{
+			const auto entity = m_Registry.create();
+			std::vector<glm::vec3> controllpoints = {
+				glm::vec3{1.f, 0.f, 0.f},
+				glm::vec3{1.f, 1.f, 0.f},
+				glm::vec3{0.f, 1.f, 0.f},
+				glm::vec3{0.f, 0.f, 0.f},
+				glm::vec3{0.f, 0.f, -1.f}
+			};
+			auto& bSpline = m_Registry.emplace<BSplineComponent>(entity, controllpoints);
+			std::vector<ColorVertex> vertexData;
+			glm::vec3 color{ 1.f };
+			float t = bSpline.TMin;
+			ColorVertex v;
+			v.Color = color;
+			for (; t < bSpline.TMax; t += 0.01f) {
+				v.Pos = bSpline.EvaluateBSpline(t);
+				vertexData.push_back(v);
+			}
+			v.Pos = bSpline.EvaluateBSpline(bSpline.TMax);
+			vertexData.push_back(v);
+			m_Registry.emplace<LineMeshComponent>(entity, vertexData);
+		}
+
 		Timer timer;
 		float titleBarUpdateTimer{};
 		float titlebarUpdateRate = 0.1f;
@@ -507,6 +531,19 @@ namespace FLOOF {
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(ColorPushConstants), &constants);
 				cloud.Draw(commandBuffer);
+			}
+		}
+
+		{	// draw BSplines
+			ColorPushConstants constants;
+			constants.MVP = vp;
+			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::LineStrip);
+			vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+				0, sizeof(ColorPushConstants), &constants);
+
+			auto view = m_Registry.view<BSplineComponent, LineMeshComponent>();
+			for (auto [entity, bSpline, lineMesh] : view.each()) {
+				lineMesh.Draw(commandBuffer);
 			}
 		}
 

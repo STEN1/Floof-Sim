@@ -122,6 +122,7 @@ namespace FLOOF {
 		std::vector<Triangle> Triangles;
 		void PrintTriangleData();
         std::vector<Triangle*> GetOverlappingTriangles(CollisionShape* shape);
+		std::vector<std::vector<std::pair<Triangle, Triangle>>> Rectangles;
 	};
 
     struct BallComponent {
@@ -141,7 +142,10 @@ namespace FLOOF {
 	public:
 		BSplineComponent(const std::vector<glm::vec3>& controllPoints);
 		void Update(const std::vector<glm::vec3>& controllPoints);
+		void AddControllPoint(const glm::vec3& point);
 		glm::vec3 EvaluateBSpline(float t);
+		float TMin = 0.f;
+		float TMax = 0.f;
 	private:
 		std::vector<int> KnotPoints;
 		std::vector<glm::vec3> ControllPoints;
