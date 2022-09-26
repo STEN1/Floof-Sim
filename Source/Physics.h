@@ -2,13 +2,9 @@
 
 #include "Math.h"
 #include "Vertex.h"
-//#include "Octree.h"
 
 namespace FLOOF {
-    //class Octree{
-    //public:
-      //  struct CollisionObject;
-    //};
+	class CollisionShape;
 	class AABB;
 	class Sphere;
 	class Plane;
@@ -16,6 +12,8 @@ namespace FLOOF {
 	class Triangle;
 	class Frustum;
     class CameraComponent;
+
+
 
 	class Physics {
 	public:

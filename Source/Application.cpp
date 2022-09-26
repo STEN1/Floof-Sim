@@ -330,7 +330,7 @@ namespace FLOOF {
 		}
 	}
 
-    void BallBallPhysics(Octree::CollisionObject* obj1, Octree::CollisionObject* obj2){
+    void BallBallPhysics(CollisionObject* obj1, CollisionObject* obj2){
         auto& collidingTransform1 = obj1->Transform;
         auto& collidingVelocity1 = obj1->Velocity;
         auto& collidingBall1 = obj1->Ball;
@@ -354,7 +354,7 @@ namespace FLOOF {
         collidingVelocity2.Velocity += vecImpulse / combinedMass;
     }
 
-    void BallBallOverlap(Octree::CollisionObject* obj1, Octree::CollisionObject* obj2){
+    void BallBallOverlap(CollisionObject* obj1, CollisionObject* obj2){
         auto& collidingTransform1 = obj1->Transform;
         auto& collidingBall1 = obj1->Ball;
         auto& collidingTransform2 = obj2->Transform;
@@ -378,7 +378,7 @@ namespace FLOOF {
 		{
 			auto view = m_Registry.view<TransformComponent, VelocityComponent, BallComponent>();
 			for (auto [entity, transform, velocity, ball] : view.each()) {
-				octree.Insert(std::make_shared<Octree::CollisionObject>(&ball.CollisionSphere, transform, velocity, ball));
+				octree.Insert(std::make_shared<CollisionObject>(&ball.CollisionSphere, transform, velocity, ball));
 			}
 
 			std::vector<Octree*> leafNodes;
@@ -398,7 +398,7 @@ namespace FLOOF {
             glm::vec3 acc(Math::GravitationalPull);
             glm::vec3 fri(0.f);
 
-			std::vector<std::pair<Octree::CollisionObject*, Octree::CollisionObject*>> collisionPairs;
+			std::vector<std::pair<CollisionObject*, CollisionObject*>> collisionPairs;
 			octree.GetCollisionPairs(collisionPairs);
 
 			for (auto& [obj1, obj2] : collisionPairs) {
