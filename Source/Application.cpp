@@ -405,7 +405,7 @@ namespace FLOOF {
                 BallBallPhysics(obj1,obj2);
 
                 BallBallOverlap(obj1,obj2);
-                std::vector<Octree::CollisionObject*> overlapingObjects;
+                std::vector<CollisionObject*> overlapingObjects;
                 octree.FindIntersectingObjects(*obj2, overlapingObjects);
                 for(auto& obj: overlapingObjects){
                     BallBallPhysics(obj,obj2);
