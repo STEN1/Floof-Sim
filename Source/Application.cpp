@@ -393,7 +393,7 @@ namespace FLOOF {
                    if(m_BDebugLines[DebugLine::TerrainTriangle])
                        DebugDrawTriangle(*tri, glm::vec3(0.f, 255.f, 0.f));
                 }
-               
+
                 //Ball small terrain collision
 				for (int i{ 0 }; i < terrain.Triangles.size(); i++) {
                     if(ball.CollisionSphere.Intersect(&terrain.Triangles[i])){
