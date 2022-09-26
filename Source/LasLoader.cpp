@@ -306,7 +306,7 @@ std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, floa
     {
         for (int x = minX; x <= maxX; ++x)
         {
-            int currentIndex = x + (z * zSquares*2);
+            int currentIndex = x + (z * zSquares);
             returntris.push_back(&triangles[currentIndex]);
         }
     }

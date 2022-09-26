@@ -9,6 +9,7 @@
 #include <chrono>
 #include <unordered_map>
 #include "Physics.h"
+#include "LasLoader.h"
 
 namespace FLOOF {
 	class Application {
@@ -86,5 +87,8 @@ namespace FLOOF {
 		bool m_DebugDraw = true;
 		bool m_DrawNormals = false;
 		bool m_ShowImguiDemo = false;
+        LasLoader* map{nullptr};
+
+        float m_CameraSpeed{2.f};
 	};
 }

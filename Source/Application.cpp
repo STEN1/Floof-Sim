@@ -96,15 +96,15 @@ namespace FLOOF {
 
         {
 
-            auto map = LasLoader("Assets/france.txt");
+            map = new LasLoader("Assets/france.txt");
            m_PointCloudEntity = m_Registry.create();
-            m_Registry.emplace<PointCloudComponent>(m_PointCloudEntity, map.GetPointData());
-			auto [vData, iData] = map.GetIndexedData();
+            m_Registry.emplace<PointCloudComponent>(m_PointCloudEntity, map->GetPointData());
+			auto [vData, iData] = map->GetIndexedData();
 			m_Registry.emplace<MeshComponent>(m_PointCloudEntity, vData, iData); // smooth shade
 			//m_Registry.emplace<MeshComponent>(m_PointCloudEntity, map.GetVertexData()); // flat shade
 			m_Registry.emplace<TextureComponent>(m_PointCloudEntity, "Assets/HappyTree.png");
 			m_Registry.emplace<TransformComponent>(m_PointCloudEntity);
-            m_Registry.emplace<TerrainComponent>(m_PointCloudEntity,map.GetTriangles());
+            m_Registry.emplace<TerrainComponent>(m_PointCloudEntity,map->GetTriangles());
             //m_Registry.emplace<TerrainComponent>(PointCloudEntity, map.GetTriangles());
 
         }
@@ -250,8 +250,7 @@ namespace FLOOF {
 		{	// Update camera.
 			auto view = m_Registry.view<CameraComponent>();
 			for (auto [entity, camera] : view.each()) {
-				static constexpr float speed = 2.f;
-				float moveAmount = speed * deltaTime;
+				float moveAmount = m_CameraSpeed * deltaTime;
 				if (Input::Key(GLFW_KEY_W) == GLFW_PRESS) {
 					camera.MoveForward(moveAmount);
 				}
@@ -290,6 +289,7 @@ namespace FLOOF {
                 DebugToggleDrawNormals();
             }
             ImGui::SliderFloat("Deltatime Modifer",&m_DeltaTimeModifier, 0.f, 1.f);
+            ImGui::SliderFloat("Camer Speed", &m_CameraSpeed, 1, 100);
 			ImGui::End();
 
 
@@ -327,6 +327,7 @@ namespace FLOOF {
             ImGui::SliderInt("Rain Ball Count", &raincount, 0, 1000);
             if(ImGui::Button("Spawn Rain"))
                 SpawnRain(raincount);
+            ImGui::Text("Balls In World = %i", m_BallCount);
             ImGui::End();
 		}
 	}
@@ -386,10 +387,12 @@ namespace FLOOF {
 
                 velocity.Force = Math::GravitationalPull * ball.Mass;
 
-                //ball Large terrain collision
+                //ball Large terrain collision//
+                //auto mathiasSittwork = map->GetCurrentTriangles(transform.Position,ball.Radius);
                auto collisions = pointCloud.GetOverlappingTriangles(&ball.CollisionSphere);
                for(auto& tri: collisions){
-                   Simulate::CalculateCollision(&ballObject,*tri,time,fri);
+                   if(ball.CollisionSphere.Intersect(tri))
+                       Simulate::CalculateCollision(&ballObject,*tri,time,fri);
                    if(m_BDebugLines[DebugLine::TerrainTriangle])
                        DebugDrawTriangle(*tri, glm::vec3(0.f, 255.f, 0.f));
                 }
@@ -441,10 +444,10 @@ namespace FLOOF {
 
                 //move ball when they fall and reset path
                 if(transform.Position.y <= -100.f){
-                    const double minX{-10};
-                    const double maxX{10};
-                    const double minZ{-10};
-                    const double maxZ{10};
+                    const double minX{0};
+                    const double maxX{100};
+                    const double minZ{0};
+                    const double maxZ{100};
                     glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
                     transform.Position = loc;
                     velocity.Velocity = glm::vec3(0.f);
@@ -672,10 +675,10 @@ namespace FLOOF {
 
     const void Application::SpawnRain(const int count) {
 
-        const double minX{-10};
-        const double maxX{10};
-        const double minZ{-10};
-        const double maxZ{10};
+        const double minX{0};
+        const double maxX{100};
+        const double minZ{0};
+        const double maxZ{100};
 
         for(int i = 0; i < count; i++){
             float rad = Math::RandDouble(0.1f,0.5f);
