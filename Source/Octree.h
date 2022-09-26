@@ -2,27 +2,26 @@
 
 #include <vector>
 #include "Components.h"
-#include "Physics.h"
-#include "entt/entt.hpp"
+
 
 namespace FLOOF {
+	struct CollisionObject {
+		CollisionObject(CollisionShape* shape, TransformComponent& transform, VelocityComponent& velocity, BallComponent& ball)
+			: Shape(shape), Transform(transform), Velocity(velocity), Ball(ball) {
+		}
+		CollisionShape* Shape;
+		TransformComponent& Transform;
+		VelocityComponent& Velocity;
+		BallComponent& Ball;
+		std::vector<CollisionShape*> OverlappingShapes;
+
+		bool operator == (const CollisionObject& other) const {
+			return Shape == other.Shape;
+		}
+	};
+
 	class Octree {
 	public:
-		struct CollisionObject {
-			CollisionObject(CollisionShape* shape, TransformComponent& transform, VelocityComponent& velocity, BallComponent& ball) 
-				: Shape(shape), Transform(transform), Velocity(velocity), Ball(ball)
-			{}
-			CollisionShape* Shape;
-			TransformComponent& Transform;
-			VelocityComponent& Velocity;
-			BallComponent& Ball;
-			std::vector<CollisionShape*> OverlappingShapes;
-
-			bool operator == (const CollisionObject& other) const {
-				return Shape == other.Shape;
-			}
-		};
-
 		Octree(const AABB& aabb);
 		void Insert(std::shared_ptr<CollisionObject> object);
 		void FindIntersectingObjects(const CollisionObject& object, std::vector<CollisionObject*>& outVec);

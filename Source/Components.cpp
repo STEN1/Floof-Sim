@@ -5,6 +5,7 @@
 #include "ObjLoader.h"
 #include "LoggerMacros.h"
 #include "Utils.h"
+#include "Physics.h"
 
 namespace FLOOF {
 	TextureComponent::TextureComponent(const std::string& path) {

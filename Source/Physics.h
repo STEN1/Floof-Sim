@@ -4,6 +4,7 @@
 #include "Vertex.h"
 
 namespace FLOOF {
+	class CollisionShape;
 	class AABB;
 	class Sphere;
 	class Plane;
@@ -11,6 +12,8 @@ namespace FLOOF {
 	class Triangle;
 	class Frustum;
     class CameraComponent;
+
+
 
 	class Physics {
 	public:
@@ -22,6 +25,8 @@ namespace FLOOF {
 		static glm::vec3 GetAccelerationVector(const Triangle& triangle);
 		static void ElasticCollision(glm::vec3 p1, glm::vec3 p2, glm::vec3& v1, glm::vec3& v2);
 
+
+        static glm::vec3 GetContactNormal(const  glm::vec3 &pos1, const glm::vec3 &pos2);
 	};
 
 	class CollisionShape {

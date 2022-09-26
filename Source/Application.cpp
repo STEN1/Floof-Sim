@@ -10,6 +10,7 @@
 #include "imgui_impl_glfw.h"
 #include "LasLoader.h"
 #include "Octree.h"
+#include "Simulate.h"
 
 namespace FLOOF {
 	Application::Application() {
@@ -99,11 +100,13 @@ namespace FLOOF {
            m_PointCloudEntity = m_Registry.create();
             m_Registry.emplace<PointCloudComponent>(m_PointCloudEntity, map.GetPointData());
 			auto [vData, iData] = map.GetIndexedData();
-			//m_Registry.emplace<MeshComponent>(PointCloudEntity, vData, iData);
-			m_Registry.emplace<MeshComponent>(m_PointCloudEntity, map.GetVertexData());
+			m_Registry.emplace<MeshComponent>(m_PointCloudEntity, vData, iData); // smooth shade
+			//m_Registry.emplace<MeshComponent>(m_PointCloudEntity, map.GetVertexData()); // flat shade
 			m_Registry.emplace<TextureComponent>(m_PointCloudEntity, "Assets/HappyTree.png");
 			m_Registry.emplace<TransformComponent>(m_PointCloudEntity);
             m_Registry.emplace<TerrainComponent>(m_PointCloudEntity,map.GetTriangles());
+            //m_Registry.emplace<TerrainComponent>(PointCloudEntity, map.GetTriangles());
+
         }
 
 		{
@@ -327,6 +330,7 @@ namespace FLOOF {
             ImGui::End();
 		}
 	}
+
 	void Application::Simulate(double deltaTime) {
 
         deltaTime *= m_DeltaTimeModifier;
@@ -339,7 +343,7 @@ namespace FLOOF {
 		{
 			auto view = m_Registry.view<TransformComponent, VelocityComponent, BallComponent>();
 			for (auto [entity, transform, velocity, ball] : view.each()) {
-				octree.Insert(std::make_shared<Octree::CollisionObject>(&ball.CollisionSphere, transform, velocity, ball));
+				octree.Insert(std::make_shared<CollisionObject>(&ball.CollisionSphere, transform, velocity, ball));
 			}
 
 			std::vector<Octree*> leafNodes;
@@ -354,132 +358,53 @@ namespace FLOOF {
 
 		}
 
-		{	// Calculate ball velocity
+		{	// Calculate ball
 
-            glm::vec3 acc(0.f, -Math::Gravity, 0.f);
-            glm::vec3 fri(0.f);
-
-			std::vector<std::pair<Octree::CollisionObject*, Octree::CollisionObject*>> collisionPairs;
+			std::vector<std::pair<CollisionObject*, CollisionObject*>> collisionPairs;
 			octree.GetCollisionPairs(collisionPairs);
 
 			for (auto& [obj1, obj2] : collisionPairs) {
-				auto& collidingTransform1 = obj1->Transform;
-				auto& collidingVelocity1 = obj1->Velocity;
-				auto& collidingBall1 = obj1->Ball;
+                //BallBallPhysics(obj1,obj2);
+                Simulate::CalculateCollision(obj1,obj2);
+                Simulate::BallBallOverlap(obj1,obj2);
 
-				auto& collidingTransform2 = obj2->Transform;
-				auto& collidingVelocity2 = obj2->Velocity;
-				auto& collidingBall2 = obj2->Ball;
+                std::vector<CollisionObject*> overlapingObjects;
+                octree.FindIntersectingObjects(*obj2, overlapingObjects);
+                for(auto& obj: overlapingObjects){
 
-				//calculate velocity when collision with another ball
-                glm::vec3 contactNormal{Math::GetSafeNormal()};
-                if(glm::length(collidingTransform1.Position-collidingTransform2.Position) != 0 )
-                    contactNormal = glm::normalize(collidingTransform2.Position - collidingTransform1.Position);
-
-				auto combinedMass = collidingBall2.Mass + collidingBall1.Mass;
-				auto elasticity = collidingBall2.Elasticity * collidingBall1.Elasticity;
-				auto relVelocity = collidingVelocity2.Velocity - collidingVelocity1.Velocity;
-
-				float moveangle = glm::dot(relVelocity, contactNormal);
-				float j = -(1.f + elasticity) * moveangle / (1.f / combinedMass);
-				if (moveangle >= 0.f) { // moves opposite dirrections;
-					j = 0.f;
-				}
-				const glm::vec3 vecImpulse = j * contactNormal;
-				collidingVelocity2.Velocity += vecImpulse / combinedMass;
-
-                //move ball when overlapping
-                float dist = glm::length(collidingTransform1.Position-collidingTransform2.Position);
-                if(dist < (collidingBall1.Radius+collidingBall2.Radius)) {
-                    collidingTransform2.Position += contactNormal * ((collidingBall1.Radius + collidingBall2.Radius) - dist);
                 }
 			}
+
+            glm::vec3 fri(0.f);
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent>();
 			auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
             auto & pointCloud = m_Registry.get<TerrainComponent>(m_PointCloudEntity);
 			for (auto [entity, transform, ball, velocity,time] : view.each()) {
 
+                CollisionObject ballObject(&ball.CollisionSphere,transform,velocity,ball);
+
                 velocity.Force = Math::GravitationalPull * ball.Mass;
 
-                bool foundCollision = false;
+                //ball Large terrain collision
                auto collisions = pointCloud.GetOverlappingTriangles(&ball.CollisionSphere);
                for(auto& tri: collisions){
-
-                    Triangle triangle = *tri;
-                    //first hit on ground
-                    if(ball.Path.empty()){
-                        time.LastPoint = Timer::GetTime();
-                        ball.Path.emplace_back(transform.Position);
-                    }
-
-                    if(m_BDebugLines[DebugLine::TerrainTriangle])
-                        DebugDrawTriangle(triangle, glm::vec3(0.f, 255.f, 0.f));
-
-                    glm::vec3 norm = glm::normalize(CollisionShape::ClosestPointToPointOnTriangle(transform.Position, triangle)-transform.Position);
-
-                    float moveangle = glm::dot(velocity.Velocity,norm);
-                    float j = -(1.f+ball.Elasticity) * moveangle / (1.f/ball.Mass);
-                    const glm::vec3 vecImpulse = j*norm;
-                    velocity.Velocity += vecImpulse / ball.Mass;
-
-                    // Add friction
-                    if (glm::length(velocity.Velocity) > 0.f) {
-                        const float frictionConstant = triangle.FrictionConstant;
-                        fri = -glm::normalize(velocity.Velocity) * (frictionConstant * ball.Mass);
-                    }
-                    ball.LastTriangleIndex = ball.TriangleIndex;
-                    foundCollision = true;
-
-                    auto dist = (glm::dot(transform.Position - triangle.A, triangle.N));
-                    transform.Position += glm::normalize(triangle.N) * (-dist + ball.Radius);
-
+                   Simulate::CalculateCollision(&ballObject,*tri,time,fri);
+                   if(m_BDebugLines[DebugLine::TerrainTriangle])
+                       DebugDrawTriangle(*tri, glm::vec3(0.f, 255.f, 0.f));
                 }
 
-
-                //small terrain
+                //Ball small terrain collision
 				for (int i{ 0 }; i < terrain.Triangles.size(); i++) {
-
-                    //------ new collision ------
                     if(ball.CollisionSphere.Intersect(&terrain.Triangles[i])){
-                        ball.TriangleIndex = i;
-
-                        //first hit on ground
-                        if(ball.Path.empty()){
-                            time.LastPoint = Timer::GetTime();
-                            ball.Path.emplace_back(transform.Position);
-                        }
-
-
+                        Triangle& triangle = terrain.Triangles[i];
+                        Simulate::CalculateCollision(&ballObject,triangle,time,fri);
                         //draw debug triangle
                         if(m_BDebugLines[DebugLine::TerrainTriangle])
-                            DebugDrawTriangle(terrain.Triangles[i], glm::vec3(0.f, 255.f, 0.f));
-
-                        Triangle& triangle = terrain.Triangles[ball.TriangleIndex];
-
-                        glm::vec3 norm = glm::normalize(CollisionShape::ClosestPointToPointOnTriangle(transform.Position, triangle)-transform.Position);
-
-                        float moveangle = glm::dot(velocity.Velocity,norm);
-                        float j = -(1.f+ball.Elasticity) * moveangle / (1.f/ball.Mass);
-                        const glm::vec3 vecImpulse = j*norm;
-                        velocity.Velocity += vecImpulse / ball.Mass;
-
-                        // Add friction
-                       if (glm::length(velocity.Velocity) > 0.f) {
-                           const float frictionConstant = triangle.FrictionConstant;
-                           fri = -glm::normalize(velocity.Velocity) * (frictionConstant * ball.Mass);
-                        }
-                        ball.LastTriangleIndex = ball.TriangleIndex;
-                        foundCollision = true;
-
-                        auto dist = (glm::dot(transform.Position - triangle.A, triangle.N));
-                        transform.Position += glm::normalize(triangle.N) * (-dist + ball.Radius);
+                            DebugDrawTriangle(triangle, glm::vec3(0.f, 255.f, 0.f));
                     }
 
-                    if(!foundCollision)
-                        ball.TriangleIndex = -1;
 				}
-
 
                 //https://en.wikipedia.org/wiki/Verlet_integration
                 transform.Position += (velocity.Velocity*static_cast<float>(deltaTime)) +(((velocity.Force)+fri)*(static_cast<float>(deltaTime)*static_cast<float>(deltaTime)*0.5f));
@@ -488,16 +413,16 @@ namespace FLOOF {
                 //set collision sphere location
                 ball.CollisionSphere.pos = transform.Position;
 
-                const float pointIntervall{0.1f};
+                const float pointIntervall{0.2f};
                 //save ball path
                 if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !ball.Path.empty()){
                     time.LastPoint = Timer::GetTime();
                     ball.Path.emplace_back(transform.Position);
                 }
 
+                //draw debug lines
                 if(m_BDebugLines[DebugLine::Path])
                     DebugDrawPath(ball.Path);
-                //draw debug lines
                 if(m_BDebugLines[DebugLine::Friction])
                     DebugDrawLine(transform.Position, transform.Position + fri, glm::vec3(0.f, 125.f, 125.f));
                 if(m_BDebugLines[DebugLine::CollisionShape])
@@ -718,8 +643,6 @@ namespace FLOOF {
 			velocity.Velocity = glm::vec3(0.f);
             ball.CollisionSphere.radius = ball.Radius;
             ball.CollisionSphere.pos = transform.Position;
-            ball.LastTriangleIndex = -1;
-            ball.TriangleIndex = -1;
 		}
 
 	}
@@ -783,6 +706,7 @@ namespace FLOOF {
         ball.CollisionSphere.radius = ball.Radius;
         ball.CollisionSphere.pos = transform.Position;
 
+        m_BallCount++;
     }
 
     void Application::DebugToggleAllLines() {
