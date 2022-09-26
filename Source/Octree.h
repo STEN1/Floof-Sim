@@ -2,10 +2,11 @@
 
 #include <vector>
 #include "Components.h"
-#include "Physics.h"
+//#include "Physics.h"
 #include "entt/entt.hpp"
 
 namespace FLOOF {
+    class AABB;
 	class Octree {
 	public:
 		struct CollisionObject {

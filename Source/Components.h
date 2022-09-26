@@ -7,6 +7,7 @@
 #include <chrono>
 
 namespace FLOOF {
+
 	struct TransformComponent {
 		inline static constexpr bool in_place_delete = true;
 
@@ -31,7 +32,6 @@ namespace FLOOF {
 				transform = parent->GetLocalTransform() * transform;
 				parent = parent->Parent;
 			}
-
 			return transform;
 		}
 	};
@@ -128,8 +128,6 @@ namespace FLOOF {
         Sphere CollisionSphere;
         float Radius; // TODO dobbel lagring av radius !! fix??
         float Mass;
-        int LastTriangleIndex{-1};
-        int TriangleIndex{-1};
         float Elasticity{0.01f};
         std::vector<glm::vec3> Path;
     };

@@ -2,7 +2,7 @@
 
 #include <cmath>
 #include <algorithm>
-
+#include "Octree.h"
 #include "LoggerMacros.h"
 #include "Components.h"
 
@@ -31,7 +31,40 @@ namespace FLOOF {
 		v2 += normal;
 	}
 
-	float CollisionShape::DistanceFromPointToPlane(const glm::vec3& point, const glm::vec3& planePos, const glm::vec3& planeNormal) {
+    glm::vec3 Physics::GetContactNormal(const glm::vec3 &pos1, const glm::vec3 &pos2) {
+        glm::vec3 contactNormal{Math::GetSafeNormal()};
+        if(glm::length(pos1-pos2) != 0 )
+            contactNormal = glm::normalize(pos2 - pos1);
+        return contactNormal;
+    }
+/*
+    void Physics::CalculateCollision(Octree::CollisionObject *obj1, Octree::CollisionObject *obj2) {
+
+        auto &collidingTransform1 = obj1->Transform;
+        auto &collidingVelocity1 = obj1->Velocity;
+        auto &collidingBall1 = obj1->Ball;
+
+        auto &collidingTransform2 = obj2->Transform;
+        auto &collidingVelocity2 = obj2->Velocity;
+        auto &collidingBall2 = obj2->Ball;
+
+        auto contactNormal = Physics::GetContactNormal(collidingTransform1.Position, collidingTransform2.Position);
+
+        auto combinedMass = collidingBall2.Mass + collidingBall1.Mass;
+        auto elasticity = collidingBall2.Elasticity * collidingBall1.Elasticity;
+        auto relVelocity = collidingVelocity2.Velocity - collidingVelocity1.Velocity;
+
+        float moveangle = glm::dot(relVelocity, contactNormal);
+        float j = -(1.f + elasticity) * moveangle / (1.f / combinedMass);
+        if (moveangle >= 0.f) { // moves opposite dirrections;
+            j = 0.f;
+        }
+        const glm::vec3 vecImpulse = j * contactNormal;
+        collidingVelocity2.Velocity += vecImpulse / combinedMass;
+
+    }
+*/
+    float CollisionShape::DistanceFromPointToPlane(const glm::vec3& point, const glm::vec3& planePos, const glm::vec3& planeNormal) {
 		return glm::dot(point - planePos, planeNormal);
 	}
 
