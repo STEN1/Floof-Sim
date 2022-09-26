@@ -128,7 +128,7 @@ namespace FLOOF {
         Sphere CollisionSphere;
         float Radius; // TODO dobbel lagring av radius !! fix??
         float Mass;
-        float Elasticity{0.01f};
+        float Elasticity{0.05f};
         std::vector<glm::vec3> Path;
     };
     struct VelocityComponent {

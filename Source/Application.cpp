@@ -403,7 +403,14 @@ namespace FLOOF {
 
 			for (auto& [obj1, obj2] : collisionPairs) {
                 BallBallPhysics(obj1,obj2);
+
                 BallBallOverlap(obj1,obj2);
+                std::vector<Octree::CollisionObject*> overlapingObjects;
+                octree.FindIntersectingObjects(*obj2, overlapingObjects);
+                for(auto& obj: overlapingObjects){
+                    BallBallPhysics(obj,obj2);
+                    //BallBallOverlap(obj2,obj);
+                }
 			}
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent>();
