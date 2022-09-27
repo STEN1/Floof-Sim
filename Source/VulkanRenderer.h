@@ -63,6 +63,7 @@ namespace FLOOF {
 		Lit = 4,
 		Normal = 5,
 		Point = 6,
+		LineWithDepth = 7,
 	};
 
 	inline RenderPipelineFlags operator | (RenderPipelineFlags lhs, RenderPipelineFlags rhs) {

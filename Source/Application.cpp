@@ -494,18 +494,31 @@ namespace FLOOF {
 		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 500.f);
 
 		if (m_DrawNormals == false) {	// Geometry pass
-			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
-			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
-			for (auto [entity, transform, mesh, texture] : view.each()) {
-				MeshPushConstants constants;
-				constants.MVP = vp * transform.GetTransform();
-				constants.InvModelMat = glm::inverse(transform.GetTransform());
+
+			{ // Draw height lines
+				ColorPushConstants constants;
+				constants.MVP = vp;
+				auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::LineWithDepth);
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-					0, sizeof(MeshPushConstants), &constants);
+					0, sizeof(ColorPushConstants), &constants);
 
-				texture.Bind(commandBuffer);
+				auto& lineMesh = m_Registry.get<LineMeshComponent>(m_HeightLinesEntity);
+				lineMesh.Draw(commandBuffer);
+			}
+			{	// Draw models
+				auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
+				auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
+				for (auto [entity, transform, mesh, texture] : view.each()) {
+					MeshPushConstants constants;
+					constants.MVP = vp * transform.GetTransform();
+					constants.InvModelMat = glm::inverse(transform.GetTransform());
+					vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+						0, sizeof(MeshPushConstants), &constants);
 
-				mesh.Draw(commandBuffer);
+					texture.Bind(commandBuffer);
+
+					mesh.Draw(commandBuffer);
+				}
 			}
 		} else if (m_DrawNormals) { // Debug drawing of normals for geometry
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Normal);
@@ -547,17 +560,6 @@ namespace FLOOF {
 			for (auto [entity, bSpline, lineMesh] : view.each()) {
 				lineMesh.Draw(commandBuffer);
 			}
-		}
-
-		{ // Draw height lines
-			ColorPushConstants constants;
-			constants.MVP = vp;
-			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
-			vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-				0, sizeof(ColorPushConstants), &constants);
-
-			auto& lineMesh = m_Registry.get<LineMeshComponent>(m_HeightLinesEntity);
-			lineMesh.Draw(commandBuffer);
 		}
 
 		if (m_DebugDraw) { // Draw debug lines
@@ -754,7 +756,8 @@ namespace FLOOF {
 							glm::vec3 intersectionPoint = a + t * ab;
 
 							ColorVertex v;
-							v.Pos = intersectionPoint;
+							// Small offset to combat z-fighting
+							v.Pos = intersectionPoint + triangle.N * 0.005f;
 							v.Color = color;
 							heightLines.push_back(v);
 						}
