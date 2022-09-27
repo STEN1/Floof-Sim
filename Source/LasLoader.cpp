@@ -296,6 +296,9 @@ std::vector<FLOOF::Triangle> LasLoader::GetTriangles() {
 std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, float radius)
 {
 
+/*    pos = glm::vec3 (34.f, 0.f,1.f);
+    int indextest = (pos.x + (pos.z * zSquares))*2 - 1;
+    FLOOF::Triangle tritest = triangles[indextest];*/
     std::vector<FLOOF::Triangle*> returntris;
 
     if (pos.x < min.x || pos.z < min.z || pos.x > max.x || pos.z > max.z)
@@ -304,28 +307,43 @@ std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, floa
     int posX = pos.x / resolution;
     int posZ = pos.z / resolution;
 
+
+    //int indextest = (pos.x + (pos.z * zSquares))*2 - 1;
+
     int minX = posX - radius;
     if (minX < 0)
         minX = 0;
     int minZ = pos.z - radius;
     if (minZ < 0)
         minZ = 0;
-    int maxX = posZ + radius;
+    int maxX = posX + radius;
     if (maxX > xSquares)
         maxX = xSquares;
     int maxZ = posZ + radius;
     if (maxZ > zSquares)
         maxZ = zSquares;
 
+    int indextest = (pos.x*2 + (pos.z * (zSquares-1))*2);
+    FLOOF::Triangle tritest = triangles[indextest];
 
-    for (int z = minZ; z <= maxZ; ++z)
+
+    for (int z = minZ; z < maxZ; ++z)
     {
-        for (int x = minX; x <= maxX; ++x)
+        for (int x = minX*2; x < maxX*2; ++x)
         {
-            int currentIndex = x + (z * zSquares);
+            int currentIndex = (x + (z * (zSquares-1))*2);
             returntris.push_back(&triangles[currentIndex]);
         }
     }
+
+
+//    for (int z = minZ; z <= maxZ; ++z)
+//        zIndexes.emplace_back(z);
+//    for (int x = minX; x <= maxX; ++x)
+//        xIndexes.emplace_back(x);
+//
+//    int currentIndex = x + (z * zSquares)*2 - 1;
+//    returntris.push_back(&triangles[currentIndex]);
     return returntris;
 }
 
