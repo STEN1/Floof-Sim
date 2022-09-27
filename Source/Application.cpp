@@ -404,10 +404,10 @@ namespace FLOOF {
 
             glm::vec3 fri(0.f);
 
-			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent>();
+			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent, BSplineComponent>();
 			auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
             auto & pointCloud = m_Registry.get<TerrainComponent>(m_PointCloudEntity);
-			for (auto [entity, transform, ball, velocity,time] : view.each()) {
+			for (auto [entity, transform, ball, velocity,time,bSpline] : view.each()) {
 
                 CollisionObject ballObject(&ball.CollisionSphere,transform,velocity,ball);
 
@@ -428,6 +428,9 @@ namespace FLOOF {
                     if(ball.CollisionSphere.Intersect(&terrain.Triangles[i])){
                         Triangle& triangle = terrain.Triangles[i];
                         Simulate::CalculateCollision(&ballObject,triangle,time,fri);
+                        if(bSpline.empty()){
+                            bSpline.AddControllPoint(transform.Position);
+                        }
                         //draw debug triangle
                         if(m_BDebugLines[DebugLine::TerrainTriangle])
                             DebugDrawTriangle(triangle, glm::vec3(0.f, 255.f, 0.f));
@@ -443,10 +446,12 @@ namespace FLOOF {
                 ball.CollisionSphere.pos = transform.Position;
 
                 const float pointIntervall{0.2f};
+
                 //save ball path
                 if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !ball.Path.empty()){
                     time.LastPoint = Timer::GetTime();
                     ball.Path.emplace_back(transform.Position);
+                    bSpline.AddControllPoint(transform.Position);
                 }
 
                 //draw debug lines
@@ -832,7 +837,7 @@ namespace FLOOF {
         auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
         auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
-
+        auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
         ball.Radius = radius;
         ball.Mass = mass;
         time.CreationTime = Timer::GetTime();
