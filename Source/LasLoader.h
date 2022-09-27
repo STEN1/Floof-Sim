@@ -13,6 +13,7 @@ public:
     std::vector<FLOOF::MeshVertex> GetVertexData();
     std::vector<FLOOF::Triangle> GetTriangles();
     std::vector<FLOOF::Triangle*> GetCurrentTriangles(glm::vec3 pos, float radius);
+    std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> GetRectangles();
 
 private:
     std::vector<FLOOF::ColorVertex> PointData;
