@@ -325,6 +325,7 @@ namespace FLOOF {
             (ImGui::Checkbox(("Friction Vector"), &m_BDebugLines[DebugLine::Friction]));
             (ImGui::Checkbox(("Gravitational Pull"), &m_BDebugLines[DebugLine::GravitationalPull]));
             (ImGui::Checkbox(("Collision shapes"), &m_BDebugLines[DebugLine::CollisionShape]));
+            (ImGui::Checkbox(("Terrain Triangles"), &m_BDebugLines[DebugLine::TerrainTriangle]));
             (ImGui::Checkbox(("Closest triangle point"), &m_BDebugLines[DebugLine::ClosestPointToBall]));
             (ImGui::Checkbox(("Path Trace"), &m_BDebugLines[DebugLine::Path]));
             (ImGui::Checkbox(("Oct Tree"), &m_BDebugLines[DebugLine::OctTree]));
