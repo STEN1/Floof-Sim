@@ -147,6 +147,7 @@ namespace FLOOF {
 		float TMin = 0.f;
 		float TMax = 0.f;
 		inline static constexpr int D = 2;
+        bool empty(){return ControllPoints.empty();}
 	private:
 		std::vector<int> KnotPoints;
 		std::vector<glm::vec3> ControllPoints;

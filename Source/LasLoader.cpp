@@ -323,7 +323,7 @@ std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, floa
     if (maxZ > zSquares)
         maxZ = zSquares;
 
-    int indextest = (pos.x*2 + (pos.z * (zSquares-1))*2);
+    int indextest = (pos.x*2 + (pos.z * (zSquares-1.f))*2);
     FLOOF::Triangle tritest = triangles[indextest];
 
 

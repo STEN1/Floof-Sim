@@ -61,6 +61,7 @@ namespace FLOOF {
 		
 		// Init Logger. Writes to specified log file.
 		Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
+
 	}
 
 	Application::~Application() {
@@ -320,32 +321,17 @@ namespace FLOOF {
 
 
             ImGui::Begin("Toggle DebugLines");
-            if(ImGui::Button("All Debug Lines"))
-                DebugToggleAllLines();
-                if(ImGui::Button("Velocity Vector"))
-                m_BDebugLines[DebugLine::Velocity]  = !m_BDebugLines[DebugLine::Velocity];
-            if(ImGui::Button("Force Vector"))
-                m_BDebugLines[DebugLine::Force]  = !m_BDebugLines[DebugLine::Force];
-            if(ImGui::Button("Friction Vector"))
-                m_BDebugLines[DebugLine::Friction]  = !m_BDebugLines[DebugLine::Friction];
-            if(ImGui::Button("Collision shapes"))
-                m_BDebugLines[DebugLine::CollisionShape]  = !m_BDebugLines[DebugLine::CollisionShape];
-            if(ImGui::Button("Terrain Triangles"))
-                m_BDebugLines[DebugLine::TerrainTriangle]  = !m_BDebugLines[DebugLine::TerrainTriangle];
-            if(ImGui::Button("World Axis"))
-                m_BDebugLines[DebugLine::WorldAxis]  = !m_BDebugLines[DebugLine::WorldAxis];
-			if (ImGui::Button("Closest triangle point"))
-				m_BDebugLines[DebugLine::ClosestPointToBall] = !m_BDebugLines[DebugLine::ClosestPointToBall];
-            if(ImGui::Button("Gravitational Pull"))
-                m_BDebugLines[DebugLine::GravitationalPull]  = !m_BDebugLines[DebugLine::GravitationalPull];
-            if(ImGui::Button("Path Trace"))
-                m_BDebugLines[DebugLine::Path]  = !m_BDebugLines[DebugLine::Path];
-            if(ImGui::Button("Oct Tree"))
-                m_BDebugLines[DebugLine::OctTree]  = !m_BDebugLines[DebugLine::OctTree];
-            if(ImGui::Button("Point Cloud")){
-                HidePointCloud();
-            }
-            //ImGui::Checkbox(("World Axis"), &m_BDebugLines["WorldAxis"]);
+            (ImGui::Checkbox(("All Debug Lines"), &m_DebugDraw));
+            (ImGui::Checkbox(("Velocity Vector"), &m_BDebugLines[DebugLine::Velocity]));
+            (ImGui::Checkbox(("Friction Vector"), &m_BDebugLines[DebugLine::Friction]));
+            (ImGui::Checkbox(("Gravitational Pull"), &m_BDebugLines[DebugLine::GravitationalPull]));
+            (ImGui::Checkbox(("Collision shapes"), &m_BDebugLines[DebugLine::CollisionShape]));
+            (ImGui::Checkbox(("Terrain Triangles"), &m_BDebugLines[DebugLine::TerrainTriangle]));
+            (ImGui::Checkbox(("Closest triangle point"), &m_BDebugLines[DebugLine::ClosestPointToBall]));
+            (ImGui::Checkbox(("Path Trace"), &m_BDebugLines[DebugLine::Path]));
+            (ImGui::Checkbox(("Oct Tree"), &m_BDebugLines[DebugLine::OctTree]));
+            (ImGui::Checkbox(("World Axis"), &m_BDebugLines[DebugLine::WorldAxis]));
+            (ImGui::Checkbox(("Point Cloud"), &m_BShowPointcloud));
             ImGui::End();
 
             ImGui::Begin("Oppgaver");
@@ -420,14 +406,18 @@ namespace FLOOF {
                    if(ball.CollisionSphere.Intersect(tri))
                        Simulate::CalculateCollision(&ballObject,*tri,time,fri);
                    if(m_BDebugLines[DebugLine::TerrainTriangle])
-                       DebugDrawTriangle(*tri, glm::vec3(0.f, 255.f, 0.f));
+                       DebugDrawTriangle(*tri, glm::vec3(255.f, 0.f, 0.f));
                 }
+
 
                 //Ball small terrain collision
 				for (int i{ 0 }; i < terrain.Triangles.size(); i++) {
                     if(ball.CollisionSphere.Intersect(&terrain.Triangles[i])){
                         Triangle& triangle = terrain.Triangles[i];
                         Simulate::CalculateCollision(&ballObject,triangle,time,fri);
+                        if(ball.Path.size() > 3){
+                           //bSpline.AddControllPoint(transform.Position);
+                        }
                         //draw debug triangle
                         if(m_BDebugLines[DebugLine::TerrainTriangle])
                             DebugDrawTriangle(triangle, glm::vec3(0.f, 255.f, 0.f));
@@ -443,10 +433,12 @@ namespace FLOOF {
                 ball.CollisionSphere.pos = transform.Position;
 
                 const float pointIntervall{0.2f};
+
                 //save ball path
                 if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !ball.Path.empty()){
                     time.LastPoint = Timer::GetTime();
                     ball.Path.emplace_back(transform.Position);
+                    //bSpline.AddControllPoint(transform.Position);
                 }
 
                 //draw debug lines
@@ -601,7 +593,7 @@ namespace FLOOF {
 	}
 
 	void Application::DebugInit() {
-		m_DebugLineBuffer.resize(100000);
+		m_DebugLineBuffer.resize(1000000);
 		m_DebugLineEntity = m_Registry.create();
 		m_Registry.emplace<LineMeshComponent>(m_DebugLineEntity, m_DebugLineBuffer);
 		m_Registry.emplace<DebugComponent>(m_DebugLineEntity);
@@ -795,8 +787,8 @@ namespace FLOOF {
 		auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
 
-        ball.Radius = 0.01f;
-		ball.Mass = 0.50f;
+        ball.Radius = 0.5f;
+		ball.Mass = 2.0f;
         time.CreationTime = Timer::GetTime();
         time.LastPoint = time.CreationTime;
 
@@ -804,7 +796,7 @@ namespace FLOOF {
 		m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
 		m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
 
-		auto& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
+        auto& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
 		transform.Position = camera.Position;
 		transform.Scale = glm::vec3(ball.Radius);
         
@@ -832,7 +824,7 @@ namespace FLOOF {
         auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
         auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
-
+        //auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
         ball.Radius = radius;
         ball.Mass = mass;
         time.CreationTime = Timer::GetTime();
