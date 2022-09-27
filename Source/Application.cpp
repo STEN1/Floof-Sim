@@ -105,8 +105,7 @@ namespace FLOOF {
 			m_Registry.emplace<TextureComponent>(m_PointCloudEntity, "Assets/HappyTree.png");
 			m_Registry.emplace<TransformComponent>(m_PointCloudEntity);
             m_Registry.emplace<TerrainComponent>(m_PointCloudEntity,map->GetTriangles());
-            //m_Registry.emplace<TerrainComponent>(PointCloudEntity, map.GetTriangles());
-
+            map->GetCurrentTriangles(glm::vec3(23.f,0.f,44.f),2.f);
         }
 
 		{
