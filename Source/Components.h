@@ -146,10 +146,10 @@ namespace FLOOF {
 		glm::vec3 EvaluateBSpline(float t);
 		float TMin = 0.f;
 		float TMax = 0.f;
+		inline static constexpr int D = 2;
 	private:
 		std::vector<int> KnotPoints;
 		std::vector<glm::vec3> ControllPoints;
-		inline static constexpr int D = 2;
 		int FindKnotInterval(float t);
 	};
 
