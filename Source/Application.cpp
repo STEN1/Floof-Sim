@@ -320,8 +320,7 @@ namespace FLOOF {
 
 
             ImGui::Begin("Toggle DebugLines");
-            if(ImGui::Button("All Debug Lines"))
-                DebugToggleAllLines();
+            (ImGui::Checkbox(("All Debug Lines"), &m_DebugDraw));
             (ImGui::Checkbox(("Velocity Vector"), &m_BDebugLines[DebugLine::Velocity]));
             (ImGui::Checkbox(("Friction Vector"), &m_BDebugLines[DebugLine::Friction]));
             (ImGui::Checkbox(("Gravitational Pull"), &m_BDebugLines[DebugLine::GravitationalPull]));
@@ -330,9 +329,7 @@ namespace FLOOF {
             (ImGui::Checkbox(("Path Trace"), &m_BDebugLines[DebugLine::Path]));
             (ImGui::Checkbox(("Oct Tree"), &m_BDebugLines[DebugLine::OctTree]));
             (ImGui::Checkbox(("World Axis"), &m_BDebugLines[DebugLine::WorldAxis]));
-            if(ImGui::Button("Point Cloud")){
-                HidePointCloud();
-            }
+            (ImGui::Checkbox(("Point Cloud"), &m_BShowPointcloud));
             ImGui::End();
 
             ImGui::Begin("Oppgaver");
