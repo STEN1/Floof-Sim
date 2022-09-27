@@ -58,6 +58,7 @@ namespace FLOOF {
         std::chrono::high_resolution_clock::time_point m_Ballspawntime;
 
         float m_DeltaTimeModifier{1.f};
+
 		// ----------- Debug utils ---------------
 		void DebugInit();
 		void DebugClearLineBuffer();
