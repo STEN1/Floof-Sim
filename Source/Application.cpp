@@ -694,20 +694,28 @@ namespace FLOOF {
 		std::vector<ColorVertex> heightLines;
 		glm::vec3 color{ 0.f, 0.f, 0.f };
 		auto& terrain = m_Registry.get<TerrainComponent>(m_PointCloudEntity);
-		float lowestY = std::numeric_limits<float>::max();
+		float minY = std::numeric_limits<float>::max();
+		float maxY = std::numeric_limits<float>::min();
 		for (auto& triangle : terrain.Triangles) {
-			if (triangle.A.y < lowestY)
-				lowestY = triangle.A.y;
-			if (triangle.B.y < lowestY)
-				lowestY = triangle.B.y;
-			if (triangle.C.y < lowestY)
-				lowestY = triangle.C.y;
+			if (triangle.A.y < minY)
+				minY = triangle.A.y;
+			if (triangle.B.y < minY)
+				minY = triangle.B.y;
+			if (triangle.C.y < minY)
+				minY = triangle.C.y;
+
+			if (triangle.A.y > maxY)
+				maxY = triangle.A.y;
+			if (triangle.B.y > maxY)
+				maxY = triangle.B.y;
+			if (triangle.C.y > maxY)
+				maxY = triangle.C.y;
 		}
 		Plane p;
-		p.pos = glm::vec3(0.f, lowestY, 0.f);
+		p.pos = glm::vec3(0.f, minY, 0.f);
 		p.normal = glm::vec3(0.f, 1.f, 0.f);
-		for (uint32_t i = 0; i < 5; i++) {
-			p.pos.y += i;
+		for (float height = minY; height < maxY; height += 5.f) {
+			p.pos.y = height;
 			for (auto triangle : terrain.Triangles) {
 				bool above = false;
 				bool below = false;
