@@ -29,6 +29,10 @@ namespace FLOOF {
 		entt::entity m_TerrainEntity;
         entt::entity m_PointCloudEntity;
 
+		// ----------- Terrain -------------------
+		void MakeHeightLines();
+		entt::entity m_HeightLinesEntity;
+
         // ----------- Physics utils -------------
         void ResetBall();
         void SpawnBall();

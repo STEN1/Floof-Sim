@@ -178,6 +178,8 @@ namespace FLOOF {
 			m_Registry.emplace<LineMeshComponent>(entity, vertexData);
 		}
 
+		MakeHeightLines();
+
 		Timer timer;
 		float titleBarUpdateTimer{};
 		float titlebarUpdateRate = 0.1f;
@@ -534,7 +536,7 @@ namespace FLOOF {
 			}
 		}
 
-		{	// draw BSplines
+		{	// Draw BSplines
 			ColorPushConstants constants;
 			constants.MVP = vp;
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::LineStrip);
@@ -545,6 +547,17 @@ namespace FLOOF {
 			for (auto [entity, bSpline, lineMesh] : view.each()) {
 				lineMesh.Draw(commandBuffer);
 			}
+		}
+
+		{ // Draw height lines
+			ColorPushConstants constants;
+			constants.MVP = vp;
+			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Line);
+			vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+				0, sizeof(ColorPushConstants), &constants);
+
+			auto& lineMesh = m_Registry.get<LineMeshComponent>(m_HeightLinesEntity);
+			lineMesh.Draw(commandBuffer);
 		}
 
 		if (m_DebugDraw) { // Draw debug lines
@@ -673,6 +686,84 @@ namespace FLOOF {
 		transform[1].y = extents.y;
 		transform[2].z = extents.z;
 		m_DebugAABBTransforms.push_back(transform);
+	}
+
+	void Application::MakeHeightLines() {
+		std::vector<ColorVertex> heightLines;
+		glm::vec3 color{ 0.f, 0.f, 0.f };
+		auto& terrain = m_Registry.get<TerrainComponent>(m_PointCloudEntity);
+		float lowestY = std::numeric_limits<float>::max();
+		for (auto& triangle : terrain.Triangles) {
+			if (triangle.A.y < lowestY)
+				lowestY = triangle.A.y;
+			if (triangle.B.y < lowestY)
+				lowestY = triangle.B.y;
+			if (triangle.C.y < lowestY)
+				lowestY = triangle.C.y;
+		}
+		Plane p;
+		p.pos = glm::vec3(0.f, lowestY, 0.f);
+		p.normal = glm::vec3(0.f, 1.f, 0.f);
+		for (uint32_t i = 0; i < 5; i++) {
+			p.pos.y += i;
+			for (auto triangle : terrain.Triangles) {
+				bool above = false;
+				bool below = false;
+
+				float aDist = CollisionShape::DistanceFromPointToPlane(triangle.A, p.pos, p.normal);
+				if (aDist < 0.f)
+					below = true;
+				else
+					above = true;
+
+				float bDist = CollisionShape::DistanceFromPointToPlane(triangle.B, p.pos, p.normal);
+				if (bDist < 0.f)
+					below = true;
+				else
+					above = true;
+
+				float cDist = CollisionShape::DistanceFromPointToPlane(triangle.C, p.pos, p.normal);
+				if (cDist < 0.f)
+					below = true;
+				else
+					above = true;
+
+				// Check if triangle is intersecting plane
+				if (below && above) {
+					static constexpr uint32_t N = 3;
+					std::pair<glm::vec3, bool> vertexAboveOrBelow[N] = {
+						{triangle.A, aDist < 0.f},
+						{triangle.B, bDist < 0.f},
+						{triangle.C, cDist < 0.f},
+					};
+					std::vector<glm::vec3> abovePositions;
+					std::vector<glm::vec3> belowPositions;
+					for (uint32_t i = 0; i < N; i++) {
+						// is pos below?
+						if (vertexAboveOrBelow[i].second) {
+							belowPositions.push_back(vertexAboveOrBelow[i].first);
+						} else {
+							abovePositions.push_back(vertexAboveOrBelow[i].first);
+						}
+					}
+					for (auto& a : abovePositions) {
+						for (auto& b : belowPositions) {
+							glm::vec3 ab = b - a;
+							float d = glm::dot(p.normal, p.pos);
+							float t = (d - glm::dot(p.normal, a)) / glm::dot(p.normal, ab);
+							glm::vec3 intersectionPoint = a + t * ab;
+
+							ColorVertex v;
+							v.Pos = intersectionPoint;
+							v.Color = color;
+							heightLines.push_back(v);
+						}
+					}
+				}
+			}
+		}
+		m_HeightLinesEntity = m_Registry.create();
+		m_Registry.emplace<LineMeshComponent>(m_HeightLinesEntity, heightLines);
 	}
 
 	void Application::ResetBall() {
