@@ -109,7 +109,7 @@ void LasLoader::Triangulate() {
             float y;
             if (count == 0)
             {
-                y = 0.f;
+                y = -max.y;
                 noHeight.push_back(std::make_pair(x,z));
             }
                 

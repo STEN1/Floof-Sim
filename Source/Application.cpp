@@ -84,7 +84,7 @@ namespace FLOOF {
 		DebugInit();
 
         {
-			LasLoader france("Assets/france.txt");
+			LasLoader france("Assets/femund2.txt");
 			auto [vData, iData] = france.GetIndexedData();
 			auto terrainData = france.GetTerrainData();
 
