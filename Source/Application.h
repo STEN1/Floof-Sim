@@ -38,7 +38,7 @@ namespace FLOOF {
         const void SpawnBall(glm::vec3 location, const float radius, const float mass);
         const void SpawnRain(const int count);
 
-        int m_BallCount{1};
+        int m_BallCount{0};
 
         enum DebugLine{
             WorldAxis =0,

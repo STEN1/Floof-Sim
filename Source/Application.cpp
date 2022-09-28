@@ -153,8 +153,8 @@ namespace FLOOF {
 
 			DebugClearDebugData();
 
-			if (deltaTime > 0.01f) {
-				deltaTime = 0.01f;
+			if (deltaTime > 0.1f) {
+				deltaTime = 0.1f;
 			}
 
 			ImGui_ImplVulkan_NewFrame();
