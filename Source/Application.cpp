@@ -534,7 +534,7 @@ namespace FLOOF {
 	}
 
 	void Application::DebugInit() {
-		m_DebugLineBuffer.resize(1000000);
+		m_DebugLineBuffer.resize(m_DebugLineSpace);
 		m_DebugLineEntity = m_Registry.create();
 		m_Registry.emplace<LineMeshComponent>(m_DebugLineEntity, m_DebugLineBuffer);
 		m_Registry.emplace<DebugComponent>(m_DebugLineEntity);
@@ -562,6 +562,7 @@ namespace FLOOF {
 
 	void Application::DebugClearLineBuffer() {
 		m_DebugLineBuffer.clear();
+		m_DebugLineBuffer.reserve(m_DebugLineSpace);
 	}
 
 	void Application::DebugClearSpherePositions() {
