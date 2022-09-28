@@ -398,4 +398,8 @@ namespace FLOOF {
 		}
 		return a[0];
 	}
+
+    BSplineComponent::BSplineComponent() {
+
+    }
 }
