@@ -62,6 +62,19 @@ namespace FLOOF {
 			params.PushConstantSize = sizeof(ColorPushConstants);
 			InitGraphicsPipeline(params);
 		}
+		{	// Line strip drawing shader with depth
+			RenderPipelineParams params;
+			params.Flags = RenderPipelineFlags::AlphaBlend | RenderPipelineFlags::DepthPass;
+			params.FragmentPath = "Shaders/Color.frag.spv";
+			params.VertexPath = "Shaders/Color.vert.spv";
+			params.Key = RenderPipelineKeys::LineStripWithDepth;
+			params.PolygonMode = VK_POLYGON_MODE_LINE;
+			params.Topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+			params.BindingDescription = ColorVertex::GetBindingDescription();
+			params.AttributeDescriptions = ColorVertex::GetAttributeDescriptions();
+			params.PushConstantSize = sizeof(ColorPushConstants);
+			InitGraphicsPipeline(params);
+		}
 		{	// LineStrip drawing shader
 			RenderPipelineParams params;
 			params.Flags = RenderPipelineFlags::AlphaBlend;

@@ -37,6 +37,6 @@ namespace FLOOF {
 		std::vector<std::unique_ptr<Octree>> m_ChildNodes;
 		std::vector<std::shared_ptr<CollisionObject>> m_CollisionObjects;
 		inline static uint32_t s_MaxObjects = 20;
-		inline static float s_MinExtent = 0.025f;
+		inline static float s_MinExtent = 4.f;
 	};
 }

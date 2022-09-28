@@ -103,30 +103,6 @@ namespace FLOOF {
 			camera.Pitch(0.5f);
 		}
 
-		{
-			const auto entity = m_Registry.create();
-			std::vector<glm::vec3> controllpoints = {
-				glm::vec3{1.f, 0.f, 0.f},
-				glm::vec3{1.f, 1.f, 0.f},
-				glm::vec3{0.f, 1.f, 0.f},
-				glm::vec3{0.f, 0.f, 0.f},
-				glm::vec3{0.f, 0.f, -1.f}
-			};
-			auto& bSpline = m_Registry.emplace<BSplineComponent>(entity, controllpoints);
-			std::vector<ColorVertex> vertexData;
-			glm::vec3 color{ 1.f };
-			float t = bSpline.TMin;
-			ColorVertex v;
-			v.Color = color;
-			for (; t < bSpline.TMax; t += 0.01f) {
-				v.Pos = bSpline.EvaluateBSpline(t);
-				vertexData.push_back(v);
-			}
-			v.Pos = bSpline.EvaluateBSpline(bSpline.TMax);
-			vertexData.push_back(v);
-			m_Registry.emplace<LineMeshComponent>(entity, vertexData);
-		}
-
 		MakeHeightLines();
 
 		Timer timer;
@@ -256,8 +232,10 @@ namespace FLOOF {
 				ImGui::ShowDemoWindow(&m_ShowImguiDemo);
 
 			ImGui::Begin("Utils");
-			if (ImGui::Button("Spawn ball"))
-				SpawnBall();
+			if (ImGui::Button("Spawn ball")) {
+				const auto& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
+				SpawnBall(camera.Position, 1.f, 200.f, 0.5f);
+			}
             if(ImGui::Button("DrawNormals")){
                 DebugToggleDrawNormals();
             }
@@ -372,22 +350,29 @@ namespace FLOOF {
 
                 const float pointIntervall{0.5f};
 
-                std::vector<glm::vec3> splinePoints;
-                //save ball path and draw BSpline
+                // Save ball path and draw BSpline
                 if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !bSpline.empty()) {
                     time.LastPoint = Timer::GetTime();
-                    if (bSpline.size() > 3) {
+                    if (bSpline.size() > 3 && bSpline.size() < m_MaxBSplineLines) {
                         bSpline.AddControllPoint(transform.Position);
-                    }
-                }
-                //draw bspline
-                if(m_BDebugLines[DebugLine::BSpline] && bSpline.size() > 3){
-                    auto t = bSpline.TMin;
-                    for (; t < bSpline.TMax; t += 0.05f) {
-                        DebugDrawLine(bSpline.EvaluateBSpline(t),bSpline.EvaluateBSpline(t+0.05f),glm::vec3(255.f,255.f,255.f));
-                    }
 
+						if (m_BDebugLines[DebugLine::BSpline]) {
+							std::vector<ColorVertex> vBuffer(m_MaxBSplineLines);
+							float deltaT = (bSpline.TMax - bSpline.TMin) / (float)m_MaxBSplineLines;
+							glm::vec3 color{ 0.2f, 0.7f, 1.f };
+							float currentT = bSpline.TMin;
+							for (auto& vertex : vBuffer) {
+								vertex.Pos = bSpline.EvaluateBSpline(currentT);
+								vertex.Color = color;
+								currentT += deltaT;
+							}
+
+							auto& lineMesh = m_Registry.get<LineMeshComponent>(entity);
+							lineMesh.UpdateBuffer(vBuffer);
+						}
+                    }
                 }
+
                 if(m_BDebugLines[DebugLine::Friction])
                     DebugDrawLine(transform.Position, transform.Position + fri, glm::vec3(0.f, 125.f, 125.f));
                 if(m_BDebugLines[DebugLine::CollisionShape])
@@ -439,6 +424,18 @@ namespace FLOOF {
 				auto& lineMesh = m_Registry.get<LineMeshComponent>(m_HeightLinesEntity);
 				lineMesh.Draw(commandBuffer);
 			}
+			if (m_BDebugLines[DebugLine::BSpline]) {	// Draw BSplines
+				ColorPushConstants constants;
+				constants.MVP = vp;
+				auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::LineStripWithDepth);
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+					0, sizeof(ColorPushConstants), &constants);
+
+				auto view = m_Registry.view<LineMeshComponent, BSplineComponent>();
+				for (auto [entity, lineMesh, bSpline] : view.each()) {
+					lineMesh.Draw(commandBuffer);
+				}
+			}
 			{	// Draw models
 				auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);
 				auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
@@ -480,20 +477,6 @@ namespace FLOOF {
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(ColorPushConstants), &constants);
 				cloud.Draw(commandBuffer);
-			}
-		}
-
-		{	// Draw BSplines
-			ColorPushConstants constants;
-			constants.MVP = vp;
-			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::LineStrip);
-			vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-				0, sizeof(ColorPushConstants), &constants);
-
-			auto view = m_Registry.view<BSplineComponent, LineMeshComponent>();
-			for (auto [entity, bSpline, lineMesh] : view.each()) {
-                if(m_BDebugLines[DebugLine::BSpline])
-				    lineMesh.Draw(commandBuffer);
 			}
 		}
 
@@ -557,7 +540,7 @@ namespace FLOOF {
 		m_BDebugLines[DebugLine::TerrainTriangle] = false;
 		m_BDebugLines[DebugLine::ClosestPointToBall] = false;
         m_BDebugLines[DebugLine::GravitationalPull] = false;
-        m_BDebugLines[DebugLine::Path] = true;
+        m_BDebugLines[DebugLine::Path] = false;
         m_BDebugLines[DebugLine::BSpline] = true;
         m_BDebugLines[DebugLine::OctTree] = true;
 	}
@@ -727,30 +710,6 @@ namespace FLOOF {
 
 	}
 
-	void Application::SpawnBall() {
-		const auto ballEntity = m_Registry.create();
-		auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
-		auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
-        auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
-        auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
-
-        ball.Radius = 0.5f;
-		ball.Mass = 2.0f;
-        time.CreationTime = Timer::GetTime();
-        time.LastPoint = time.CreationTime;
-
-		auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
-		m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
-		m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
-
-        auto& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
-		transform.Position = camera.Position;
-		transform.Scale = glm::vec3(ball.Radius);
-        
-        ball.CollisionSphere.radius = ball.Radius;
-        ball.CollisionSphere.pos = transform.Position;
-	}
-
     const void Application::SpawnRain(const int count) {
 
         const double minX{0};
@@ -762,19 +721,24 @@ namespace FLOOF {
             float rad = Math::RandDouble(0.1f,0.5f);
             float mass = rad*10.f;
                 glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
-                SpawnBall(loc, rad, mass);
+                SpawnBall(loc, rad, mass, 0.05f);
         }
     }
 
-    const void Application::SpawnBall(glm::vec3 location, const float radius, const float mass) {
+    const void Application::SpawnBall(glm::vec3 location, const float radius, const float mass, const float elasticity) {
         const auto ballEntity = m_Registry.create();
         auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
         auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
         auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
+		std::vector<ColorVertex> tempBuffer(m_MaxBSplineLines);
+		auto& lineMesh = m_Registry.emplace<LineMeshComponent>(ballEntity, tempBuffer);
+		tempBuffer.clear();
+		lineMesh.UpdateBuffer(tempBuffer);
 
         ball.Radius = radius;
         ball.Mass = mass;
+        ball.Elasticity = elasticity;
         time.CreationTime = Timer::GetTime();
         time.LastPoint=time.CreationTime;
 
@@ -790,7 +754,7 @@ namespace FLOOF {
 
         m_BallCount++;
     }
-    
+
     void Application::DebugDrawPath(std::vector<glm::vec3> &path) {
         for(int i {1}; i < path.size(); i++){
             DebugDrawLine(path[i-1],path[i],glm::vec3(255.f,255.f,255.f));
