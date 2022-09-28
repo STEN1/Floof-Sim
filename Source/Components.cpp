@@ -268,11 +268,21 @@ namespace FLOOF {
 		glm::mat4 rotation = glm::rotate(-amount, Up);
 		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
 	}
-	TerrainComponent::TerrainComponent(std::vector<Triangle>&& triangles) {
-		Triangles = triangles;
-	}
-	TerrainComponent::TerrainComponent(const std::vector<Triangle>& triangles) {
-		Triangles = triangles;
+	TerrainComponent::TerrainComponent(std::vector<std::vector<std::pair<Triangle, Triangle>>>& rectangles) {
+		Rectangles = rectangles;
+
+		Height = rectangles.size();
+		if (rectangles.empty())
+			Width = 0;
+		else
+			Width = rectangles[0].size();
+
+		for (auto& rectVec : Rectangles) {
+			for (auto& rect : rectVec) {
+				Triangles.push_back(rect.first);
+				Triangles.push_back(rect.second);
+			}
+		}
 	}
 	void TerrainComponent::PrintTriangleData() {
 		uint32_t triangleId = 0;
@@ -288,12 +298,18 @@ namespace FLOOF {
     std::vector<Triangle *> TerrainComponent::GetOverlappingTriangles(CollisionShape *shape) {
        std::vector<Triangle*> overlapping;
 
-        for(auto& triangle: Triangles){
-            if(triangle.Intersect(shape)){
-                overlapping.emplace_back(&triangle);
-            }
-        }
-        return overlapping;
+	   int xPos = shape->pos.x;
+	   int zPos = shape->pos.z;
+
+	   if (xPos < 0.f || xPos > Width
+		   || zPos < 0.f || zPos > Height) {
+		   return overlapping;
+	   }
+
+	   overlapping.push_back(&Rectangles[zPos][xPos].first);
+	   overlapping.push_back(&Rectangles[zPos][xPos].second);
+
+       return overlapping;
     }
 
     PointCloudComponent::PointCloudComponent(const std::vector<ColorVertex>& vertexData) {
