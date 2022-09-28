@@ -366,28 +366,18 @@ namespace FLOOF {
 
                 const float pointIntervall{0.5f};
 
+                std::vector<glm::vec3> splinePoints;
                 //save ball path and draw BSpline
-                if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !ball.Path.empty() && m_BTraceBSpline){
+                if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !ball.Path.empty() && m_BTraceBSpline) {
                     time.LastPoint = Timer::GetTime();
                     ball.Path.emplace_back(transform.Position);
-                    if(ball.Path.size() > 3){
+                    if (ball.Path.size() > 3) {
                         bSpline.Update(ball.Path);
-                        std::vector<ColorVertex> vertexData;
-                        glm::vec3 color{ 0.f,125.f,125.f };
-                        float t = bSpline.TMin;
-                        ColorVertex v;
-                        v.Color = color;
-                        for (; t < bSpline.TMax; t += 0.05f) {
-                            v.Pos = bSpline.EvaluateBSpline(t);
-                            vertexData.push_back(v);
-                        }
-                        v.Pos = bSpline.EvaluateBSpline(bSpline.TMax);
-                        vertexData.push_back(v);
-                        auto& line = m_Registry.get<LineMeshComponent>(entity);
-                        line.UpdateBuffer(vertexData);
+                        bSpline.MakeDrawPoints();
                     }
                 }
-
+                if(m_BDebugLines[DebugLine::BSpline])
+                    DebugDrawPath(bSpline.drawPoints);
                 if(m_BDebugLines[DebugLine::Friction])
                     DebugDrawLine(transform.Position, transform.Position + fri, glm::vec3(0.f, 125.f, 125.f));
                 if(m_BDebugLines[DebugLine::CollisionShape])
@@ -732,9 +722,6 @@ namespace FLOOF {
 		auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
         auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
-        std::vector<ColorVertex> bSplineMesh;
-        bSplineMesh.resize(1000000);
-        auto& lineMesh = m_Registry.emplace<LineMeshComponent>(ballEntity, bSplineMesh);
 
         ball.Radius = 0.5f;
 		ball.Mass = 2.0f;
@@ -774,9 +761,6 @@ namespace FLOOF {
         auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
         auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
-        std::vector<ColorVertex> bSplineMesh;
-        bSplineMesh.resize(1000000);
-        auto& lineMesh = m_Registry.emplace<LineMeshComponent>(ballEntity, bSplineMesh);
 
         ball.Radius = radius;
         ball.Mass = mass;
