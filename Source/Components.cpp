@@ -301,13 +301,26 @@ namespace FLOOF {
 	   int xPos = shape->pos.x;
 	   int zPos = shape->pos.z;
 
-	   if (xPos < 0.f || xPos > (Width - 1)
-		   || zPos < 0.f || zPos > (Height - 1)) {
-		   return overlapping;
-	   }
+	   int extent = 1;
+	   if (shape->shape == CollisionShape::Shape::Sphere)
+		   extent += (int)reinterpret_cast<Sphere*>(shape)->radius;
 
-	   overlapping.push_back(&Rectangles[zPos][xPos].first);
-	   overlapping.push_back(&Rectangles[zPos][xPos].second);
+	   int xMin = xPos - extent;
+	   int xMax = xPos + extent;
+
+	   int zMin = zPos - extent;
+	   int zMax = zPos + extent;
+
+	   for (int z = zMin; z <= zMax; z++) {
+		   for (int x = xMin; x <= xMax; x++) {
+			   if (x < 0.f || x > (Width - 1)
+				   || z < 0.f || z > (Height - 1)) {
+				   continue;
+			   }
+			   overlapping.push_back(&Rectangles[z][x].first);
+			   overlapping.push_back(&Rectangles[z][x].second);
+		   }
+	   }
 
        return overlapping;
     }
