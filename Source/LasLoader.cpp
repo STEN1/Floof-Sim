@@ -347,6 +347,66 @@ std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, floa
     return returntris;
 }
 
+std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader::GetRectangles() {
+
+    std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> rectangles;
+    std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>> xRectangles;
+
+    int i = 0;
+    int currentX = 0;
+    while (i != IndexData.size()) {
+
+
+        glm::vec3 pos = VertexData[IndexData[i]].Pos;
+        FLOOF::Triangle tempTri1;
+
+        tempTri1.A = pos;
+        i++;
+
+        pos = VertexData[IndexData[i]].Pos;
+        tempTri1.B = pos;
+        i++;
+
+        pos = VertexData[IndexData[i]].Pos;
+        tempTri1.C = pos;
+        i++;
+
+        pos = VertexData[IndexData[i]].Pos;
+        FLOOF::Triangle tempTri2;
+        tempTri2.A = pos;
+        i++;
+
+        pos = VertexData[IndexData[i]].Pos;
+        tempTri2.B = pos;
+        i++;
+
+        pos = VertexData[IndexData[i]].Pos;
+        tempTri2.C = pos;
+        i++;
+
+        auto ab = tempTri1.A - tempTri1.B;
+        auto ac = tempTri1.A - tempTri1.C;
+        tempTri1.N = glm::normalize(glm::cross(ab, ac));
+
+        ab = tempTri2.A - tempTri2.B;
+        ac = tempTri2.A - tempTri2.C;
+        tempTri2.N = glm::normalize(glm::cross(ab, ac));
+
+        std::pair<FLOOF::Triangle, FLOOF::Triangle> tempPair(tempTri1,tempTri2);
+
+        xRectangles.push_back(tempPair);
+        currentX++;
+        if (currentX == xSquares-1)
+        {
+            rectangles.push_back(xRectangles);
+            xRectangles.clear();
+            currentX = 0;
+        }
+    }
+    FLOOF::Triangle rec = rectangles[1][2].first;
+    return rectangles;
+}
+
 
 
 
