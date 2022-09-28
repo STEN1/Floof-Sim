@@ -383,8 +383,9 @@ namespace FLOOF {
                 //draw bspline
                 if(m_BDebugLines[DebugLine::BSpline] && bSpline.size() > 3){
                     auto t = bSpline.TMin;
-                    for (; t < bSpline.TMax; t += 0.05f) {
-                        DebugDrawLine(bSpline.EvaluateBSpline(t),bSpline.EvaluateBSpline(t+0.05f),glm::vec3(0.f,125.f,125.f));
+                    const float stepsize{0.1f};
+                    for (; t < bSpline.TMax; t += stepsize) {
+                        DebugDrawLine(bSpline.EvaluateBSpline(t),bSpline.EvaluateBSpline(t+stepsize),glm::vec3(0.f,125.f,125.f));
                     }
 
                 }
@@ -557,7 +558,7 @@ namespace FLOOF {
 		m_BDebugLines[DebugLine::TerrainTriangle] = false;
 		m_BDebugLines[DebugLine::ClosestPointToBall] = false;
         m_BDebugLines[DebugLine::GravitationalPull] = false;
-        m_BDebugLines[DebugLine::Path] = true;
+        m_BDebugLines[DebugLine::Path] = false;
         m_BDebugLines[DebugLine::BSpline] = true;
         m_BDebugLines[DebugLine::OctTree] = true;
 	}
@@ -734,8 +735,9 @@ namespace FLOOF {
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
         auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
 
-        ball.Radius = 0.5f;
-		ball.Mass = 2.0f;
+        ball.Radius = 1.0f;
+		ball.Mass = 200.0f;
+        ball.Elasticity = 0.5f;
         time.CreationTime = Timer::GetTime();
         time.LastPoint = time.CreationTime;
 
@@ -749,6 +751,8 @@ namespace FLOOF {
         
         ball.CollisionSphere.radius = ball.Radius;
         ball.CollisionSphere.pos = transform.Position;
+
+        m_BallCount++;
 	}
 
     const void Application::SpawnRain(const int count) {
@@ -775,6 +779,7 @@ namespace FLOOF {
 
         ball.Radius = radius;
         ball.Mass = mass;
+        ball.Elasticity = 0.05f;
         time.CreationTime = Timer::GetTime();
         time.LastPoint=time.CreationTime;
 

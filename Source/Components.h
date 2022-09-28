@@ -130,7 +130,7 @@ namespace FLOOF {
         Sphere CollisionSphere;
         float Radius; // TODO dobbel lagring av radius !! fix??
         float Mass;
-        float Elasticity{0.05f};
+        float Elasticity{0.5f};
     };
 
     struct VelocityComponent {
@@ -150,7 +150,7 @@ namespace FLOOF {
 		float TMax = 0.f;
 		inline static constexpr int D = 2;
         bool empty(){return ControllPoints.empty();}
-        void clear(){ControllPoints.clear();KnotPoints.clear();}
+        void clear(){ControllPoints.clear();KnotPoints.clear(); TMin = 0.f; TMax =0.f;}
         unsigned long size(){return ControllPoints.size();}
 
 	private:
