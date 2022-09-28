@@ -257,8 +257,6 @@ namespace FLOOF {
 			ImGui::Begin("Utils");
 			if (ImGui::Button("Spawn ball"))
 				SpawnBall();
-            if(ImGui::Button("Reset Ball"))
-                ResetBall();
             if(ImGui::Button("DrawNormals")){
                 DebugToggleDrawNormals();
             }
@@ -734,6 +732,9 @@ namespace FLOOF {
 		auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
         auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
+        std::vector<ColorVertex> bSplineMesh;
+        bSplineMesh.resize(1000000);
+        auto& lineMesh = m_Registry.emplace<LineMeshComponent>(ballEntity, bSplineMesh);
 
         ball.Radius = 0.5f;
 		ball.Mass = 2.0f;
