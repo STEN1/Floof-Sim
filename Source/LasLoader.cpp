@@ -22,7 +22,6 @@ LasLoader::LasLoader(const std::string &path) : PointData{} {
         PointData.push_back(tempVertex);
     }
 
-    //scale = 0.01f;
     CalcCenter();
     UpdatePoints();
 
@@ -60,15 +59,14 @@ void LasLoader::CalcCenter() {
     // Find middle
     middle = min + (max-min)/2.f;
     offset = min;
-    //offset.y = middle.y;
-    // Update min/max
+
+	// Update min/max
     min -= offset;
     max -= offset;
 }
 
 void LasLoader::UpdatePoints() {
 
-    //FindMinMax();
     for (auto& vertex : PointData) {
         if (middle != glm::vec3(0.f))
             vertex.Pos -= offset;
@@ -84,8 +82,8 @@ void LasLoader::Triangulate() {
     xSquares = (max.x - min.x);
     zSquares = (max.z - min.z);
 
+    // Save all height data for each vertex
     std::vector<std::vector<std::vector<float>>> heightmap(zSquares, std::vector<std::vector<float>>(xSquares));
-
     for (auto &vertex: PointData) {
         int xPos = vertex.Pos.x;
         int zPos = vertex.Pos.z;
@@ -97,6 +95,7 @@ void LasLoader::Triangulate() {
         heightmap[xPos][zPos].push_back(vertex.Pos.y);
     }
 
+    // Calculate average height for each vertex and push
     for (int z = 0; z < zSquares; ++z) {
         for (int x = 0; x < xSquares; ++x) {
             float average{ 0.f };
@@ -113,42 +112,34 @@ void LasLoader::Triangulate() {
             FLOOF::MeshVertex temp{};
             temp.Pos = glm::vec3(x, y, z);
             VertexData.push_back(temp);
-            float minY = min.y - max.y;
-            ASSERT(minY <= y);
         }
     }
 
-        // Create Index
-        for (int z = 0; z < zSquares - 1; ++z) {
-            for (int x = 0; x < xSquares - 1; ++x) {
-                IndexData.emplace_back(x + (xSquares * z));
-                IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
-                IndexData.emplace_back(x + 1 + (xSquares * z));
+    // Create Index
+    for (int z = 0; z < zSquares - 1; ++z) {
+        for (int x = 0; x < xSquares - 1; ++x) {
+            IndexData.emplace_back(x + (xSquares * z));
+            IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
+            IndexData.emplace_back(x + 1 + (xSquares * z));
 
-                IndexData.emplace_back(x + (xSquares * z));
-                IndexData.emplace_back(x + (xSquares * (z + 1)));
-                IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
-            }
+            IndexData.emplace_back(x + (xSquares * z));
+            IndexData.emplace_back(x + (xSquares * (z + 1)));
+            IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
         }
+    }
 
-        int xmin = 0, xmax = xSquares, zmin = 0, zmax = zSquares; // The size to draw
+    // Calculate smooth normals
+    int xmin = 0, xmax = xSquares, zmin = 0, zmax = zSquares; // The size to draw
 
-        for (int x = 0; x < xmax - 1; ++x) {
-            int z = 0;
-            glm::vec3 normal(0.f, 1.f, 0.f);
-            VertexData[x].Normal = normal;
-        }
-
-        for (int z = 0; z < zmax - 1; ++z) {
-            int x = 0;
-            glm::vec3 normal(0.f, 1.f, 0.f);
-            VertexData[z * zmax].Normal = normal;
-        }
-        xmin++;
-        zmin++;
-
-        for (int z = zmin; z < zmax - 1; z++) {
-            for (int x = xmin; x < xmax - 1; x++) {
+    // Normals for rest
+    for (int z = zmin; z < zmax; z++) {
+        for (int x = xmin; x < xmax; x++) {
+	        if (z == zmin || z == zmax-1 || x == xmin || x == xmax-1)
+	        {
+                VertexData[x + (zmax * z)].Normal = glm::vec3(0.f, 1.f, 0.f);
+	        }
+            else
+            {
                 glm::vec3 a(VertexData[x + (zmax * z)].Pos);
                 glm::vec3 b(VertexData[x + 1 + (zmax * z)].Pos);
                 glm::vec3 c(VertexData[x + 1 + (zmax * (z + 1))].Pos);
@@ -169,7 +160,7 @@ void LasLoader::Triangulate() {
 
                 VertexData[x + (zmax * z)].Normal = normal;
             }
-
+        }
     }
 }
 
@@ -180,10 +171,7 @@ std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> LasLoader::GetI
 
 std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData()
 {
-    if (!TriangulatedVertexData.empty())
-        return TriangulatedVertexData;
-
-    std::vector<FLOOF::MeshVertex> verts;
+    std::vector<FLOOF::MeshVertex> out;
     int i = 0;
     while (i != IndexData.size()) {
         FLOOF::MeshVertex tempA;
@@ -213,14 +201,11 @@ std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData()
         tempC.UV.x = tempC.Pos.x;
         tempC.UV.y = tempC.Pos.y;
 
-        verts.push_back(tempA);
-        verts.push_back(tempB);
-        verts.push_back(tempC);
-
+        out.push_back(tempA);
+        out.push_back(tempB);
+        out.push_back(tempC);
     }
-    TriangulatedVertexData = verts;
-
-    return TriangulatedVertexData;
+    return out;
 }
 
 std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader::GetTerrainData() {
@@ -255,6 +240,5 @@ std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader:
             out[z][x] = std::make_pair(bottom, top);
         }
     }
-
     return out;
 }
