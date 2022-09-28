@@ -51,6 +51,7 @@ namespace FLOOF {
             GravitationalPull,
             Force,
             Path,
+            BSpline,
             OctTree
         };
         std::unordered_map<DebugLine, bool> m_BDebugLines;
@@ -70,6 +71,7 @@ namespace FLOOF {
         void DebugDrawPath(std::vector<glm::vec3>& path);
         void HidePointCloud();
         bool m_BShowPointcloud{false};
+        bool m_BTraceBSpline{true};
 		// Draws line in world coords
 		void DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color);
 
@@ -92,6 +94,6 @@ namespace FLOOF {
 		bool m_DrawNormals = false;
 		bool m_ShowImguiDemo = false;
 
-        float m_CameraSpeed{2.f};
+        float m_CameraSpeed{20.f};
 	};
 }

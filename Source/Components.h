@@ -141,6 +141,7 @@ namespace FLOOF {
 	class BSplineComponent {
 	public:
 		BSplineComponent(const std::vector<glm::vec3>& controllPoints);
+        BSplineComponent();
 		void Update(const std::vector<glm::vec3>& controllPoints);
 		void AddControllPoint(const glm::vec3& point);
 		glm::vec3 EvaluateBSpline(float t);
@@ -148,6 +149,7 @@ namespace FLOOF {
 		float TMax = 0.f;
 		inline static constexpr int D = 2;
         bool empty(){return ControllPoints.empty();}
+        void clear(){ControllPoints.clear();KnotPoints.clear();}
 	private:
 		std::vector<int> KnotPoints;
 		std::vector<glm::vec3> ControllPoints;
