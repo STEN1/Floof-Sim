@@ -28,14 +28,15 @@ namespace FLOOF {
 		entt::entity m_CameraEntity;
 		entt::entity m_TerrainEntity;
 
+		uint32_t m_MaxBSplineLines = 1000;
+
 		// ----------- Terrain -------------------
 		void MakeHeightLines();
 		entt::entity m_HeightLinesEntity;
 
         // ----------- Physics utils -------------
         void ResetBall();
-        void SpawnBall();
-        const void SpawnBall(glm::vec3 location, const float radius, const float mass);
+        const void SpawnBall(glm::vec3 location, const float radius, const float mass, const float elasticity = 0.5f);
         const void SpawnRain(const int count);
 
         int m_BallCount{0};

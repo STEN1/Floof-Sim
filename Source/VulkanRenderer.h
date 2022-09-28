@@ -57,13 +57,14 @@ namespace FLOOF {
 
 	enum class RenderPipelineKeys : uint32_t {
 		None = 0,
-		Basic = 1,
-		Line = 2,
-		LineStrip = 3,
-		Lit = 4,
-		Normal = 5,
-		Point = 6,
-		LineWithDepth = 7,
+		Basic,
+		Line,
+		LineStrip,
+		Lit,
+		Normal,
+		Point,
+		LineWithDepth,
+		LineStripWithDepth,
 	};
 
 	inline RenderPipelineFlags operator | (RenderPipelineFlags lhs, RenderPipelineFlags rhs) {
