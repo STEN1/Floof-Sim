@@ -82,74 +82,22 @@ namespace FLOOF {
 
 	int Application::Run() {
 		DebugInit();
-		{
-
-			m_TerrainEntity = m_Registry.create();
-			auto& terrainTransform = m_Registry.emplace<TransformComponent>(m_TerrainEntity);
-			auto vertexData = Utils::GetVisimVertexData("Assets/SimTerrain.visim");
-			auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, Utils::GetVisimTriangles("Assets/SimTerrain.visim"));
-			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vertexData);
-			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
-			terrain.PrintTriangleData();
-
-
-        }
 
         {
+			LasLoader france("Assets/france.txt");
+			auto [vData, iData] = france.GetIndexedData();
 
-            map = new LasLoader("Assets/france.txt");
-           m_PointCloudEntity = m_Registry.create();
-            m_Registry.emplace<PointCloudComponent>(m_PointCloudEntity, map->GetPointData());
-			auto [vData, iData] = map->GetIndexedData();
-			m_Registry.emplace<MeshComponent>(m_PointCloudEntity, vData, iData); // smooth shade
-			//m_Registry.emplace<MeshComponent>(m_PointCloudEntity, map.GetVertexData()); // flat shade
-			m_Registry.emplace<TextureComponent>(m_PointCloudEntity, "Assets/HappyTree.png");
-			m_Registry.emplace<TransformComponent>(m_PointCloudEntity);
-            m_Registry.emplace<TerrainComponent>(m_PointCloudEntity,map->GetTriangles());
-            map->GetCurrentTriangles(glm::vec3(23.f,0.f,44.f),2.f);
+			m_TerrainEntity = m_Registry.create();
+            m_Registry.emplace<PointCloudComponent>(m_TerrainEntity, france.GetPointData());
+			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vData, iData);
+			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
+			m_Registry.emplace<TransformComponent>(m_TerrainEntity);
+            m_Registry.emplace<TerrainComponent>(m_TerrainEntity, france.GetTriangles());
         }
-
-		{
-			const auto treeEntity = m_Registry.create();
-			auto& transform = m_Registry.emplace<TransformComponent>(treeEntity);
-			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
-			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
-			transform.Position.x -= 6.f;
-			transform.Position.y += 10.f;
-		}
-
-		{	// Ball
-			const auto ballEntity = m_Registry.create();
-			auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
-			auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
-            auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
-            time.CreationTime = Timer::GetTime();
-            time.LastPoint=time.CreationTime;
-			ball.Radius = 0.01f;
-			ball.Mass = .5f;
-            ball.CollisionSphere.radius = ball.Radius;
-            ball.CollisionSphere.pos = transform.Position;
-			auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
-			m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
-			m_Registry.emplace<TextureComponent>(ballEntity, "Assets/BallTexture.png");
-
-			transform.Position.y += 0.125f;
-			transform.Position.x += 0.f;
-			transform.Position.z -= 0.f;
-			transform.Scale = glm::vec3(ball.Radius);
-		}
-
-		{
-			const auto treeEntity = m_Registry.create();
-			auto& transform = m_Registry.emplace<TransformComponent>(treeEntity);
-			m_Registry.emplace<MeshComponent>(treeEntity, "Assets/HappyTree.obj");
-			m_Registry.emplace<TextureComponent>(treeEntity, "Assets/HappyTree.png");
-			transform.Position.x += 4.f;
-		}
 
 		{
 			m_CameraEntity = m_Registry.create();
-			glm::vec3 cameraPos(0.3f, 0.2f, 0.3f);
+			glm::vec3 cameraPos(0.3f, 0.2f, -1.3f);
 			auto& camera = m_Registry.emplace<CameraComponent>(m_CameraEntity, cameraPos);
 			camera.Pitch(0.5f);
 		}
@@ -391,7 +339,6 @@ namespace FLOOF {
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent>();
 			auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
-            auto & pointCloud = m_Registry.get<TerrainComponent>(m_PointCloudEntity);
 			for (auto [entity, transform, ball, velocity,time] : view.each()) {
 
                 CollisionObject ballObject(&ball.CollisionSphere,transform,velocity,ball);
@@ -400,29 +347,13 @@ namespace FLOOF {
 
                 //ball Large terrain collision//
                 //auto mathiasSittwork = map->GetCurrentTriangles(transform.Position,ball.Radius);
-               auto collisions = pointCloud.GetOverlappingTriangles(&ball.CollisionSphere);
+               auto collisions = terrain.GetOverlappingTriangles(&ball.CollisionSphere);
                for(auto& tri: collisions){
                    if(ball.CollisionSphere.Intersect(tri))
                        Simulate::CalculateCollision(&ballObject,*tri,time,fri);
                    if(m_BDebugLines[DebugLine::TerrainTriangle])
                        DebugDrawTriangle(*tri, glm::vec3(255.f, 0.f, 0.f));
                 }
-
-
-                //Ball small terrain collision
-				for (int i{ 0 }; i < terrain.Triangles.size(); i++) {
-                    if(ball.CollisionSphere.Intersect(&terrain.Triangles[i])){
-                        Triangle& triangle = terrain.Triangles[i];
-                        Simulate::CalculateCollision(&ballObject,triangle,time,fri);
-                        if(ball.Path.size() > 3){
-                           //bSpline.AddControllPoint(transform.Position);
-                        }
-                        //draw debug triangle
-                        if(m_BDebugLines[DebugLine::TerrainTriangle])
-                            DebugDrawTriangle(triangle, glm::vec3(0.f, 255.f, 0.f));
-                    }
-
-				}
 
                 //https://en.wikipedia.org/wiki/Verlet_integration
                 transform.Position += (velocity.Velocity*static_cast<float>(deltaTime)) +(((velocity.Force)+fri)*(static_cast<float>(deltaTime)*static_cast<float>(deltaTime)*0.5f));
@@ -684,7 +615,7 @@ namespace FLOOF {
 	void Application::MakeHeightLines() {
 		std::vector<ColorVertex> heightLines;
 		glm::vec3 color{ 0.f, 0.f, 0.f };
-		auto& terrain = m_Registry.get<TerrainComponent>(m_PointCloudEntity);
+		auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 		float minY = std::numeric_limits<float>::max();
 		float maxY = std::numeric_limits<float>::min();
 		for (auto& triangle : terrain.Triangles) {

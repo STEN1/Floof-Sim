@@ -27,7 +27,6 @@ namespace FLOOF {
 		VulkanRenderer* m_Renderer;
 		entt::entity m_CameraEntity;
 		entt::entity m_TerrainEntity;
-        entt::entity m_PointCloudEntity;
 
 		// ----------- Terrain -------------------
 		void MakeHeightLines();
@@ -92,7 +91,6 @@ namespace FLOOF {
 		bool m_DebugDraw = true;
 		bool m_DrawNormals = false;
 		bool m_ShowImguiDemo = false;
-        LasLoader* map{nullptr};
 
         float m_CameraSpeed{2.f};
 	};
