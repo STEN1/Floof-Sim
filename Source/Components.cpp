@@ -301,8 +301,8 @@ namespace FLOOF {
 	   int xPos = shape->pos.x;
 	   int zPos = shape->pos.z;
 
-	   if (xPos < 0.f || xPos > Width
-		   || zPos < 0.f || zPos > Height) {
+	   if (xPos < 0.f || xPos > (Width - 1)
+		   || zPos < 0.f || zPos > (Height - 1)) {
 		   return overlapping;
 	   }
 
