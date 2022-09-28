@@ -80,121 +80,99 @@ void LasLoader::UpdatePoints() {
 
 void LasLoader::Triangulate() {
 
-    // Squares just use vec2, not vec3, so y = z
-    std::vector<Square> squares;
-
     // width and height
-	xSquares = (max.x - min.x)/resolution;
-	zSquares = (max.z - min.z)/resolution;
+    xSquares = (max.x - min.x);
+    zSquares = (max.z - min.z);
 
-    // Create right number of squares
-    for (float z = min.z; z < max.z; z += resolution) {
-        for (float x = min.x; x < max.x; x += resolution){
-            Square tempSquare;
-            tempSquare.min = glm::vec2(x,z);
-            tempSquare.max = glm::vec2(x+resolution,z+resolution);
-            tempSquare.pos = tempSquare.min + (tempSquare.max - tempSquare.min)/glm::vec2(2.f);
-            squares.push_back(tempSquare);
+    std::vector<std::vector<std::vector<float>>> heightmap(zSquares, std::vector<std::vector<float>>(xSquares));
+
+    for (auto &vertex: PointData) {
+        int xPos = vertex.Pos.x;
+        int zPos = vertex.Pos.z;
+
+        if (xPos < 0.f || xPos > xSquares-1
+            || zPos < 0.f || zPos > zSquares-1) {
+            continue;
+        }
+        heightmap[xPos][zPos].push_back(vertex.Pos.y);
+    }
+
+    for (int z = 0; z < zSquares; ++z) {
+        for (int x = 0; x < xSquares; ++x) {
+            float average{ 0.f };
+            int count{ 0 };
+            for (auto& height : heightmap[x][z]) {
+                average += height;
+                count++;
+            }
+            float y;
+            if (count == 0)
+                y = 0.f;
+            else
+            	y = (average / count) - max.y;
+            FLOOF::MeshVertex temp{};
+            temp.Pos = glm::vec3(x, y, z);
+            VertexData.push_back(temp);
+            float minY = min.y - max.y;
+            ASSERT(minY <= y);
         }
     }
 
-    glm::vec2 startPos = squares[0].pos;
+        // Create Index
+        for (int z = 0; z < zSquares - 1; ++z) {
+            for (int x = 0; x < xSquares - 1; ++x) {
+                IndexData.emplace_back(x + (xSquares * z));
+                IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
+                IndexData.emplace_back(x + 1 + (xSquares * z));
 
-    // Put points in correct squares
-    for (auto& vertex : PointData){
-        for (auto& currentSquare : squares) {
-            if (vertex.Pos.x >= currentSquare.min.x
-            && vertex.Pos.z >= currentSquare.min.y
-            && vertex.Pos.x < currentSquare.max.x
-            && vertex.Pos.z < currentSquare.max.y)
-            {
-                currentSquare.vertexes.push_back(vertex);
+                IndexData.emplace_back(x + (xSquares * z));
+                IndexData.emplace_back(x + (xSquares * (z + 1)));
+                IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
             }
         }
-    }
 
-    startSquare = glm::vec2(squares[0].pos);
+        int xmin = 0, xmax = xSquares, zmin = 0, zmax = zSquares; // The size to draw
 
-    // Find the average height of each square and create vertex
-    for (auto& currentSquare : squares) {
-        currentSquare.averageHeight = 0.f;
-        for (auto& vertex : currentSquare.vertexes) {
-            currentSquare.averageHeight += vertex.Pos.y;
-            ASSERT(!currentSquare.vertexes.empty());
-            // TODO : Calculate average neighbor height if no vertexes
+        for (int x = 0; x < xmax - 1; ++x) {
+            int z = 0;
+            glm::vec3 normal(0.f, 1.f, 0.f);
+            VertexData[x].Normal = normal;
         }
-        currentSquare.averageHeight /= currentSquare.vertexes.size();
 
-        FLOOF::MeshVertex tempVertex{};
-
-        // Offset so first vertex starts at  zero
-        float off{ resolution / 2.f };
-        tempVertex.Pos = glm::vec3(currentSquare.pos.x - off, currentSquare.averageHeight - max.y, currentSquare.pos.y-off);
-        //tempVertex.Pos = glm::vec3(currentSquare.pos, currentSquare.averageHeight);
-
-        VertexData.push_back(tempVertex);
-    }
-
-    // Create Index
-    for (int z = 0; z < zSquares - 1; ++z) {
-        for (int x = 0; x < xSquares - 1; ++x) {
-
-            IndexData.emplace_back(x + (xSquares * z));
-        	IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
-            IndexData.emplace_back(x + 1 + (xSquares * z));
-
-            IndexData.emplace_back(x + (xSquares * z));
-            IndexData.emplace_back(x + (xSquares * (z + 1)));
-            IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
-
+        for (int z = 0; z < zmax - 1; ++z) {
+            int x = 0;
+            glm::vec3 normal(0.f, 1.f, 0.f);
+            VertexData[z * zmax].Normal = normal;
         }
-    }
+        xmin++;
+        zmin++;
 
-    int xmin = 0, xmax = xSquares, zmin = 0, zmax = zSquares; // The size to draw
+        for (int z = zmin; z < zmax - 1; z++) {
+            for (int x = xmin; x < xmax - 1; x++) {
+                glm::vec3 a(VertexData[x + (zmax * z)].Pos);
+                glm::vec3 b(VertexData[x + 1 + (zmax * z)].Pos);
+                glm::vec3 c(VertexData[x + 1 + (zmax * (z + 1))].Pos);
+                glm::vec3 d(VertexData[x + (zmax * (z + 1))].Pos);
+                glm::vec3 e(VertexData[x - 1 + (zmax * z)].Pos);
+                glm::vec3 f(VertexData[x - 1 + (zmax * (z - 1))].Pos);
+                glm::vec3 g(VertexData[x + (zmax * (z - 1))].Pos);
 
-    for (int x = 0; x < xmax-1; ++x)
-    {
-        int z = 0;
-        glm::vec3 normal(0.f, 1.f, 0.f);
-        VertexData[x].Normal = normal;
-    }
+                auto n0 = glm::cross(b - a, c - a);
+                auto n1 = glm::cross(c - a, d - a);
+                auto n2 = glm::cross(d - a, e - a);
+                auto n3 = glm::cross(e - a, f - a);
+                auto n4 = glm::cross(f - a, g - a);
+                auto n5 = glm::cross(g - a, b - a);
 
-    for (int z = 0; z < zmax - 1; ++z)
-    {
-        int x = 0;
-        glm::vec3 normal(0.f, 1.f, 0.f);
-        VertexData[z * zmax].Normal = normal;
-    }
-    xmin++;
-    zmin++;
+                glm::vec3 normal = n0 + n1 + n2 + n3 + n4 + n5;
+                normal = glm::normalize(-normal);
 
-    for (int z = zmin; z < zmax - 1; z++)
-    {
-        for (int x = xmin; x < xmax - 1; x++)
-        {
-            glm::vec3 a(VertexData[x + (zmax * z)].Pos);
-            glm::vec3 b(VertexData[x + 1 + (zmax * z)].Pos);
-            glm::vec3 c(VertexData[x + 1 + (zmax * (z + 1))].Pos);
-            glm::vec3 d(VertexData[x + (zmax * (z + 1))].Pos);
-            glm::vec3 e(VertexData[x - 1 + (zmax * z)].Pos);
-            glm::vec3 f(VertexData[x - 1 + (zmax * (z - 1))].Pos);
-            glm::vec3 g(VertexData[x + (zmax * (z - 1))].Pos);
-
-            auto n0 = glm::cross(b - a, c - a);
-            auto n1 = glm::cross(c - a, d - a);
-            auto n2 = glm::cross(d - a, e - a);
-            auto n3 = glm::cross(e - a, f - a);
-            auto n4 = glm::cross(f - a, g - a);
-            auto n5 = glm::cross(g - a, b - a);
-
-            glm::vec3 normal = n0 + n1 + n2 + n3 + n4 + n5;
-            normal = glm::normalize(-normal);
-
-            VertexData[x + (zmax * z)].Normal = normal;
-        }
+                VertexData[x + (zmax * z)].Normal = normal;
+            }
 
     }
 }
+
 
 std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> LasLoader::GetIndexedData() {
     return {LasLoader::VertexData, LasLoader::IndexData};
@@ -247,8 +225,8 @@ std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData()
 
 std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader::GetTerrainData() {
 
-    int width = (max.x - min.x) / resolution;
-    int height = (max.z - min.z) / resolution;
+    int width = (max.x - min.x);
+    int height = (max.z - min.z);
 
     std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> out(height,
         std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>(width));
@@ -280,7 +258,3 @@ std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader:
 
     return out;
 }
-
-
-
-
