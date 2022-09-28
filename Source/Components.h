@@ -153,7 +153,6 @@ namespace FLOOF {
         void clear(){ControllPoints.clear();KnotPoints.clear();}
         unsigned long size(){return ControllPoints.size();}
 
-        std::vector<glm::vec3> MakeDrawPoints();
 	private:
 		std::vector<int> KnotPoints;
 		std::vector<glm::vec3> ControllPoints;
