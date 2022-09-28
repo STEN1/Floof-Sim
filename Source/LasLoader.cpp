@@ -92,26 +92,57 @@ void LasLoader::Triangulate() {
             || zPos < 0.f || zPos > zSquares-1) {
             continue;
         }
-        heightmap[xPos][zPos].push_back(vertex.Pos.y);
+        heightmap[zPos][xPos].push_back(vertex.Pos.y);
     }
+
+    std::vector<std::pair<int, int>> noHeight;
 
     // Calculate average height for each vertex and push
     for (int z = 0; z < zSquares; ++z) {
         for (int x = 0; x < xSquares; ++x) {
             float average{ 0.f };
             int count{ 0 };
-            for (auto& height : heightmap[x][z]) {
+            for (auto& height : heightmap[z][x]) {
                 average += height;
                 count++;
             }
             float y;
             if (count == 0)
+            {
                 y = 0.f;
+                noHeight.push_back(std::make_pair(x,z));
+            }
+                
             else
             	y = (average / count) - max.y;
             FLOOF::MeshVertex temp{};
             temp.Pos = glm::vec3(x, y, z);
             VertexData.push_back(temp);
+        }
+    }
+
+    // Calculate average height if no height
+    for (auto& vertex : noHeight)
+    {
+        float averageHeight{ 0.f };
+        int x = vertex.first;
+        int z = vertex.second;
+        if (x <= 0 || x >= xSquares-1 || z <= 0 || z >= zSquares-1)
+        {
+            continue;
+        }
+        else
+        {
+            averageHeight += VertexData[(x - 1) + (z * xSquares)].Pos.y;
+            averageHeight += VertexData[(x - 1) + ((z - 1) * xSquares)].Pos.y;
+            averageHeight += VertexData[x + ((z - 1) * xSquares)].Pos.y;
+            averageHeight += VertexData[(x + 1) + ((z - 1) * xSquares)].Pos.y;
+            averageHeight += VertexData[(x + 1) + (z * xSquares)].Pos.y;
+            averageHeight += VertexData[(x + 1) + ((z + 1) * xSquares)].Pos.y;
+            averageHeight += VertexData[x + ((z + 1) * xSquares)].Pos.y;
+            averageHeight += VertexData[(x - 1) + ((z + 1) * xSquares)].Pos.y;
+
+            VertexData[x + (z * xSquares)].Pos.y = averageHeight / 8;
         }
     }
 
@@ -136,17 +167,17 @@ void LasLoader::Triangulate() {
         for (int x = xmin; x < xmax; x++) {
 	        if (z == zmin || z == zmax-1 || x == xmin || x == xmax-1)
 	        {
-                VertexData[x + (zmax * z)].Normal = glm::vec3(0.f, 1.f, 0.f);
+                VertexData[x + (xmax * z)].Normal = glm::vec3(0.f, 1.f, 0.f);
 	        }
             else
             {
-                glm::vec3 a(VertexData[x + (zmax * z)].Pos);
-                glm::vec3 b(VertexData[x + 1 + (zmax * z)].Pos);
-                glm::vec3 c(VertexData[x + 1 + (zmax * (z + 1))].Pos);
-                glm::vec3 d(VertexData[x + (zmax * (z + 1))].Pos);
-                glm::vec3 e(VertexData[x - 1 + (zmax * z)].Pos);
-                glm::vec3 f(VertexData[x - 1 + (zmax * (z - 1))].Pos);
-                glm::vec3 g(VertexData[x + (zmax * (z - 1))].Pos);
+                glm::vec3 a(VertexData[x + (xmax * z)].Pos);
+                glm::vec3 b(VertexData[x + 1 + (xmax * z)].Pos);
+                glm::vec3 c(VertexData[x + 1 + (xmax * (z + 1))].Pos);
+                glm::vec3 d(VertexData[x + (xmax * (z + 1))].Pos);
+                glm::vec3 e(VertexData[x - 1 + (xmax * z)].Pos);
+                glm::vec3 f(VertexData[x - 1 + (xmax * (z - 1))].Pos);
+                glm::vec3 g(VertexData[x + (xmax * (z - 1))].Pos);
 
                 auto n0 = glm::cross(b - a, c - a);
                 auto n1 = glm::cross(c - a, d - a);
@@ -158,7 +189,7 @@ void LasLoader::Triangulate() {
                 glm::vec3 normal = n0 + n1 + n2 + n3 + n4 + n5;
                 normal = glm::normalize(-normal);
 
-                VertexData[x + (zmax * z)].Normal = normal;
+                VertexData[x + (xmax * z)].Normal = normal;
             }
         }
     }
