@@ -403,12 +403,12 @@ namespace FLOOF {
 
     }
 
-    void BSplineComponent::MakeDrawPoints() {
-        drawPoints.clear();
-        float t = TMin;
-        for (; t < TMax; t += 0.05f) {
-            drawPoints.emplace_back(EvaluateBSpline(t));
+    std::vector<glm::vec3> BSplineComponent::MakeDrawPoints() {
+        std::vector<glm::vec3> drawPoints;
+        for (; TMin < TMax; TMin += 0.05f) {
+            drawPoints.emplace_back(EvaluateBSpline(TMin));
         }
         drawPoints.emplace_back(EvaluateBSpline(TMax));
+        return drawPoints;
     }
 }

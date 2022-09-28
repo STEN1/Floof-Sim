@@ -351,8 +351,14 @@ namespace FLOOF {
                for(auto& tri: collisions){
                    if(ball.CollisionSphere.Intersect(tri)) {
                        Simulate::CalculateCollision(&ballObject, *tri, time, fri);
-                       if(ball.Path.empty())
-                           ball.Path.emplace_back(transform.Position);
+                       if(bSpline.empty()){
+                           std::vector<glm::vec3> first;
+                           for(int i{0}; i <= 3; i++)
+                               first.emplace_back(transform.Position);
+                           bSpline.Update(first);
+                       }
+
+                           //ball.Path.emplace_back(transform.Position);
                    }
                    if(m_BDebugLines[DebugLine::TerrainTriangle])
                        DebugDrawTriangle(*tri, glm::vec3(255.f, 0.f, 0.f));
@@ -369,16 +375,17 @@ namespace FLOOF {
 
                 std::vector<glm::vec3> splinePoints;
                 //save ball path and draw BSpline
-                if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !ball.Path.empty() && m_BTraceBSpline) {
+                if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !bSpline.empty()) {
                     time.LastPoint = Timer::GetTime();
-                    ball.Path.emplace_back(transform.Position);
-                    if (ball.Path.size() > 3) {
-                        bSpline.Update(ball.Path);
-                        bSpline.MakeDrawPoints();
+                    if (bSpline.size() > 3) {
+                        bSpline.AddControllPoint(transform.Position);
                     }
                 }
-                if(m_BDebugLines[DebugLine::BSpline])
-                    DebugDrawPath(bSpline.drawPoints);
+                //draw bspline
+                if(m_BDebugLines[DebugLine::BSpline] && bSpline.size() > 3){
+                    auto path = bSpline.MakeDrawPoints();
+                    DebugDrawPath(path);
+                }
                 if(m_BDebugLines[DebugLine::Friction])
                     DebugDrawLine(transform.Position, transform.Position + fri, glm::vec3(0.f, 125.f, 125.f));
                 if(m_BDebugLines[DebugLine::CollisionShape])
@@ -402,7 +409,6 @@ namespace FLOOF {
                     glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
                     transform.Position = loc;
                     velocity.Velocity = glm::vec3(0.f);
-                    ball.Path.clear();
                     bSpline.clear();
                 }
 
