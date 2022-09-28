@@ -384,7 +384,7 @@ namespace FLOOF {
                 if(m_BDebugLines[DebugLine::BSpline] && bSpline.size() > 3){
                     auto t = bSpline.TMin;
                     for (; t < bSpline.TMax; t += 0.05f) {
-                        DebugDrawLine(bSpline.EvaluateBSpline(t),bSpline.EvaluateBSpline(t+0.05f),glm::vec3(255.f,255.f,255.f));
+                        DebugDrawLine(bSpline.EvaluateBSpline(t),bSpline.EvaluateBSpline(t+0.05f),glm::vec3(0.f,125.f,125.f));
                     }
 
                 }
@@ -790,7 +790,7 @@ namespace FLOOF {
 
         m_BallCount++;
     }
-    
+
     void Application::DebugDrawPath(std::vector<glm::vec3> &path) {
         for(int i {1}; i < path.size(); i++){
             DebugDrawLine(path[i-1],path[i],glm::vec3(255.f,255.f,255.f));
