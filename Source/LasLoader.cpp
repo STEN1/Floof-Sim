@@ -83,6 +83,7 @@ void LasLoader::Triangulate() {
     // Squares just use vec2, not vec3, so y = z
     std::vector<Square> squares;
 
+    // width and height
 	xSquares = (max.x - min.x)/resolution;
 	zSquares = (max.z - min.z)/resolution;
 
@@ -134,36 +135,17 @@ void LasLoader::Triangulate() {
         VertexData.push_back(tempVertex);
     }
 
-    // If no points in square
-  //  for (int z = 0; z < zSquares; ++z)
-  //  {
-	 //   for (int x = 0; x < xSquares; ++x)
-	 //   {
-  //          if (squares[x + (z * zSquares)].averageHeight == 0.f)
-  //          {
-  //              float average{ 0.f };
-  //              int count{ 0 };
-  //              if (x != 0) {average += squares[x - 1 + (z * zSquares)].averageHeight;count++;}
-  //              else if (x != xSquares) {average += squares[x + 1 + (z * zSquares)].averageHeight;count++;}
-  //              if (z != 0) {average += squares[x + (z - 1 * zSquares)].averageHeight;}
-  //              else if (z != zSquares) {average += squares[x + (z + 1 * zSquares)].averageHeight; count++;}
-  //          	squares[x + (z * zSquares)].averageHeight = average / count;
-		//	}
-		//}
-  //  }
-
-
     // Create Index
     for (int z = 0; z < zSquares - 1; ++z) {
         for (int x = 0; x < xSquares - 1; ++x) {
 
-            IndexData.emplace_back(x + (zSquares * z));
-        	IndexData.emplace_back(x + 1 + (zSquares * (z + 1)));
-            IndexData.emplace_back(x + 1 + (zSquares * z));
+            IndexData.emplace_back(x + (xSquares * z));
+        	IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
+            IndexData.emplace_back(x + 1 + (xSquares * z));
 
-            IndexData.emplace_back(x + (zSquares * z));
-            IndexData.emplace_back(x + (zSquares * (z + 1)));
-            IndexData.emplace_back(x + 1 + (zSquares * (z + 1)));
+            IndexData.emplace_back(x + (xSquares * z));
+            IndexData.emplace_back(x + (xSquares * (z + 1)));
+            IndexData.emplace_back(x + 1 + (xSquares * (z + 1)));
 
         }
     }
@@ -263,148 +245,40 @@ std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData()
     return TriangulatedVertexData;
 }
 
-std::vector<FLOOF::Triangle> LasLoader::GetTriangles() {
+std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader::GetTerrainData() {
 
-	if (!triangles.empty())
-        return triangles;
+    int width = (max.x - min.x) / resolution;
+    int height = (max.z - min.z) / resolution;
 
-    int i = 0;
-    while (i != IndexData.size()) {
-        glm::vec3 pos = VertexData[IndexData[i]].Pos;
-        FLOOF::Triangle tempTri;
-        tempTri.A = pos;
-        i++;
+    std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> out(height,
+        std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>(width));
 
-        pos = VertexData[IndexData[i]].Pos;
-        tempTri.B = pos;
-        i++;
+    for (int z = 0; z < height - 1; z++) {
+        for (int x = 0; x < width - 1; x++) {
+            FLOOF::Triangle bottom;
+            FLOOF::Triangle top;
 
-        pos = VertexData[IndexData[i]].Pos;
-        tempTri.C = pos;
-        i++;
+            int aIndex = (x + (z * width));
+            int bIndex = ((x + 1) + (z * width));
+            int cIndex = ((x + 1) + ((z + 1) * width));
+            int dIndex = (x + ((z + 1) * width));
 
-        auto ab = tempTri.A - tempTri.B;
-        auto ac = tempTri.A - tempTri.C;
-        tempTri.N = glm::normalize(glm::cross(ab, ac));
+            bottom.A = VertexData[aIndex].Pos;
+            bottom.B = VertexData[cIndex].Pos;
+            bottom.C = VertexData[bIndex].Pos;
 
-        triangles.push_back(tempTri);
-    }
+            top.A = VertexData[aIndex].Pos;
+            top.B = VertexData[dIndex].Pos;
+            top.C = VertexData[cIndex].Pos;
 
-    return triangles;
-}
+            bottom.N = glm::normalize(glm::cross(bottom.B - bottom.A, bottom.C - bottom.A));
+            top.N = glm::normalize(glm::cross(top.B - top.A, top.C - top.A));
 
-std::vector<FLOOF::Triangle*> LasLoader::GetCurrentTriangles(glm::vec3 pos, float radius)
-{
-
-/*    pos = glm::vec3 (34.f, 0.f,1.f);
-    int indextest = (pos.x + (pos.z * zSquares))*2 - 1;
-    FLOOF::Triangle tritest = triangles[indextest];*/
-    std::vector<FLOOF::Triangle*> returntris;
-
-    if (pos.x < min.x || pos.z < min.z || pos.x > max.x || pos.z > max.z)
-        return returntris;
-
-    int posX = pos.x / resolution;
-    int posZ = pos.z / resolution;
-
-
-    //int indextest = (pos.x + (pos.z * zSquares))*2 - 1;
-
-    int minX = posX - radius;
-    if (minX < 0)
-        minX = 0;
-    int minZ = pos.z - radius;
-    if (minZ < 0)
-        minZ = 0;
-    int maxX = posX + radius;
-    if (maxX > xSquares)
-        maxX = xSquares;
-    int maxZ = posZ + radius;
-    if (maxZ > zSquares)
-        maxZ = zSquares;
-
-    int indextest = (pos.x*2 + (pos.z * (zSquares-1.f))*2);
-    FLOOF::Triangle tritest = triangles[indextest];
-
-
-    for (int z = minZ; z < maxZ; ++z)
-    {
-        for (int x = minX*2; x < maxX*2; ++x)
-        {
-            int currentIndex = (x + (z * (zSquares-1))*2);
-            returntris.push_back(&triangles[currentIndex]);
+            out[z][x] = std::make_pair(bottom, top);
         }
     }
 
-
-//    for (int z = minZ; z <= maxZ; ++z)
-//        zIndexes.emplace_back(z);
-//    for (int x = minX; x <= maxX; ++x)
-//        xIndexes.emplace_back(x);
-//
-//    int currentIndex = x + (z * zSquares)*2 - 1;
-//    returntris.push_back(&triangles[currentIndex]);
-    return returntris;
-}
-
-std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader::GetRectangles() {
-
-    std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> rectangles;
-    std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>> xRectangles;
-
-    int i = 0;
-    int currentX = 0;
-    while (i != IndexData.size()) {
-
-
-        glm::vec3 pos = VertexData[IndexData[i]].Pos;
-        FLOOF::Triangle tempTri1;
-
-        tempTri1.A = pos;
-        i++;
-
-        pos = VertexData[IndexData[i]].Pos;
-        tempTri1.B = pos;
-        i++;
-
-        pos = VertexData[IndexData[i]].Pos;
-        tempTri1.C = pos;
-        i++;
-
-        pos = VertexData[IndexData[i]].Pos;
-        FLOOF::Triangle tempTri2;
-        tempTri2.A = pos;
-        i++;
-
-        pos = VertexData[IndexData[i]].Pos;
-        tempTri2.B = pos;
-        i++;
-
-        pos = VertexData[IndexData[i]].Pos;
-        tempTri2.C = pos;
-        i++;
-
-        auto ab = tempTri1.A - tempTri1.B;
-        auto ac = tempTri1.A - tempTri1.C;
-        tempTri1.N = glm::normalize(glm::cross(ab, ac));
-
-        ab = tempTri2.A - tempTri2.B;
-        ac = tempTri2.A - tempTri2.C;
-        tempTri2.N = glm::normalize(glm::cross(ab, ac));
-
-        std::pair<FLOOF::Triangle, FLOOF::Triangle> tempPair(tempTri1,tempTri2);
-
-        xRectangles.push_back(tempPair);
-        currentX++;
-        if (currentX == xSquares-1)
-        {
-            rectangles.push_back(xRectangles);
-            xRectangles.clear();
-            currentX = 0;
-        }
-    }
-    FLOOF::Triangle rec = rectangles[1][2].first;
-    return rectangles;
+    return out;
 }
 
 

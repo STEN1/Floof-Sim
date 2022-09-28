@@ -11,9 +11,7 @@ public:
     std::vector<FLOOF::ColorVertex> GetPointData();
     std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> GetIndexedData();
     std::vector<FLOOF::MeshVertex> GetVertexData();
-    std::vector<FLOOF::Triangle> GetTriangles();
-    std::vector<FLOOF::Triangle*> GetCurrentTriangles(glm::vec3 pos, float radius);
-    std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> GetRectangles();
+    std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> GetTerrainData();
 
 private:
     std::vector<FLOOF::ColorVertex> PointData;

@@ -86,13 +86,14 @@ namespace FLOOF {
         {
 			LasLoader france("Assets/france.txt");
 			auto [vData, iData] = france.GetIndexedData();
+			auto terrainData = france.GetTerrainData();
 
 			m_TerrainEntity = m_Registry.create();
             m_Registry.emplace<PointCloudComponent>(m_TerrainEntity, france.GetPointData());
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vData, iData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
 			m_Registry.emplace<TransformComponent>(m_TerrainEntity);
-            m_Registry.emplace<TerrainComponent>(m_TerrainEntity, france.GetTriangles());
+            m_Registry.emplace<TerrainComponent>(m_TerrainEntity, terrainData);
         }
 
 		{
@@ -638,6 +639,7 @@ namespace FLOOF {
 			if (triangle.C.y > maxY)
 				maxY = triangle.C.y;
 		}
+		minY = -10.f;
 		Plane p;
 		p.pos = glm::vec3(0.f, minY, 0.f);
 		p.normal = glm::vec3(0.f, 1.f, 0.f);
