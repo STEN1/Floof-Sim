@@ -395,7 +395,7 @@ namespace FLOOF {
 	glm::vec3 BSplineComponent::EvaluateBSpline(float t) {
 		int my = FindKnotInterval(t);
 
-		std::vector<glm::vec3> a(D + 1);
+		glm::vec3 a[D + 1];
 
 		for (int i = 0; i <= D; i++) {
 			a[D - i] = ControllPoints[my - i];
