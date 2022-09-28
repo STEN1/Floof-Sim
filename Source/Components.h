@@ -151,6 +151,8 @@ namespace FLOOF {
 		inline static constexpr int D = 2;
         bool empty(){return ControllPoints.empty();}
         void clear(){ControllPoints.clear();KnotPoints.clear();}
+        void MakeDrawPoints();
+        std::vector<glm::vec3> drawPoints;
 	private:
 		std::vector<int> KnotPoints;
 		std::vector<glm::vec3> ControllPoints;

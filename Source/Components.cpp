@@ -402,4 +402,13 @@ namespace FLOOF {
     BSplineComponent::BSplineComponent() {
 
     }
+
+    void BSplineComponent::MakeDrawPoints() {
+        drawPoints.clear();
+        float t = TMin;
+        for (; t < TMax; t += 0.05f) {
+            drawPoints.emplace_back(EvaluateBSpline(t));
+        }
+        drawPoints.emplace_back(EvaluateBSpline(TMax));
+    }
 }
