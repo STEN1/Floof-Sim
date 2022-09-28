@@ -67,11 +67,8 @@ namespace FLOOF {
 		void DebugClearDebugData();
 		void DebugUpdateLineBuffer();
 		void DebugToggleDrawNormals();
-        void DebugToggleAllLines();
         void DebugDrawPath(std::vector<glm::vec3>& path);
-        void HidePointCloud();
         bool m_BShowPointcloud{false};
-        bool m_BTraceBSpline{true};
 		// Draws line in world coords
 		void DebugDrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3 color);
 
@@ -93,6 +90,7 @@ namespace FLOOF {
 		bool m_DebugDraw = true;
 		bool m_DrawNormals = false;
 		bool m_ShowImguiDemo = false;
+		uint32_t m_DebugLineSpace = 1000000;
 
         float m_CameraSpeed{20.f};
 	};

@@ -261,7 +261,6 @@ namespace FLOOF {
             if(ImGui::Button("DrawNormals")){
                 DebugToggleDrawNormals();
             }
-            ImGui::Checkbox(("Calculate BSpline"), &m_BTraceBSpline);
             ImGui::SliderFloat("Deltatime Modifer",&m_DeltaTimeModifier, 0.f, 1.f);
             ImGui::SliderFloat("Camer Speed", &m_CameraSpeed, 1, 100);
 			ImGui::End();
@@ -351,8 +350,14 @@ namespace FLOOF {
                for(auto& tri: collisions){
                    if(ball.CollisionSphere.Intersect(tri)) {
                        Simulate::CalculateCollision(&ballObject, *tri, time, fri);
-                       if(ball.Path.empty())
-                           ball.Path.emplace_back(transform.Position);
+                       if(bSpline.empty()){
+                           std::vector<glm::vec3> first;
+                           for(int i{0}; i <= 3; i++)
+                               first.emplace_back(transform.Position);
+                           bSpline.Update(first);
+                       }
+
+                           //ball.Path.emplace_back(transform.Position);
                    }
                    if(m_BDebugLines[DebugLine::TerrainTriangle])
                        DebugDrawTriangle(*tri, glm::vec3(255.f, 0.f, 0.f));
@@ -367,28 +372,22 @@ namespace FLOOF {
 
                 const float pointIntervall{0.5f};
 
+                std::vector<glm::vec3> splinePoints;
                 //save ball path and draw BSpline
-                if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !ball.Path.empty() && m_BTraceBSpline){
+                if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !bSpline.empty()) {
                     time.LastPoint = Timer::GetTime();
-                    ball.Path.emplace_back(transform.Position);
-                    if(ball.Path.size() > 3){
-                        bSpline.Update(ball.Path);
-                        std::vector<ColorVertex> vertexData;
-                        glm::vec3 color{ 0.f,125.f,125.f };
-                        float t = bSpline.TMin;
-                        ColorVertex v;
-                        v.Color = color;
-                        for (; t < bSpline.TMax; t += 0.05f) {
-                            v.Pos = bSpline.EvaluateBSpline(t);
-                            vertexData.push_back(v);
-                        }
-                        v.Pos = bSpline.EvaluateBSpline(bSpline.TMax);
-                        vertexData.push_back(v);
-                        auto& line = m_Registry.get<LineMeshComponent>(entity);
-                        line.UpdateBuffer(vertexData);
+                    if (bSpline.size() > 3) {
+                        bSpline.AddControllPoint(transform.Position);
                     }
                 }
+                //draw bspline
+                if(m_BDebugLines[DebugLine::BSpline] && bSpline.size() > 3){
+                    auto t = bSpline.TMin;
+                    for (; t < bSpline.TMax; t += 0.05f) {
+                        DebugDrawLine(bSpline.EvaluateBSpline(t),bSpline.EvaluateBSpline(t+0.05f),glm::vec3(255.f,255.f,255.f));
+                    }
 
+                }
                 if(m_BDebugLines[DebugLine::Friction])
                     DebugDrawLine(transform.Position, transform.Position + fri, glm::vec3(0.f, 125.f, 125.f));
                 if(m_BDebugLines[DebugLine::CollisionShape])
@@ -412,7 +411,6 @@ namespace FLOOF {
                     glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
                     transform.Position = loc;
                     velocity.Velocity = glm::vec3(0.f);
-                    ball.Path.clear();
                     bSpline.clear();
                 }
 
@@ -538,7 +536,7 @@ namespace FLOOF {
 	}
 
 	void Application::DebugInit() {
-		m_DebugLineBuffer.resize(1000000);
+		m_DebugLineBuffer.resize(m_DebugLineSpace);
 		m_DebugLineEntity = m_Registry.create();
 		m_Registry.emplace<LineMeshComponent>(m_DebugLineEntity, m_DebugLineBuffer);
 		m_Registry.emplace<DebugComponent>(m_DebugLineEntity);
@@ -566,6 +564,7 @@ namespace FLOOF {
 
 	void Application::DebugClearLineBuffer() {
 		m_DebugLineBuffer.clear();
+		m_DebugLineBuffer.reserve(m_DebugLineSpace);
 	}
 
 	void Application::DebugClearSpherePositions() {
@@ -734,9 +733,6 @@ namespace FLOOF {
 		auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
         auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
-        std::vector<ColorVertex> bSplineMesh;
-        bSplineMesh.resize(1000000);
-        auto& lineMesh = m_Registry.emplace<LineMeshComponent>(ballEntity, bSplineMesh);
 
         ball.Radius = 0.5f;
 		ball.Mass = 2.0f;
@@ -776,9 +772,6 @@ namespace FLOOF {
         auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
         auto& time = m_Registry.emplace<TimeComponent>(ballEntity);
         auto& spline = m_Registry.emplace<BSplineComponent>(ballEntity);
-        std::vector<ColorVertex> bSplineMesh;
-        bSplineMesh.resize(1000000);
-        auto& lineMesh = m_Registry.emplace<LineMeshComponent>(ballEntity, bSplineMesh);
 
         ball.Radius = radius;
         ball.Mass = mass;
@@ -797,11 +790,7 @@ namespace FLOOF {
 
         m_BallCount++;
     }
-
-    void Application::DebugToggleAllLines() {
-        m_DebugDraw = ! m_DebugDraw;
-    }
-
+    
     void Application::DebugDrawPath(std::vector<glm::vec3> &path) {
         for(int i {1}; i < path.size(); i++){
             DebugDrawLine(path[i-1],path[i],glm::vec3(255.f,255.f,255.f));
@@ -809,9 +798,6 @@ namespace FLOOF {
 
     }
 
-    void Application::HidePointCloud() {
-        m_BShowPointcloud = !m_BShowPointcloud;
-    }
 }
 
 //test

@@ -131,8 +131,8 @@ namespace FLOOF {
         float Radius; // TODO dobbel lagring av radius !! fix??
         float Mass;
         float Elasticity{0.05f};
-        std::vector<glm::vec3> Path;
     };
+
     struct VelocityComponent {
         glm::vec3 Velocity;
         glm::vec3 Force;
@@ -151,6 +151,8 @@ namespace FLOOF {
 		inline static constexpr int D = 2;
         bool empty(){return ControllPoints.empty();}
         void clear(){ControllPoints.clear();KnotPoints.clear();}
+        unsigned long size(){return ControllPoints.size();}
+
 	private:
 		std::vector<int> KnotPoints;
 		std::vector<glm::vec3> ControllPoints;

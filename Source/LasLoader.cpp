@@ -228,8 +228,8 @@ std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader:
     int width = (max.x - min.x);
     int height = (max.z - min.z);
 
-    std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> out(height,
-        std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>(width));
+    std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> out(height - 1,
+        std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>(width - 1));
 
     for (int z = 0; z < height - 1; z++) {
         for (int x = 0; x < width - 1; x++) {

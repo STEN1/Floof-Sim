@@ -50,11 +50,6 @@ void FLOOF::Simulate::CalculateCollision(FLOOF::CollisionObject *obj, FLOOF::Tri
     auto& velocity = obj->Velocity;
     auto& ball = obj->Ball;
 
-    if(ball.Path.empty()){
-        time.LastPoint = Timer::GetTime();
-        ball.Path.emplace_back(transform.Position);
-    }
-
     glm::vec3 norm = glm::normalize(CollisionShape::ClosestPointToPointOnTriangle(transform.Position, triangle)-transform.Position);
 
     float moveangle = glm::dot(velocity.Velocity,norm);
