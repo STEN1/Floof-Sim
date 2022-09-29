@@ -203,6 +203,12 @@ namespace FLOOF {
 				if (Input::Key(GLFW_KEY_A) == GLFW_PRESS) {
 					camera.MoveRight(-moveAmount);
 				}
+                if (Input::Key(GLFW_KEY_Q) == GLFW_PRESS) {
+                    camera.MoveUp(-moveAmount);
+                }
+                if (Input::Key(GLFW_KEY_E) == GLFW_PRESS) {
+                    camera.MoveUp(moveAmount);
+                }
 				static glm::vec2 oldMousePos = glm::vec2(0.f);
 				glm::vec2 mousePos = Input::MousePos();
 				glm::vec2 mouseDelta = mousePos - oldMousePos;

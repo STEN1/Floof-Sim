@@ -268,7 +268,14 @@ namespace FLOOF {
 		glm::mat4 rotation = glm::rotate(-amount, Up);
 		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
 	}
-	TerrainComponent::TerrainComponent(std::vector<std::vector<std::pair<Triangle, Triangle>>>& rectangles) {
+
+    void CameraComponent::MoveUp(float amount) {
+        if (amount == 0.f) return;
+        Position.y += amount;
+
+    }
+
+    TerrainComponent::TerrainComponent(std::vector<std::vector<std::pair<Triangle, Triangle>>>& rectangles) {
 		Rectangles = rectangles;
 
 		Height = rectangles.size();
