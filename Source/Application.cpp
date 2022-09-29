@@ -251,7 +251,9 @@ namespace FLOOF {
             (ImGui::Checkbox(("Gravitational Pull"), &m_BDebugLines[DebugLine::GravitationalPull]));
             (ImGui::Checkbox(("Collision shapes"), &m_BDebugLines[DebugLine::CollisionShape]));
             (ImGui::Checkbox(("Terrain Triangles"), &m_BDebugLines[DebugLine::TerrainTriangle]));
-            (ImGui::Checkbox(("Closest triangle point"), &m_BDebugLines[DebugLine::ClosestPointToBall]));
+            (ImGui::Checkbox(("Terrain Collision"), &m_BDebugLines[DebugLine::CollisionTriangle]));
+            //shhhhh maybe crash program :)
+            // (ImGui::Checkbox(("Closest triangle point"), &m_BDebugLines[DebugLine::ClosestPointToBall]));
             (ImGui::Checkbox(("Path Trace"), &m_BDebugLines[DebugLine::Path]));
             (ImGui::Checkbox(("BSpline Trace"), &m_BDebugLines[DebugLine::BSpline]));
             (ImGui::Checkbox(("Oct Tree"), &m_BDebugLines[DebugLine::OctTree]));
@@ -274,7 +276,7 @@ namespace FLOOF {
         deltaTime *= m_DeltaTimeModifier;
 
 		AABB worldExtents{};
-		worldExtents.extent = glm::vec3(200.f);
+		worldExtents.extent = glm::vec3(400.f);
 		worldExtents.pos = worldExtents.extent / 2.f;
 		Octree octree(worldExtents);
 
@@ -302,15 +304,9 @@ namespace FLOOF {
 			octree.GetCollisionPairs(collisionPairs);
 
 			for (auto& [obj1, obj2] : collisionPairs) {
-                //BallBallPhysics(obj1,obj2);
                 Simulate::CalculateCollision(obj1,obj2);
                 Simulate::BallBallOverlap(obj1,obj2);
 
-                std::vector<CollisionObject*> overlapingObjects;
-                octree.FindIntersectingObjects(*obj2, overlapingObjects);
-                for(auto& obj: overlapingObjects){
-
-                }
 			}
 
             glm::vec3 fri(0.f);
@@ -335,9 +331,9 @@ namespace FLOOF {
                            bSpline.Update(first);
                        }
 
-                           //ball.Path.emplace_back(transform.Position);
                    }
-                   if(m_BDebugLines[DebugLine::TerrainTriangle])
+                   //Triangle checking collision with
+                   if(m_BDebugLines[DebugLine::CollisionTriangle])
                        DebugDrawTriangle(*tri, glm::vec3(255.f, 0.f, 0.f));
                 }
 
@@ -389,10 +385,10 @@ namespace FLOOF {
 
                 //move ball when they fall and reset path
                 if(transform.Position.y <= -100.f){
-                    const double minX{0};
-                    const double maxX{100};
-                    const double minZ{0};
-                    const double maxZ{100};
+                    const double minX{50};
+                    const double maxX{450};
+                    const double minZ{50};
+                    const double maxZ{200};
                     glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
                     transform.Position = loc;
                     velocity.Velocity = glm::vec3(0.f);
@@ -410,7 +406,7 @@ namespace FLOOF {
 		// Camera setup
 		auto extent = m_Renderer->GetExtent();
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
-		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 500.f);
+		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 1000.f);
 
 		if (m_DrawNormals == false) {	// Geometry pass
 
@@ -631,7 +627,7 @@ namespace FLOOF {
 			if (triangle.C.y > maxY)
 				maxY = triangle.C.y;
 		}
-		minY = -10.f;
+		//minY = -10.f;
 		Plane p;
 		p.pos = glm::vec3(0.f, minY, 0.f);
 		p.normal = glm::vec3(0.f, 1.f, 0.f);
@@ -712,16 +708,16 @@ namespace FLOOF {
 
     const void Application::SpawnRain(const int count) {
 
-        const double minX{0};
-        const double maxX{100};
-        const double minZ{0};
-        const double maxZ{100};
+        const double minX{50};
+        const double maxX{450};
+        const double minZ{50};
+        const double maxZ{300};
 
         for(int i = 0; i < count; i++){
-            float rad = Math::RandDouble(0.1f,0.5f);
+            float rad = Math::RandDouble(0.2f,0.7f);
             float mass = rad*10.f;
                 glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
-                SpawnBall(loc, rad, mass, 0.05f);
+                SpawnBall(loc, rad, mass, 0.10f);
         }
     }
 
