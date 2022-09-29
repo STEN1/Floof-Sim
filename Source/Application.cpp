@@ -1,5 +1,4 @@
 #include "Application.h"
-#include "LoggerMacros.h"
 #include "Timer.h"
 #include "Components.h"
 #include "Input.h"
@@ -89,7 +88,8 @@ namespace FLOOF {
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vData, iData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
 			m_Registry.emplace<TransformComponent>(m_TerrainEntity);
-            m_Registry.emplace<TerrainComponent>(m_TerrainEntity, terrainData);
+            auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, terrainData);
+            terrain.MinY = france.GetMinY();
         }
 
 		{
@@ -111,13 +111,13 @@ namespace FLOOF {
 
 			double deltaTime = timer.Delta();
 			frameCounter++;
-			titleBarUpdateTimer += deltaTime;
+			titleBarUpdateTimer += static_cast<float>(deltaTime);
 
 			if (titleBarUpdateTimer > titlebarUpdateRate) {
 				float avgDeltaTime = titleBarUpdateTimer / frameCounter;
-				float fps{};
-				fps = 1.0 / avgDeltaTime;
-				std::string title = "Floof    FPS: " + std::to_string(fps);
+				float fps;
+				fps = 1.0f / avgDeltaTime;
+				std::string title = "Floof FPS: " + std::to_string(fps);
 				glfwSetWindowTitle(m_Window, title.c_str());
 				titleBarUpdateTimer = 0.f;
 				frameCounter = 0.f;
@@ -190,7 +190,7 @@ namespace FLOOF {
 		{	// Update camera.
 			auto view = m_Registry.view<CameraComponent>();
 			for (auto [entity, camera] : view.each()) {
-				float moveAmount = m_CameraSpeed * deltaTime;
+				auto moveAmount =static_cast<float>(m_CameraSpeed * deltaTime);
 				if (Input::Key(GLFW_KEY_W) == GLFW_PRESS) {
 					camera.MoveForward(moveAmount);
 				}
@@ -257,7 +257,7 @@ namespace FLOOF {
             ImGui::End();
 
             ImGui::Begin("Oppgaver");
-            static int raincount = 10;
+            static int raincount = 100;
             ImGui::SliderInt("Rain Ball Count", &raincount, 100, 5000);
             if(ImGui::Button("Spawn Rain"))
                 SpawnRain(raincount);
@@ -272,7 +272,7 @@ namespace FLOOF {
 
         auto & terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 		AABB worldExtents{};
-		worldExtents.extent = glm::vec3(terrain.Width);
+		worldExtents.extent = glm::vec3(static_cast<float>(terrain.Width));
 		worldExtents.pos = worldExtents.extent / 2.f;
 		Octree octree(worldExtents);
 
@@ -308,7 +308,6 @@ namespace FLOOF {
             glm::vec3 fri(0.f);
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent, BSplineComponent>();
-			auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 			for (auto [entity, transform, ball, velocity,time, bSpline] : view.each()) {
 
                 CollisionObject ballObject(&ball.CollisionSphere,transform,velocity,ball);
@@ -322,7 +321,7 @@ namespace FLOOF {
                        Simulate::CalculateCollision(&ballObject, *tri, time, fri);
                        if(bSpline.empty()){
                            std::vector<glm::vec3> first;
-                           for(int i{0}; i <= 3; i++)
+                           for(int i{0}; i <= (BSplineComponent::D+1); i++)
                                first.emplace_back(transform.Position);
                            bSpline.Update(first);
                        }
@@ -345,7 +344,7 @@ namespace FLOOF {
                 // Save ball path and draw BSpline
                 if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !bSpline.empty()) {
                     time.LastPoint = Timer::GetTime();
-                    if (bSpline.size() > 3 && bSpline.size() < m_MaxBSplineLines) {
+                    if (bSpline.Isvalid() && bSpline.size() < m_MaxBSplineLines) {
                         bSpline.AddControllPoint(transform.Position);
 
 						if (m_BDebugLines[DebugLine::BSpline]) {
@@ -380,7 +379,7 @@ namespace FLOOF {
                 velocity.Force = glm::vec3(0.f);
 
                 //move ball when they fall and reset path
-                if(transform.Position.y <= -100.f){
+                if(transform.Position.y <= terrain.MinY*1.2f){
                     const int minX{0};
                     const int maxX{terrain.Height};
                     const int minZ{0};
@@ -402,9 +401,9 @@ namespace FLOOF {
 		// Camera setup
 		auto extent = m_Renderer->GetExtent();
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
-		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 1000.f);
+		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 1500.f);
 
-		if (m_DrawNormals == false) {	// Geometry pass
+		if (!m_DrawNormals) {	// Geometry pass
 
 			{ // Draw height lines
 				ColorPushConstants constants;
@@ -446,7 +445,7 @@ namespace FLOOF {
 					mesh.Draw(commandBuffer);
 				}
 			}
-		} else if (m_DrawNormals) { // Debug drawing of normals for geometry
+		} else { // Debug drawing of normals for geometry
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Normal);
 			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
 			for (auto [entity, transform, mesh, texture] : view.each()) {
@@ -610,7 +609,7 @@ namespace FLOOF {
 
 	void Application::MakeHeightLines() {
 		std::vector<ColorVertex> heightLines;
-		glm::vec3 color{ 0.3f, 0.2f, 0.1f };
+		glm::vec3 color{ 1.f, 1.f, 1.f };
 		auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 		float minY = std::numeric_limits<float>::max();
 		float maxY = std::numeric_limits<float>::min();
@@ -633,7 +632,7 @@ namespace FLOOF {
 		Plane p;
 		p.pos = glm::vec3(0.f, minY, 0.f);
 		p.normal = glm::vec3(0.f, 1.f, 0.f);
-		for (float height = minY; height < maxY; height += 5.f) {
+		for (float height = minY; height < maxY; height += 50.f) {
 			p.pos.y = height;
 			for (auto triangle : terrain.Triangles) {
 				bool above = false;
@@ -696,18 +695,6 @@ namespace FLOOF {
 		m_Registry.emplace<LineMeshComponent>(m_HeightLinesEntity, heightLines);
 	}
 
-	void Application::ResetBall() {
-		auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent>();
-		for (auto [entity, transform, ball, velocity] : view.each()) {
-			transform.Position = glm::vec3(0.f, 0.125f, 0.f);
-			//newpos = glm::vec3(0.f, 0.125f, 0.f);
-			velocity.Velocity = glm::vec3(0.f);
-            ball.CollisionSphere.radius = ball.Radius;
-            ball.CollisionSphere.pos = transform.Position;
-		}
-
-	}
-
     const void Application::SpawnRain(const int count) {
 
         auto & terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
@@ -717,7 +704,7 @@ namespace FLOOF {
         const int maxZ{terrain.Width};
 
         for(int i = 0; i < count; i++){
-            float rad = Math::RandDouble(0.2f,0.7f);
+            float rad = Math::RandFloat(0.2f,0.7f);
             float mass = rad*10.f;
                 glm::vec3 loc(Math::RandDouble(minX,maxX),20.f,Math::RandDouble(minZ,maxZ));
                 SpawnBall(loc, rad, mass, 0.10f);

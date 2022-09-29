@@ -125,6 +125,7 @@ namespace FLOOF {
 		std::vector<Triangle> Triangles;
 		int Width;
 		int Height;
+        float MinY;
 	};
 
     struct BallComponent {
@@ -153,6 +154,7 @@ namespace FLOOF {
         bool empty(){return ControllPoints.empty();}
         void clear(){ControllPoints.clear();KnotPoints.clear(); TMin = 0.f; TMax =0.f;}
         unsigned long size(){return ControllPoints.size();}
+        bool Isvalid();
 
 	private:
 		std::vector<int> KnotPoints;

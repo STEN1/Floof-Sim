@@ -423,4 +423,9 @@ namespace FLOOF {
 
     }
 
+    bool BSplineComponent::Isvalid() {
+
+        return ControllPoints.size() > (D+1);
+    }
+
 }
