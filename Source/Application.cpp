@@ -251,6 +251,7 @@ namespace FLOOF {
             (ImGui::Checkbox(("Gravitational Pull"), &m_BDebugLines[DebugLine::GravitationalPull]));
             (ImGui::Checkbox(("Collision shapes"), &m_BDebugLines[DebugLine::CollisionShape]));
             (ImGui::Checkbox(("Terrain Triangles"), &m_BDebugLines[DebugLine::TerrainTriangle]));
+            (ImGui::Checkbox(("Terrain Collision"), &m_BDebugLines[DebugLine::CollisionTriangle]));
             (ImGui::Checkbox(("Closest triangle point"), &m_BDebugLines[DebugLine::ClosestPointToBall]));
             (ImGui::Checkbox(("Path Trace"), &m_BDebugLines[DebugLine::Path]));
             (ImGui::Checkbox(("BSpline Trace"), &m_BDebugLines[DebugLine::BSpline]));
@@ -335,9 +336,9 @@ namespace FLOOF {
                            bSpline.Update(first);
                        }
 
-                           //ball.Path.emplace_back(transform.Position);
                    }
-                   if(m_BDebugLines[DebugLine::TerrainTriangle])
+                   //Triangle checking collision with
+                   if(m_BDebugLines[DebugLine::CollisionTriangle])
                        DebugDrawTriangle(*tri, glm::vec3(255.f, 0.f, 0.f));
                 }
 
@@ -389,10 +390,10 @@ namespace FLOOF {
 
                 //move ball when they fall and reset path
                 if(transform.Position.y <= -100.f){
-                    const double minX{0};
-                    const double maxX{100};
-                    const double minZ{0};
-                    const double maxZ{100};
+                    const double minX{50};
+                    const double maxX{450};
+                    const double minZ{50};
+                    const double maxZ{200};
                     glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
                     transform.Position = loc;
                     velocity.Velocity = glm::vec3(0.f);
@@ -712,10 +713,10 @@ namespace FLOOF {
 
     const void Application::SpawnRain(const int count) {
 
-        const double minX{0};
-        const double maxX{100};
-        const double minZ{0};
-        const double maxZ{100};
+        const double minX{50};
+        const double maxX{450};
+        const double minZ{50};
+        const double maxZ{300};
 
         for(int i = 0; i < count; i++){
             float rad = Math::RandDouble(0.1f,0.5f);
