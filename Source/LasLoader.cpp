@@ -3,24 +3,14 @@
 #include <sstream>
 #include <limits>
 LasLoader::LasLoader(const std::string &path) : PointData{} {
-    std::ifstream file(path);
+    std::string txt (".txt");
+    std::string lasbin (".lasbin");
 
-    if (!file.is_open()){
-        std::cout << "Cant open file: " << path << std::endl;
-        return;
-    }
+    if (path.find(txt) != std::string::npos)
+        ReadTxt(path);
 
-    std::string line;
-    FLOOF::ColorVertex tempVertex{};
-
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        ss >> tempVertex.Pos.x;
-        ss >> tempVertex.Pos.z;
-        ss >> tempVertex.Pos.y;
-        tempVertex.Color = glm::vec3(1.f,1.f,1.f);
-        PointData.push_back(tempVertex);
-    }
+    else if (path.find(lasbin) != std::string::npos)
+        ReadBin(path);
 
     CalcCenter();
     UpdatePoints();
@@ -272,4 +262,44 @@ std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader:
         }
     }
     return out;
+}
+
+void LasLoader::ReadBin(const std::string &path) {
+
+    std::ifstream is(path, std::ios::binary | std::ios::ate);
+    auto size = is.tellg();
+    std::vector<glm::vec3> lasDataPoints(size / sizeof(glm::vec3));
+    is.seekg(0);
+    is.read(reinterpret_cast<char *>(lasDataPoints.data()), size);
+
+    for (auto& point : lasDataPoints) {
+        FLOOF::ColorVertex tempVertex{};
+        tempVertex.Pos.x = point.x;
+        tempVertex.Pos.y = point.z;
+        tempVertex.Pos.z = point.y;
+        tempVertex.Color = glm::vec3(1.f,1.f,1.f);
+        PointData.push_back(tempVertex);
+    }
+
+}
+
+void LasLoader::ReadTxt(const std::string &path) {
+    std::ifstream file(path);
+
+    if (!file.is_open()){
+        std::cout << "Cant open file: " << path << std::endl;
+        return;
+    }
+    std::string line;
+    FLOOF::ColorVertex tempVertex{};
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        ss >> tempVertex.Pos.x;
+        ss >> tempVertex.Pos.z;
+        ss >> tempVertex.Pos.y;
+        tempVertex.Color = glm::vec3(1.f,1.f,1.f);
+        PointData.push_back(tempVertex);
+    }
+
 }
