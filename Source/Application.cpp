@@ -55,10 +55,6 @@ namespace FLOOF {
 
 		// Register key callbacks
 		Input::Init(m_Window);
-		Input::RegisterKeyPressCallback(GLFW_KEY_R, std::bind(&Application::ResetBall, this));
-		//Input::RegisterKeyPressCallback(GLFW_KEY_F, std::bind(&Application::SpawnBall, this));
-		Input::RegisterKeyPressCallback(GLFW_KEY_M, std::bind(&Application::DebugToggleDrawNormals, this));
-		
 		// Init Logger. Writes to specified log file.
 		Utils::Logger::s_Logger = new Utils::Logger("Floof.log");
 
@@ -234,7 +230,7 @@ namespace FLOOF {
 			ImGui::Begin("Utils");
 			if (ImGui::Button("Spawn ball")) {
 				const auto& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
-				SpawnBall(camera.Position, 1.f, 200.f, 0.5f);
+				SpawnBall(camera.Position, 2.f, 200.f, 0.9f,"Assets/BallTexture.png");
 			}
             if(ImGui::Button("DrawNormals")){
                 DebugToggleDrawNormals();
@@ -254,7 +250,7 @@ namespace FLOOF {
             (ImGui::Checkbox(("Terrain Collision"), &m_BDebugLines[DebugLine::CollisionTriangle]));
             //shhhhh maybe crash program :)
             // (ImGui::Checkbox(("Closest triangle point"), &m_BDebugLines[DebugLine::ClosestPointToBall]));
-            (ImGui::Checkbox(("Path Trace"), &m_BDebugLines[DebugLine::Path]));
+            //(ImGui::Checkbox(("Path Trace"), &m_BDebugLines[DebugLine::Path]));
             (ImGui::Checkbox(("BSpline Trace"), &m_BDebugLines[DebugLine::BSpline]));
             (ImGui::Checkbox(("Oct Tree"), &m_BDebugLines[DebugLine::OctTree]));
             (ImGui::Checkbox(("World Axis"), &m_BDebugLines[DebugLine::WorldAxis]));
@@ -263,7 +259,7 @@ namespace FLOOF {
 
             ImGui::Begin("Oppgaver");
             static int raincount = 10;
-            ImGui::SliderInt("Rain Ball Count", &raincount, 0, 1000);
+            ImGui::SliderInt("Rain Ball Count", &raincount, 100, 5000);
             if(ImGui::Button("Spawn Rain"))
                 SpawnRain(raincount);
             ImGui::Text("Balls In World = %i", m_BallCount);
@@ -385,11 +381,11 @@ namespace FLOOF {
 
                 //move ball when they fall and reset path
                 if(transform.Position.y <= -100.f){
-                    const double minX{50};
-                    const double maxX{450};
-                    const double minZ{50};
-                    const double maxZ{200};
-                    glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
+                    const int minX{0};
+                    const int maxX{terrain.Height};
+                    const int minZ{0};
+                    const int maxZ{terrain.Width};
+                    glm::vec3 loc(Math::RandDouble(minX,maxX),20.f,Math::RandDouble(minZ,maxZ));
                     transform.Position = loc;
                     velocity.Velocity = glm::vec3(0.f);
                     bSpline.clear();
@@ -708,20 +704,21 @@ namespace FLOOF {
 
     const void Application::SpawnRain(const int count) {
 
-        const double minX{50};
-        const double maxX{450};
-        const double minZ{50};
-        const double maxZ{300};
+        auto & terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+        const int minX{0};
+        const int maxX{terrain.Height};
+        const int minZ{0};
+        const int maxZ{terrain.Width};
 
         for(int i = 0; i < count; i++){
             float rad = Math::RandDouble(0.2f,0.7f);
             float mass = rad*10.f;
-                glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
+                glm::vec3 loc(Math::RandDouble(minX,maxX),20.f,Math::RandDouble(minZ,maxZ));
                 SpawnBall(loc, rad, mass, 0.10f);
         }
     }
 
-    const void Application::SpawnBall(glm::vec3 location, const float radius, const float mass, const float elasticity) {
+    const void Application::SpawnBall(glm::vec3 location, const float radius, const float mass, const float elasticity,const std::string & texture) {
         const auto ballEntity = m_Registry.create();
         auto& transform = m_Registry.emplace<TransformComponent>(ballEntity);
         auto& ball = m_Registry.emplace<BallComponent>(ballEntity);
@@ -740,7 +737,7 @@ namespace FLOOF {
 
         auto& velocity = m_Registry.emplace<VelocityComponent>(ballEntity);
         m_Registry.emplace<MeshComponent>(ballEntity, "Assets/Ball.obj");
-        m_Registry.emplace<TextureComponent>(ballEntity, "Assets/LightBlue.png");
+        m_Registry.emplace<TextureComponent>(ballEntity, texture);
 
         transform.Position = location;
         transform.Scale = glm::vec3(ball.Radius);
