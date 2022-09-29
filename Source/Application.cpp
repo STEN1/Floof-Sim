@@ -1,5 +1,4 @@
 #include "Application.h"
-#include "LoggerMacros.h"
 #include "Timer.h"
 #include "Components.h"
 #include "Input.h"
@@ -112,13 +111,13 @@ namespace FLOOF {
 
 			double deltaTime = timer.Delta();
 			frameCounter++;
-			titleBarUpdateTimer += deltaTime;
+			titleBarUpdateTimer += static_cast<float>(deltaTime);
 
 			if (titleBarUpdateTimer > titlebarUpdateRate) {
 				float avgDeltaTime = titleBarUpdateTimer / frameCounter;
-				float fps{};
-				fps = 1.0 / avgDeltaTime;
-				std::string title = "Floof    FPS: " + std::to_string(fps);
+				float fps;
+				fps = 1.0f / avgDeltaTime;
+				std::string title = "Floof FPS: " + std::to_string(fps);
 				glfwSetWindowTitle(m_Window, title.c_str());
 				titleBarUpdateTimer = 0.f;
 				frameCounter = 0.f;
@@ -191,7 +190,7 @@ namespace FLOOF {
 		{	// Update camera.
 			auto view = m_Registry.view<CameraComponent>();
 			for (auto [entity, camera] : view.each()) {
-				float moveAmount = m_CameraSpeed * deltaTime;
+				auto moveAmount =static_cast<float>(m_CameraSpeed * deltaTime);
 				if (Input::Key(GLFW_KEY_W) == GLFW_PRESS) {
 					camera.MoveForward(moveAmount);
 				}
@@ -204,7 +203,7 @@ namespace FLOOF {
 				if (Input::Key(GLFW_KEY_A) == GLFW_PRESS) {
 					camera.MoveRight(-moveAmount);
 				}
-				static glm::vec2 oldMousePos = glm::vec2(0.f);
+				static auto oldMousePos = glm::vec2(0.f);
 				glm::vec2 mousePos = Input::MousePos();
 				glm::vec2 mouseDelta = mousePos - oldMousePos;
 				oldMousePos = mousePos;
@@ -267,7 +266,7 @@ namespace FLOOF {
 
         auto & terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 		AABB worldExtents{};
-		worldExtents.extent = glm::vec3(terrain.Width);
+		worldExtents.extent = glm::vec3(static_cast<float>(terrain.Width));
 		worldExtents.pos = worldExtents.extent / 2.f;
 		Octree octree(worldExtents);
 
@@ -303,7 +302,6 @@ namespace FLOOF {
             glm::vec3 fri(0.f);
 
 			auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent, TimeComponent, BSplineComponent>();
-			auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 			for (auto [entity, transform, ball, velocity,time, bSpline] : view.each()) {
 
                 CollisionObject ballObject(&ball.CollisionSphere,transform,velocity,ball);
@@ -317,7 +315,7 @@ namespace FLOOF {
                        Simulate::CalculateCollision(&ballObject, *tri, time, fri);
                        if(bSpline.empty()){
                            std::vector<glm::vec3> first;
-                           for(int i{0}; i <= (bSpline.D+1); i++)
+                           for(int i{0}; i <= (BSplineComponent::D+1); i++)
                                first.emplace_back(transform.Position);
                            bSpline.Update(first);
                        }
@@ -399,7 +397,7 @@ namespace FLOOF {
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
 		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 1500.f);
 
-		if (m_DrawNormals == false) {	// Geometry pass
+		if (!m_DrawNormals) {	// Geometry pass
 
 			{ // Draw height lines
 				ColorPushConstants constants;
