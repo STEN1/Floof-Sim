@@ -627,7 +627,7 @@ namespace FLOOF {
 			if (triangle.C.y > maxY)
 				maxY = triangle.C.y;
 		}
-		minY = -10.f;
+		//minY = -10.f;
 		Plane p;
 		p.pos = glm::vec3(0.f, minY, 0.f);
 		p.normal = glm::vec3(0.f, 1.f, 0.f);
