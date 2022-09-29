@@ -240,7 +240,7 @@ namespace FLOOF {
                 DebugToggleDrawNormals();
             }
             ImGui::SliderFloat("Deltatime Modifer",&m_DeltaTimeModifier, 0.f, 1.f);
-            ImGui::SliderFloat("Camer Speed", &m_CameraSpeed, 1, 100);
+            ImGui::SliderFloat("Camer Speed", &m_CameraSpeed, 50, 300);
 			ImGui::End();
 
 
@@ -538,7 +538,7 @@ namespace FLOOF {
         m_BDebugLines[DebugLine::GravitationalPull] = false;
         m_BDebugLines[DebugLine::Path] = false;
         m_BDebugLines[DebugLine::BSpline] = true;
-        m_BDebugLines[DebugLine::OctTree] = true;
+        m_BDebugLines[DebugLine::OctTree] = false;
 	}
 
 	void Application::DebugClearLineBuffer() {
@@ -608,7 +608,7 @@ namespace FLOOF {
 
 	void Application::MakeHeightLines() {
 		std::vector<ColorVertex> heightLines;
-		glm::vec3 color{ 0.f, 0.f, 0.f };
+		glm::vec3 color{ 0.3f, 0.2f, 0.1f };
 		auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 		float minY = std::numeric_limits<float>::max();
 		float maxY = std::numeric_limits<float>::min();
