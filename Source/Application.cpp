@@ -152,51 +152,44 @@ namespace FLOOF {
 		return 0;
 	}
 	void Application::Update(double deltaTime) {
-            // World axis
-            if (m_BDebugLines[DebugLine::WorldAxis]) {
-                DebugDrawLine(glm::vec3(0.f), glm::vec3(10.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
-                DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 10.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-                DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 10.f), glm::vec3(0.f, 0.f, 1.f));
-            }
+        // World axis
+        if (m_BDebugLines[DebugLine::WorldAxis]) {
+            DebugDrawLine(glm::vec3(0.f), glm::vec3(10.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
+            DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 10.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+            DebugDrawLine(glm::vec3(0.f), glm::vec3(0.f, 0.f, 10.f), glm::vec3(0.f, 0.f, 1.f));
+        }
 
-			// Terrain triangles
-            if(m_BDebugLines[DebugLine::TerrainTriangle]) {
-                TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
-                glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
-                for (auto &triangle: triangleSurface.Triangles) {
-                    DebugDrawTriangle(triangle, surfaceTriangleColor);
-                }
+		// Terrain triangles
+        if(m_BDebugLines[DebugLine::TerrainTriangle]) {
+            TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+            glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
+            for (auto &triangle: triangleSurface.Triangles) {
+                DebugDrawTriangle(triangle, surfaceTriangleColor);
             }
-			// Closest point on triangle to ball center
-			if (m_BDebugLines[DebugLine::ClosestPointToBall]) {
-				auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
-				auto view = m_Registry.view<BallComponent>();
-				static constexpr glm::vec3 pointColor = glm::vec3(1.f);
-				for (auto [entity, ball] : view.each()) {
-					for (auto& triangle : terrain.Triangles) {
-						glm::vec3 start = CollisionShape::ClosestPointToPointOnTriangle(ball.CollisionSphere.pos, triangle);
-						glm::vec3 end = start + (triangle.N * 0.1f);
-						DebugDrawLine(start, end, pointColor);
-					}
+        }
+
+		// Closest point on triangle to ball center
+		if (m_BDebugLines[DebugLine::ClosestPointToBall]) {
+			auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+			auto view = m_Registry.view<BallComponent>();
+			static constexpr glm::vec3 pointColor = glm::vec3(1.f);
+			for (auto [entity, ball] : view.each()) {
+				for (auto& triangle : terrain.Triangles) {
+					glm::vec3 start = CollisionShape::ClosestPointToPointOnTriangle(ball.CollisionSphere.pos, triangle);
+					glm::vec3 end = start + (triangle.N * 0.1f);
+					DebugDrawLine(start, end, pointColor);
 				}
 			}
-
-
-            // Terrain triangles
-            if (m_BDebugLines[DebugLine::TerrainTriangle]) {
-                TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
-                glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
-                for (auto &triangle: triangleSurface.Triangles) {
-                    DebugDrawTriangle(triangle, surfaceTriangleColor);
-                }
-            }
-
-		{	// Rotate ball mesh.
-			auto view = m_Registry.view<TransformComponent, MeshComponent, BallComponent>();
-			for (auto [entity, transform, mesh, ball] : view.each()) {
-				transform.Rotation.y += deltaTime;
-			}
 		}
+
+        // Terrain triangles
+        if (m_BDebugLines[DebugLine::TerrainTriangle]) {
+            TerrainComponent &triangleSurface = m_Registry.get<TerrainComponent>(m_TerrainEntity);
+            glm::vec3 surfaceTriangleColor{1.f, 0.f, 1.f};
+            for (auto &triangle: triangleSurface.Triangles) {
+                DebugDrawTriangle(triangle, surfaceTriangleColor);
+            }
+        }
 
 		{	// Update camera.
 			auto view = m_Registry.view<CameraComponent>();
@@ -437,8 +430,10 @@ namespace FLOOF {
 				auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
 				for (auto [entity, transform, mesh, texture] : view.each()) {
 					MeshPushConstants constants;
-					constants.MVP = vp * transform.GetTransform();
-					constants.InvModelMat = glm::inverse(transform.GetTransform());
+					//constants.MVP = vp * transform.GetTransform();
+					glm::mat4 modelMat = glm::translate(transform.Position);
+					constants.MVP = vp * modelMat;
+					constants.InvModelMat = glm::inverse(modelMat);
 					vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 						0, sizeof(MeshPushConstants), &constants);
 
@@ -452,8 +447,10 @@ namespace FLOOF {
 			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
 			for (auto [entity, transform, mesh, texture] : view.each()) {
 				MeshPushConstants constants;
-				constants.MVP = vp * transform.GetTransform();
-				constants.InvModelMat = glm::inverse(transform.GetTransform());
+				//constants.MVP = vp * transform.GetTransform();
+				glm::mat4 modelMat = glm::translate(transform.Position);
+				constants.MVP = vp * modelMat;
+				constants.InvModelMat = glm::inverse(modelMat);
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(MeshPushConstants), &constants);
 
