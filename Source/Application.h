@@ -35,7 +35,6 @@ namespace FLOOF {
 		entt::entity m_HeightLinesEntity;
 
         // ----------- Physics utils -------------
-        void ResetBall();
         const void SpawnBall(glm::vec3 location, const float radius, const float mass, const float elasticity = 0.5f, const std::string & texture = "Assets/LightBlue.png");
         const void SpawnRain(const int count);
 

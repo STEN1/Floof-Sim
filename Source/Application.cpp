@@ -439,7 +439,7 @@ namespace FLOOF {
 					mesh.Draw(commandBuffer);
 				}
 			}
-		} else if (m_DrawNormals) { // Debug drawing of normals for geometry
+		} else { // Debug drawing of normals for geometry
 			auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Normal);
 			auto view = m_Registry.view<TransformComponent, MeshComponent, TextureComponent>();
 			for (auto [entity, transform, mesh, texture] : view.each()) {
@@ -689,18 +689,6 @@ namespace FLOOF {
 		m_Registry.emplace<LineMeshComponent>(m_HeightLinesEntity, heightLines);
 	}
 
-	void Application::ResetBall() {
-		auto view = m_Registry.view<TransformComponent, BallComponent, VelocityComponent>();
-		for (auto [entity, transform, ball, velocity] : view.each()) {
-			transform.Position = glm::vec3(0.f, 0.125f, 0.f);
-			//newpos = glm::vec3(0.f, 0.125f, 0.f);
-			velocity.Velocity = glm::vec3(0.f);
-            ball.CollisionSphere.radius = ball.Radius;
-            ball.CollisionSphere.pos = transform.Position;
-		}
-
-	}
-
     const void Application::SpawnRain(const int count) {
 
         auto & terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
@@ -710,7 +698,7 @@ namespace FLOOF {
         const int maxZ{terrain.Width};
 
         for(int i = 0; i < count; i++){
-            float rad = Math::RandDouble(0.2f,0.7f);
+            float rad = Math::RandFloat(0.2f,0.7f);
             float mass = rad*10.f;
                 glm::vec3 loc(Math::RandDouble(minX,maxX),20.f,Math::RandDouble(minZ,maxZ));
                 SpawnBall(loc, rad, mass, 0.10f);
