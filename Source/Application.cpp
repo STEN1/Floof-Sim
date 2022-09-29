@@ -84,7 +84,7 @@ namespace FLOOF {
 		DebugInit();
 
         {
-			LasLoader france("Assets/france.lasbin");
+			LasLoader france("Assets/jotun2.lasbin");
 			auto [vData, iData] = france.GetIndexedData();
 			auto terrainData = france.GetTerrainData();
 
