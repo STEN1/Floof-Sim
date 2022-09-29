@@ -271,8 +271,9 @@ namespace FLOOF {
 
         deltaTime *= m_DeltaTimeModifier;
 
+        auto & terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 		AABB worldExtents{};
-		worldExtents.extent = glm::vec3(400.f);
+		worldExtents.extent = glm::vec3(terrain.Width);
 		worldExtents.pos = worldExtents.extent / 2.f;
 		Octree octree(worldExtents);
 
