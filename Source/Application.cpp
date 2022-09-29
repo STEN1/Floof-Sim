@@ -252,7 +252,8 @@ namespace FLOOF {
             (ImGui::Checkbox(("Collision shapes"), &m_BDebugLines[DebugLine::CollisionShape]));
             (ImGui::Checkbox(("Terrain Triangles"), &m_BDebugLines[DebugLine::TerrainTriangle]));
             (ImGui::Checkbox(("Terrain Collision"), &m_BDebugLines[DebugLine::CollisionTriangle]));
-            (ImGui::Checkbox(("Closest triangle point"), &m_BDebugLines[DebugLine::ClosestPointToBall]));
+            //shhhhh maybe crash program :)
+            // (ImGui::Checkbox(("Closest triangle point"), &m_BDebugLines[DebugLine::ClosestPointToBall]));
             (ImGui::Checkbox(("Path Trace"), &m_BDebugLines[DebugLine::Path]));
             (ImGui::Checkbox(("BSpline Trace"), &m_BDebugLines[DebugLine::BSpline]));
             (ImGui::Checkbox(("Oct Tree"), &m_BDebugLines[DebugLine::OctTree]));
@@ -303,15 +304,9 @@ namespace FLOOF {
 			octree.GetCollisionPairs(collisionPairs);
 
 			for (auto& [obj1, obj2] : collisionPairs) {
-                //BallBallPhysics(obj1,obj2);
                 Simulate::CalculateCollision(obj1,obj2);
                 Simulate::BallBallOverlap(obj1,obj2);
 
-                std::vector<CollisionObject*> overlapingObjects;
-                octree.FindIntersectingObjects(*obj2, overlapingObjects);
-                for(auto& obj: overlapingObjects){
-
-                }
 			}
 
             glm::vec3 fri(0.f);
@@ -719,10 +714,10 @@ namespace FLOOF {
         const double maxZ{300};
 
         for(int i = 0; i < count; i++){
-            float rad = Math::RandDouble(0.1f,0.5f);
+            float rad = Math::RandDouble(0.2f,0.7f);
             float mass = rad*10.f;
                 glm::vec3 loc(Math::RandDouble(minX,maxX),10.f,Math::RandDouble(minZ,maxZ));
-                SpawnBall(loc, rad, mass, 0.05f);
+                SpawnBall(loc, rad, mass, 0.10f);
         }
     }
 

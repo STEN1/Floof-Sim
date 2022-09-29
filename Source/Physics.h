@@ -106,7 +106,7 @@ namespace FLOOF {
 		glm::vec3 B;
 		glm::vec3 C;
 		glm::vec3 N;
-		float FrictionConstant{};
+		float FrictionConstant{0.2f};
 	};
 
 	class Frustum : public CollisionShape {
