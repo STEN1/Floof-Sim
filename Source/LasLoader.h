@@ -20,6 +20,10 @@ private:
     std::vector<FLOOF::MeshVertex> TriangulatedVertexData;
     std::vector<FLOOF::Triangle> triangles;
 
+    void ReadTxt(const std::string& path);
+    void ReadBin(const std::string& path);
+
+
     void CalcCenter();
     void FindMinMax();
     void UpdatePoints();
