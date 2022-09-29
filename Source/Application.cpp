@@ -89,7 +89,8 @@ namespace FLOOF {
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vData, iData);
 			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
 			m_Registry.emplace<TransformComponent>(m_TerrainEntity);
-            m_Registry.emplace<TerrainComponent>(m_TerrainEntity, terrainData);
+            auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, terrainData);
+            terrain.MinY = france.GetMinY();
         }
 
 		{
@@ -251,7 +252,7 @@ namespace FLOOF {
             ImGui::End();
 
             ImGui::Begin("Oppgaver");
-            static int raincount = 10;
+            static int raincount = 100;
             ImGui::SliderInt("Rain Ball Count", &raincount, 100, 5000);
             if(ImGui::Button("Spawn Rain"))
                 SpawnRain(raincount);
@@ -316,7 +317,7 @@ namespace FLOOF {
                        Simulate::CalculateCollision(&ballObject, *tri, time, fri);
                        if(bSpline.empty()){
                            std::vector<glm::vec3> first;
-                           for(int i{0}; i <= 3; i++)
+                           for(int i{0}; i <= (bSpline.D+1); i++)
                                first.emplace_back(transform.Position);
                            bSpline.Update(first);
                        }
@@ -339,7 +340,7 @@ namespace FLOOF {
                 // Save ball path and draw BSpline
                 if(Timer::GetTimeSince(time.LastPoint) >= pointIntervall && !bSpline.empty()) {
                     time.LastPoint = Timer::GetTime();
-                    if (bSpline.size() > 3 && bSpline.size() < m_MaxBSplineLines) {
+                    if (bSpline.Isvalid() && bSpline.size() < m_MaxBSplineLines) {
                         bSpline.AddControllPoint(transform.Position);
 
 						if (m_BDebugLines[DebugLine::BSpline]) {
@@ -374,7 +375,7 @@ namespace FLOOF {
                 velocity.Force = glm::vec3(0.f);
 
                 //move ball when they fall and reset path
-                if(transform.Position.y <= -100.f){
+                if(transform.Position.y <= terrain.MinY*1.2f){
                     const int minX{0};
                     const int maxX{terrain.Height};
                     const int minZ{0};
@@ -396,7 +397,7 @@ namespace FLOOF {
 		// Camera setup
 		auto extent = m_Renderer->GetExtent();
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
-		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 1000.f);
+		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 1500.f);
 
 		if (m_DrawNormals == false) {	// Geometry pass
 
@@ -604,7 +605,7 @@ namespace FLOOF {
 
 	void Application::MakeHeightLines() {
 		std::vector<ColorVertex> heightLines;
-		glm::vec3 color{ 0.3f, 0.2f, 0.1f };
+		glm::vec3 color{ 1.f, 1.f, 1.f };
 		auto& terrain = m_Registry.get<TerrainComponent>(m_TerrainEntity);
 		float minY = std::numeric_limits<float>::max();
 		float maxY = std::numeric_limits<float>::min();
@@ -627,7 +628,7 @@ namespace FLOOF {
 		Plane p;
 		p.pos = glm::vec3(0.f, minY, 0.f);
 		p.normal = glm::vec3(0.f, 1.f, 0.f);
-		for (float height = minY; height < maxY; height += 5.f) {
+		for (float height = minY; height < maxY; height += 50.f) {
 			p.pos.y = height;
 			for (auto triangle : terrain.Triangles) {
 				bool above = false;

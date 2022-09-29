@@ -13,6 +13,7 @@ public:
     std::vector<FLOOF::MeshVertex> GetVertexData();
     std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> GetTerrainData();
 
+    float GetMinY(){return -max.y;}
 private:
     std::vector<FLOOF::ColorVertex> PointData;
     std::vector<FLOOF::MeshVertex> VertexData;
