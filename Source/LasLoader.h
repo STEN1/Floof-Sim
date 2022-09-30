@@ -23,6 +23,7 @@ private:
 
     void ReadTxt(const std::string& path);
     void ReadBin(const std::string& path);
+    void ReadLas(const std::string& path);
 
 
     void CalcCenter();
@@ -45,3 +46,83 @@ struct height {
     int count{0};
     float sum{0.f};
 };
+
+struct lasHeader {
+    char fileSignature[4];
+    unsigned short sourceID;
+    unsigned short globalEncoding;
+    unsigned long GUID1;
+    unsigned short GUID2;
+    unsigned short GUID3;
+    unsigned char GUID4[8];
+    unsigned char versionMajor;
+    unsigned char versionMinor;
+    char systemIdentifier[32];
+    char generatingSoftware[32];
+    unsigned short creationDay;
+    unsigned short creationYear;
+    unsigned short headerSize;
+    unsigned long offsetToPointData;
+    unsigned long numberVariableLengthRecords;
+    unsigned char pointDataRecordFormat; // Format
+    unsigned short pointDataRecordLength;
+    unsigned long legacyNumberPointsRecords;
+    unsigned long legacyNumberPointReturn[5];
+    double xScaleFactor;
+    double yScaleFactor;
+    double zScaleFactor;
+    double xOffset;
+    double yOffset;
+    double zOffset;
+    double maxX;
+    double minX;
+    double maxY;
+    double minY;
+    double maxZ;
+    double minZ;
+    unsigned long long startWaveformDataPacketRecord;
+    unsigned long long startFirstExtendedVariableLengthRecord;
+    unsigned long numberExtendedVariableLengthRecords;
+    unsigned long long numberPointRecords;
+    unsigned long long numberPointsByReturn;
+};
+
+struct lasVariableLengthRecords{
+    // Variable Length Records
+    unsigned short lasReserved;
+    char UserID[16];
+    unsigned short recordID;
+    unsigned short recordLengthAfterHeader;
+    char lasDescription[32];
+};
+
+struct lasPointData1{
+    // Point Data
+    long xPos;
+    long yPos;
+    long zPos;
+    unsigned short intensity;
+    signed char flags;
+    unsigned char classificaton;
+    signed char scanAngle;
+    unsigned char userData;
+    unsigned short pointSourceID;
+    double GPSTime;
+};
+
+struct lasPointData2{
+    // Point Data
+    long xPos;
+    long yPos;
+    long zPos;
+    unsigned short intensity;
+    signed char flags;
+    unsigned char classificaton;
+    signed char scanAngle;
+    unsigned char userData;
+    unsigned short pointSourceID;
+    unsigned short red;
+    unsigned short green;
+    unsigned short blue;
+};
+
