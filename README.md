@@ -1,5 +1,5 @@
 # Floof, en multiplatform Vulkan fysikkmotor
-![Floof example image](Assets/FloofHeader.png)
+![Floof example image](Assets/FloofHeaderRain.png)
 
 ### Testet på Windows, Linux og macOS
  * Apple Silicon M1
@@ -12,9 +12,7 @@
 |-----------------------|----------------|
 | Styring av kamera     | WASD           | 
 | Rotering av kamera    | LCtrl / RMouse | 
-| Reset scene           | R              | 
-| Dropp ball fra kamera | F              | 
-| Debuglinjer           | N              | 
+
 
 ## Byggeinstrukser for Windows:
 * Oppdatert versjon av Visual studio 2022
