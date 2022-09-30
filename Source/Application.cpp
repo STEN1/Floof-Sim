@@ -79,7 +79,7 @@ namespace FLOOF {
 		DebugInit();
 
         {
-			LasLoader france("Assets/jotun1.lasbin");
+			LasLoader france("Assets/france.lasbin");
 			auto [vData, iData] = france.GetIndexedData();
 			auto terrainData = france.GetTerrainData();
 
@@ -191,6 +191,9 @@ namespace FLOOF {
 			auto view = m_Registry.view<CameraComponent>();
 			for (auto [entity, camera] : view.each()) {
 				auto moveAmount =static_cast<float>(m_CameraSpeed * deltaTime);
+				if (Input::Key(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+					moveAmount *= 8;
+				}
 				if (Input::Key(GLFW_KEY_W) == GLFW_PRESS) {
 					camera.MoveForward(moveAmount);
 				}
@@ -235,7 +238,7 @@ namespace FLOOF {
                 DebugToggleDrawNormals();
             }
             ImGui::SliderFloat("Deltatime Modifer",&m_DeltaTimeModifier, 0.f, 1.f);
-            ImGui::SliderFloat("Camer Speed", &m_CameraSpeed, 50, 300);
+            ImGui::SliderFloat("Camera Speed", &m_CameraSpeed, 50, 300);
 			ImGui::End();
 
 
