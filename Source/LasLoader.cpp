@@ -73,7 +73,8 @@ void LasLoader::Triangulate() {
     zSquares = (max.z - min.z);
 
     // Save all height data for each vertex
-    std::vector<std::vector<std::vector<float>>> heightmap(zSquares, std::vector<std::vector<float>>(xSquares));
+    //std::vector<std::vector<std::vector<float>>> heightmap(zSquares, std::vector<std::vector<float>>(xSquares));
+    std::vector<std::vector<height>> heightmap(zSquares, std::vector<height>(xSquares));
     for (auto &vertex: PointData) {
         int xPos = vertex.Pos.x;
         int zPos = vertex.Pos.z;
@@ -82,7 +83,11 @@ void LasLoader::Triangulate() {
             || zPos < 0.f || zPos > zSquares-1) {
             continue;
         }
-        heightmap[zPos][xPos].push_back(vertex.Pos.y);
+        //heightmap[zPos][xPos].push_back(vertex.Pos.y);
+
+        // Instead of push back, add height and increment
+        heightmap[zPos][xPos].count++;
+        heightmap[zPos][xPos].sum += vertex.Pos.y;
     }
 
     std::vector<std::pair<int, int>> noHeight;
@@ -90,21 +95,23 @@ void LasLoader::Triangulate() {
     // Calculate average height for each vertex and push
     for (int z = 0; z < zSquares; ++z) {
         for (int x = 0; x < xSquares; ++x) {
-            float average{ 0.f };
-            int count{ 0 };
-            for (auto& height : heightmap[z][x]) {
-                average += height;
-                count++;
-            }
+//            float average{ 0.f };
+//            int count{ 0 };
+//
+//            for (auto& height : heightmap[z][x]) {
+//                average += height;
+//                count++;
+//            }
             float y;
-            if (count == 0)
+            if (heightmap[z][x].count == 0)
             {
                 y = -max.y;
                 noHeight.push_back(std::make_pair(x,z));
             }
                 
             else
-            	y = (average / count) - max.y;
+            	//y = (average / count) - max.y;
+                y = heightmap[z][x].sum/heightmap[z][x].count - max.y;
             FLOOF::MeshVertex temp{};
             temp.Pos = glm::vec3(x, y, z);
             VertexData.push_back(temp);

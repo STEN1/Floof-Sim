@@ -39,6 +39,9 @@ private:
 
     int xSquares{ 0 };
     int zSquares{ 0 };
+};
 
-
+struct height {
+    int count{0};
+    float sum{0.f};
 };
