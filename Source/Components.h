@@ -104,6 +104,7 @@ namespace FLOOF {
 		glm::mat4 GetVP(float fov, float aspect, float near, float far);
 		void MoveForward(float amount);
 		void MoveRight(float amount);
+        void MoveUp(float amount);
 		void Pitch(float amount);
 		void Yaw(float amount);
 		glm::vec3 Position;
