@@ -404,7 +404,7 @@ namespace FLOOF {
 		// Camera setup
 		auto extent = m_Renderer->GetExtent();
 		CameraComponent& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
-		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 1500.f);
+		glm::mat4 vp = camera.GetVP(glm::radians(70.f), extent.width / (float)extent.height, 0.01f, 2000.f);
 
 		if (!m_DrawNormals) {	// Geometry pass
 
@@ -631,52 +631,34 @@ namespace FLOOF {
 			if (triangle.C.y > maxY)
 				maxY = triangle.C.y;
 		}
-		//minY = -10.f;
+
 		Plane p;
 		p.pos = glm::vec3(0.f, minY, 0.f);
 		p.normal = glm::vec3(0.f, 1.f, 0.f);
 		for (float height = minY; height < maxY; height += 50.f) {
 			p.pos.y = height;
 			for (auto triangle : terrain.Triangles) {
-				bool above = false;
-				bool below = false;
+				std::vector<glm::vec3> abovePositions;
+				std::vector<glm::vec3> belowPositions;
 
-				float aDist = CollisionShape::DistanceFromPointToPlane(triangle.A, p.pos, p.normal);
-				if (aDist < 0.f)
-					below = true;
-				else
-					above = true;
-
-				float bDist = CollisionShape::DistanceFromPointToPlane(triangle.B, p.pos, p.normal);
-				if (bDist < 0.f)
-					below = true;
-				else
-					above = true;
-
-				float cDist = CollisionShape::DistanceFromPointToPlane(triangle.C, p.pos, p.normal);
-				if (cDist < 0.f)
-					below = true;
-				else
-					above = true;
+				if (triangle.A.y > p.pos.y) {
+					abovePositions.push_back(triangle.A);
+				} else {
+					belowPositions.push_back(triangle.A);
+				}
+				if (triangle.B.y > p.pos.y) {
+					abovePositions.push_back(triangle.B);
+				} else {
+					belowPositions.push_back(triangle.B);
+				}
+				if (triangle.C.y > p.pos.y) {
+					abovePositions.push_back(triangle.C);
+				} else {
+					belowPositions.push_back(triangle.C);
+				}
 
 				// Check if triangle is intersecting plane
-				if (below && above) {
-					static constexpr uint32_t N = 3;
-					std::pair<glm::vec3, bool> vertexAboveOrBelow[N] = {
-						{triangle.A, aDist < 0.f},
-						{triangle.B, bDist < 0.f},
-						{triangle.C, cDist < 0.f},
-					};
-					std::vector<glm::vec3> abovePositions;
-					std::vector<glm::vec3> belowPositions;
-					for (uint32_t i = 0; i < N; i++) {
-						// is pos below?
-						if (vertexAboveOrBelow[i].second) {
-							belowPositions.push_back(vertexAboveOrBelow[i].first);
-						} else {
-							abovePositions.push_back(vertexAboveOrBelow[i].first);
-						}
-					}
+				if (abovePositions.size() == 1 || abovePositions.size() == 2) {
 					for (auto& a : abovePositions) {
 						for (auto& b : belowPositions) {
 							glm::vec3 ab = b - a;
