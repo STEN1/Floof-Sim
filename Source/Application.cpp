@@ -638,27 +638,46 @@ namespace FLOOF {
 		for (float height = minY; height < maxY; height += 50.f) {
 			p.pos.y = height;
 			for (auto triangle : terrain.Triangles) {
-				std::vector<glm::vec3> abovePositions;
-				std::vector<glm::vec3> belowPositions;
+				bool above = false;
+				bool below = false;
 
 				if (triangle.A.y > p.pos.y) {
-					abovePositions.push_back(triangle.A);
+					above = true;
 				} else {
-					belowPositions.push_back(triangle.A);
+					below = true;
 				}
 				if (triangle.B.y > p.pos.y) {
-					abovePositions.push_back(triangle.B);
+					above = true;
 				} else {
-					belowPositions.push_back(triangle.B);
+					below = true;
 				}
 				if (triangle.C.y > p.pos.y) {
-					abovePositions.push_back(triangle.C);
+					above = true;
 				} else {
-					belowPositions.push_back(triangle.C);
+					below = true;
 				}
 
 				// Check if triangle is intersecting plane
-				if (abovePositions.size() == 1 || abovePositions.size() == 2) {
+				if (above && below) {
+					std::vector<glm::vec3> abovePositions;
+					std::vector<glm::vec3> belowPositions;
+
+					if (triangle.A.y > p.pos.y) {
+						abovePositions.push_back(triangle.A);
+					} else {
+						belowPositions.push_back(triangle.A);
+					}
+					if (triangle.B.y > p.pos.y) {
+						abovePositions.push_back(triangle.B);
+					} else {
+						belowPositions.push_back(triangle.B);
+					}
+					if (triangle.C.y > p.pos.y) {
+						abovePositions.push_back(triangle.C);
+					} else {
+						belowPositions.push_back(triangle.C);
+					}
+
 					for (auto& a : abovePositions) {
 						for (auto& b : belowPositions) {
 							glm::vec3 ab = b - a;
