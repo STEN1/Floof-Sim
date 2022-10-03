@@ -164,6 +164,14 @@ namespace FLOOF {
 		Data.VertexCount = vertexData.size();
 		Data.IndexCount = indexData.size();
 	}
+	MeshComponent::MeshComponent(const std::vector<ColorNormalVertex>& vertexData, const std::vector<uint32_t>& indexData) {
+		auto* renderer = VulkanRenderer::Get();
+
+		Data.VertexBuffer = renderer->CreateVertexBuffer(vertexData);
+		Data.IndexBuffer = renderer->CreateIndexBuffer(indexData);
+		Data.VertexCount = vertexData.size();
+		Data.IndexCount = indexData.size();
+	}
 	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData) {
 		auto* renderer = VulkanRenderer::Get();
 

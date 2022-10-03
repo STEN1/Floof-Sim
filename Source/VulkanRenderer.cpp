@@ -36,6 +36,19 @@ namespace FLOOF {
 			params.DescriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 			InitGraphicsPipeline(params);
 		}
+		{	// Lit color shader for terrain.
+			RenderPipelineParams params;
+			params.Flags = RenderPipelineFlags::AlphaBlend | RenderPipelineFlags::DepthPass;
+			params.FragmentPath = "Shaders/LitColor.frag.spv";
+			params.VertexPath = "Shaders/LitColor.vert.spv";
+			params.Key = RenderPipelineKeys::LitColor;
+			params.PolygonMode = VK_POLYGON_MODE_FILL;
+			params.Topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+			params.BindingDescription = ColorNormalVertex::GetBindingDescription();
+			params.AttributeDescriptions = ColorNormalVertex::GetAttributeDescriptions();
+			params.PushConstantSize = sizeof(MeshPushConstants);
+			InitGraphicsPipeline(params);
+		}
 		{	// Line drawing shader
 			RenderPipelineParams params;
 			params.Flags = RenderPipelineFlags::AlphaBlend;

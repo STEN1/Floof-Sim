@@ -79,7 +79,7 @@ void LasLoader::Triangulate() {
 
     // Save all height data for each vertex
     //std::vector<std::vector<std::vector<float>>> heightmap(zSquares, std::vector<std::vector<float>>(xSquares));
-    std::vector<std::vector<height>> heightmap(zSquares, std::vector<height>(xSquares));
+    std::vector<std::vector<HeightAndColor>> heightmap(zSquares, std::vector<HeightAndColor>(xSquares));
     for (auto &vertex: PointData) {
         int xPos = vertex.Pos.x;
         int zPos = vertex.Pos.z;
@@ -93,6 +93,7 @@ void LasLoader::Triangulate() {
         // Instead of push back, add height and increment
         heightmap[zPos][xPos].count++;
         heightmap[zPos][xPos].sum += vertex.Pos.y;
+        heightmap[zPos][xPos].color = vertex.Color;
     }
 
     std::vector<std::pair<int, int>> noHeight;
@@ -108,25 +109,29 @@ void LasLoader::Triangulate() {
 //                count++;
 //            }
             float y;
+            glm::vec3 color{};
             if (heightmap[z][x].count == 0)
             {
                 y = -max.y;
                 noHeight.push_back(std::make_pair(x,z));
-            }
-                
-            else
+            } else {
             	//y = (average / count) - max.y;
                 y = heightmap[z][x].sum/heightmap[z][x].count - max.y;
+                color = heightmap[z][x].color;
+            }
             FLOOF::MeshVertex temp{};
+            FLOOF::ColorNormalVertex temp2{};
             temp.Pos = glm::vec3(x, y, z);
+            temp2.Pos = temp.Pos;
+            temp2.Color = color;
             VertexData.push_back(temp);
+            ColorNormalVertexData.push_back(temp2);
         }
     }
 
     // Calculate average height if no height
     for (auto& vertex : noHeight)
     {
-        float averageHeight{ 0.f };
         int x = vertex.first;
         int z = vertex.second;
         if (x <= 0 || x >= xSquares-1 || z <= 0 || z >= zSquares-1)
@@ -135,6 +140,7 @@ void LasLoader::Triangulate() {
         }
         else
         {
+            float averageHeight{ 0.f };
             averageHeight += VertexData[(x - 1) + (z * xSquares)].Pos.y;
             averageHeight += VertexData[(x - 1) + ((z - 1) * xSquares)].Pos.y;
             averageHeight += VertexData[x + ((z - 1) * xSquares)].Pos.y;
@@ -144,7 +150,19 @@ void LasLoader::Triangulate() {
             averageHeight += VertexData[x + ((z + 1) * xSquares)].Pos.y;
             averageHeight += VertexData[(x - 1) + ((z + 1) * xSquares)].Pos.y;
 
-            VertexData[x + (z * xSquares)].Pos.y = averageHeight / 8;
+            glm::vec3 averageColor{};
+            averageColor += ColorNormalVertexData[(x - 1) + (z * xSquares)].Color;
+            averageColor += ColorNormalVertexData[(x - 1) + ((z - 1) * xSquares)].Color;
+            averageColor += ColorNormalVertexData[x + ((z - 1) * xSquares)].Color;
+            averageColor += ColorNormalVertexData[(x + 1) + ((z - 1) * xSquares)].Color;
+            averageColor += ColorNormalVertexData[(x + 1) + (z * xSquares)].Color;
+            averageColor += ColorNormalVertexData[(x + 1) + ((z + 1) * xSquares)].Color;
+            averageColor += ColorNormalVertexData[x + ((z + 1) * xSquares)].Color;
+            averageColor += ColorNormalVertexData[(x - 1) + ((z + 1) * xSquares)].Color;
+
+            VertexData[x + (z * xSquares)].Pos.y = averageHeight / 8.f;
+            ColorNormalVertexData[x + (z * xSquares)].Pos.y = averageHeight / 8.f;
+            ColorNormalVertexData[x + (z * xSquares)].Color = averageColor / 8.f;
         }
     }
 
@@ -192,6 +210,7 @@ void LasLoader::Triangulate() {
                 normal = glm::normalize(-normal);
 
                 VertexData[x + (xmax * z)].Normal = normal;
+                ColorNormalVertexData[x + (xmax * z)].Normal = -normal;
             }
         }
     }
@@ -239,6 +258,10 @@ std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData()
         out.push_back(tempC);
     }
     return out;
+}
+
+std::pair<std::vector<FLOOF::ColorNormalVertex>, std::vector<uint32_t>> LasLoader::GetIndexedColorNormalVertexData() {
+    return {ColorNormalVertexData, IndexData};
 }
 
 std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader::GetTerrainData() {

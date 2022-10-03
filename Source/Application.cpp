@@ -80,13 +80,12 @@ namespace FLOOF {
 
         {
 			LasLoader france("Assets/jotun.las");
-			auto [vData, iData] = france.GetIndexedData();
+			auto [vData, iData] = france.GetIndexedColorNormalVertexData();
 			auto terrainData = france.GetTerrainData();
 
 			m_TerrainEntity = m_Registry.create();
             m_Registry.emplace<PointCloudComponent>(m_TerrainEntity, france.GetPointData());
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vData, iData);
-			m_Registry.emplace<TextureComponent>(m_TerrainEntity, "Assets/HappyTree.png");
 			m_Registry.emplace<TransformComponent>(m_TerrainEntity);
             auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, terrainData);
             terrain.MinY = france.GetMinY();
@@ -429,6 +428,15 @@ namespace FLOOF {
 				for (auto [entity, lineMesh, bSpline] : view.each()) {
 					lineMesh.Draw(commandBuffer);
 				}
+			}
+			{	// Draw terrain
+				ColorPushConstants constants;
+				constants.MVP = vp;
+				auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::LitColor);
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+					0, sizeof(MeshPushConstants), &constants);
+				auto& terrain = m_Registry.get<MeshComponent>(m_TerrainEntity);
+				terrain.Draw(commandBuffer);
 			}
 			{	// Draw models
 				auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::Basic);

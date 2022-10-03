@@ -39,6 +39,7 @@ namespace FLOOF {
 	struct MeshComponent {
 		MeshComponent(const std::string& objPath);
 		MeshComponent(const std::vector<MeshVertex>& vertexData, const std::vector<uint32_t>& indexData);
+		MeshComponent(const std::vector<ColorNormalVertex>& vertexData, const std::vector<uint32_t>& indexData);
 		MeshComponent(const std::vector<MeshVertex>& vertexData);
 		~MeshComponent();
 

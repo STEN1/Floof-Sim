@@ -11,12 +11,14 @@ public:
     std::vector<FLOOF::ColorVertex> GetPointData();
     std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> GetIndexedData();
     std::vector<FLOOF::MeshVertex> GetVertexData();
+    std::pair<std::vector<FLOOF::ColorNormalVertex>, std::vector<uint32_t>> GetIndexedColorNormalVertexData();
     std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> GetTerrainData();
 
     float GetMinY(){return -max.y;}
 private:
     std::vector<FLOOF::ColorVertex> PointData;
     std::vector<FLOOF::MeshVertex> VertexData;
+    std::vector<FLOOF::ColorNormalVertex> ColorNormalVertexData;
     std::vector<uint32_t> IndexData;
     std::vector<FLOOF::MeshVertex> TriangulatedVertexData;
     std::vector<FLOOF::Triangle> triangles;
@@ -42,9 +44,10 @@ private:
     int zSquares{ 0 };
 };
 
-struct height {
+struct HeightAndColor {
     int count{0};
     float sum{0.f};
+    glm::vec3 color{ 1.f };
 };
 
 struct lasHeader {
