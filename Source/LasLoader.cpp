@@ -102,6 +102,7 @@ void LasLoader::Triangulate() {
             {
                 y = -max.y;
                 noHeight.push_back(std::make_pair(x,z));
+                color = glm::vec3(1.f);
             } else {
             	//y = (average / count) - max.y;
                 y = heightmap[z][x].sum / heightmap[z][x].count - max.y;
