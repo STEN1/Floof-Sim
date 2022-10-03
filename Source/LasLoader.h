@@ -48,43 +48,32 @@ struct height {
 };
 
 struct lasHeader {
+
     char fileSignature[4];
-    unsigned short sourceID;
-    unsigned short globalEncoding;
-    unsigned long GUID1;
-    unsigned short GUID2;
-    unsigned short GUID3;
-    unsigned char GUID4[8];
-    unsigned char versionMajor;
-    unsigned char versionMinor;
+    uint16_t sourceID;
+    uint16_t globalEncoding;
+    uint32_t GUID1;
+    uint16_t GUID2;
+    uint16_t GUID3;
+    uint8_t GUID4[8];
+    uint8_t versionMajor;
+    uint8_t versionMinor;
     char systemIdentifier[32];
     char generatingSoftware[32];
-    unsigned short creationDay;
-    unsigned short creationYear;
-    unsigned short headerSize;
-    unsigned long offsetToPointData;
-    unsigned long numberVariableLengthRecords;
-    unsigned char pointDataRecordFormat; // Format
-    unsigned short pointDataRecordLength;
-    unsigned long legacyNumberPointsRecords;
-    unsigned long legacyNumberPointReturn[5];
-    double xScaleFactor;
-    double yScaleFactor;
-    double zScaleFactor;
-    double xOffset;
-    double yOffset;
-    double zOffset;
-    double maxX;
-    double minX;
-    double maxY;
-    double minY;
-    double maxZ;
-    double minZ;
-    unsigned long long startWaveformDataPacketRecord;
-    unsigned long long startFirstExtendedVariableLengthRecord;
-    unsigned long numberExtendedVariableLengthRecords;
-    unsigned long long numberPointRecords;
-    unsigned long long numberPointsByReturn;
+    uint16_t creationDay;
+    uint16_t creationYear;
+    uint16_t headerSize;
+    uint32_t offsetToPointData; // The actual number of bytes from the beginning of the file to the first field of the first point record.
+    uint32_t numberVariableLengthRecords; // Length of VLR
+    uint8_t pointDataRecordFormat; // Format
+    uint16_t pointDataRecordLength; // The size, in bytes, of the Point Data Record
+    int32_t legacyNumberPointsRecords;
+    int32_t legacyNumberPointReturn[5];
+    double xScaleFactor, yScaleFactor, zScaleFactor;
+    double xOffset, yOffset, zOffset;
+    double maxX, minX;
+    double maxY, minY;
+    double maxZ, minZ;
 };
 
 struct lasVariableLengthRecords{
@@ -96,8 +85,7 @@ struct lasVariableLengthRecords{
     char lasDescription[32];
 };
 
-struct lasPointData1{
-    // Point Data
+struct lasPointData1 {
     long xPos;
     long yPos;
     long zPos;
@@ -110,8 +98,8 @@ struct lasPointData1{
     double GPSTime;
 };
 
-struct lasPointData2{
-    // Point Data
+// Can't use struct directly because of padding of the size of the struct
+struct lasPointData2 {
     long xPos;
     long yPos;
     long zPos;
@@ -124,5 +112,8 @@ struct lasPointData2{
     unsigned short red;
     unsigned short green;
     unsigned short blue;
+
+
 };
+
 
