@@ -81,23 +81,23 @@ struct lasHeader {
 
 struct lasVariableLengthRecords{
     // Variable Length Records
-    unsigned short lasReserved;
+    uint16_t lasReserved;
     char UserID[16];
-    unsigned short recordID;
-    unsigned short recordLengthAfterHeader;
+    uint16_t recordID;
+    uint16_t recordLengthAfterHeader;
     char lasDescription[32];
 };
 
 struct lasPointData1 {
-    long xPos;
-    long yPos;
-    long zPos;
-    unsigned short intensity;
-    signed char flags;
-    unsigned char classificaton;
-    signed char scanAngle;
-    unsigned char userData;
-    unsigned short pointSourceID;
+    int32_t xPos;
+    int32_t yPos;
+    int32_t zPos;
+    uint16_t intensity;
+    int8_t flags;
+    uint8_t classificaton;
+    int8_t scanAngle;
+    uint8_t userData;
+    uint16_t pointSourceID;
     double GPSTime;
 };
 
@@ -106,17 +106,15 @@ struct lasPointData2 {
     int32_t xPos;
     int32_t yPos;
     int32_t zPos;
-    unsigned short intensity;
-    signed char flags;
-    unsigned char classificaton;
-    signed char scanAngle;
-    unsigned char userData;
-    unsigned short pointSourceID;
-    unsigned short red;
-    unsigned short green;
-    unsigned short blue;
-
-
+    uint16_t intensity;
+    int8_t flags;
+    uint8_t classificaton;
+    int8_t scanAngle;
+    uint8_t userData;
+    uint16_t pointSourceID;
+    uint16_t red;
+    uint16_t green;
+    uint16_t blue;
 };
 
 
