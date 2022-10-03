@@ -430,8 +430,9 @@ namespace FLOOF {
 				}
 			}
 			{	// Draw terrain
-				ColorPushConstants constants;
+				MeshPushConstants constants;
 				constants.MVP = vp;
+				constants.InvModelMat = glm::mat4(1.f);
 				auto pipelineLayout = m_Renderer->BindGraphicsPipeline(commandBuffer, RenderPipelineKeys::LitColor);
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 					0, sizeof(MeshPushConstants), &constants);

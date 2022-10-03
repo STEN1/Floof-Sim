@@ -199,18 +199,18 @@ void LasLoader::Triangulate() {
                 glm::vec3 f(VertexData[x - 1 + (xmax * (z - 1))].Pos);
                 glm::vec3 g(VertexData[x + (xmax * (z - 1))].Pos);
 
-                auto n0 = glm::cross(b - a, c - a);
-                auto n1 = glm::cross(c - a, d - a);
-                auto n2 = glm::cross(d - a, e - a);
-                auto n3 = glm::cross(e - a, f - a);
-                auto n4 = glm::cross(f - a, g - a);
-                auto n5 = glm::cross(g - a, b - a);
+                auto n0 = glm::cross(c - a, b - a);
+                auto n1 = glm::cross(d - a, c - a);
+                auto n2 = glm::cross(e - a, d - a);
+                auto n3 = glm::cross(f - a, e - a);
+                auto n4 = glm::cross(g - a, f - a);
+                auto n5 = glm::cross(b - a, g - a);
 
                 glm::vec3 normal = n0 + n1 + n2 + n3 + n4 + n5;
-                normal = glm::normalize(-normal);
+                normal = glm::normalize(normal);
 
                 VertexData[x + (xmax * z)].Normal = normal;
-                ColorNormalVertexData[x + (xmax * z)].Normal = -normal;
+                ColorNormalVertexData[x + (xmax * z)].Normal = normal;
             }
         }
     }
