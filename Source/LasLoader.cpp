@@ -2,15 +2,20 @@
 #include <fstream>
 #include <sstream>
 #include <limits>
+#include <stdio.h>
 LasLoader::LasLoader(const std::string &path) : PointData{} {
+
     std::string txt (".txt");
     std::string lasbin (".lasbin");
+    std::string las (".las");
 
     if (path.find(txt) != std::string::npos)
         ReadTxt(path);
-
     else if (path.find(lasbin) != std::string::npos)
         ReadBin(path);
+    else if (path.find(las) != std::string::npos)
+        ReadLas(path);
+    // TODO: Dont calc center when reading .las (already in header)
 
     CalcCenter();
     UpdatePoints();
@@ -271,6 +276,25 @@ std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader:
     return out;
 }
 
+void LasLoader::ReadTxt(const std::string &path) {
+    std::ifstream file(path);
+
+    if (!file.is_open()){
+        std::cout << "Cant open file: " << path << std::endl;
+        return;
+    }
+    std::string line;
+    FLOOF::ColorVertex tempVertex{};
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        ss >> tempVertex.Pos.x;
+        ss >> tempVertex.Pos.z;
+        ss >> tempVertex.Pos.y;
+        tempVertex.Color = glm::vec3(1.f,1.f,1.f);
+        PointData.push_back(tempVertex);
+    }
+}
+
 void LasLoader::ReadBin(const std::string &path) {
 
     std::ifstream is(path, std::ios::binary | std::ios::ate);
@@ -287,26 +311,92 @@ void LasLoader::ReadBin(const std::string &path) {
         tempVertex.Color = glm::vec3(1.f,1.f,1.f);
         PointData.push_back(tempVertex);
     }
-
 }
 
-void LasLoader::ReadTxt(const std::string &path) {
-    std::ifstream file(path);
+void LasLoader::ReadLas(const std::string &path) {
+    lasHeader header;
+    std::ifstream inf(path, std::ios::binary | std::ios::ate);
+    if (inf.is_open())
+    {
 
-    if (!file.is_open()){
-        std::cout << "Cant open file: " << path << std::endl;
-        return;
+        auto size = inf.tellg();
+        inf.seekg(0);
+        inf.read((char*)&header.fileSignature, sizeof(header.fileSignature));
+        inf.read((char*)&header.sourceID, sizeof(header.sourceID));
+        inf.read((char*)&header.globalEncoding, sizeof(header.globalEncoding));
+        inf.read((char*)&header.GUID1, sizeof(header.GUID1));
+        inf.read((char*)&header.GUID2, sizeof(header.GUID2));
+        inf.read((char*)&header.GUID3, sizeof(header.GUID3));
+        inf.read((char*)&header.GUID4, sizeof(header.GUID4));
+        inf.read((char*)&header.versionMajor, sizeof(header.versionMajor));
+        inf.read((char*)&header.versionMinor, sizeof(header.versionMinor));
+        inf.read((char*)&header.systemIdentifier, sizeof(header.systemIdentifier));
+        inf.read((char*)&header.generatingSoftware, sizeof(header.generatingSoftware));
+        inf.read((char*)&header.creationDay, sizeof(header.creationDay));
+        inf.read((char*)&header.creationYear, sizeof(header.creationYear));
+        inf.read((char*)&header.headerSize, sizeof(header.headerSize));
+        inf.read((char*)&header.offsetToPointData, sizeof(header.offsetToPointData));
+        inf.read((char*)&header.numberVariableLengthRecords, sizeof(header.numberVariableLengthRecords));
+        inf.read((char*)&header.pointDataRecordFormat, sizeof(header.pointDataRecordFormat));
+        inf.read((char*)&header.pointDataRecordLength, sizeof(header.pointDataRecordLength));
+        inf.read((char*)&header.legacyNumberPointsRecords, sizeof(header.legacyNumberPointsRecords));
+        inf.read((char*)&header.legacyNumberPointReturn, sizeof(header.legacyNumberPointReturn));
+        inf.read((char*)&header.xScaleFactor, sizeof(header.xScaleFactor));
+        inf.read((char*)&header.yScaleFactor, sizeof(header.yScaleFactor));
+        inf.read((char*)&header.zScaleFactor, sizeof(header.zScaleFactor));
+        inf.read((char*)&header.xOffset, sizeof(header.xOffset));
+        inf.read((char*)&header.yOffset, sizeof(header.yOffset));
+        inf.read((char*)&header.zOffset, sizeof(header.zOffset));
+        inf.read((char*)&header.maxX, sizeof(header.maxX));
+        inf.read((char*)&header.minX, sizeof(header.minX));
+        inf.read((char*)&header.maxY, sizeof(header.maxY));
+        inf.read((char*)&header.minY, sizeof(header.minY));
+        inf.read((char*)&header.maxZ, sizeof(header.maxZ));
+        inf.read((char*)&header.minZ, sizeof(header.minZ));
+
+        //PointData.reserve(header.legacyNumberPointsRecords);
+
+        inf.seekg(header.offsetToPointData);
+        if (header.pointDataRecordFormat == 1) {
+            for (int i = 0; i < header.legacyNumberPointsRecords; ++i) {
+                lasPointData1 temp;
+                inf.seekg(header.offsetToPointData + (header.pointDataRecordLength * i));
+                inf.read((char*)&temp.xPos, sizeof(temp.xPos));
+                inf.read((char*)&temp.yPos, sizeof(temp.yPos));
+                inf.read((char*)&temp.zPos, sizeof(temp.zPos));
+
+                FLOOF::ColorVertex tempVertex{};
+                tempVertex.Pos.x = (temp.xPos * header.xScaleFactor) + header.xOffset;
+                tempVertex.Pos.y = (temp.zPos * header.zScaleFactor) + header.zOffset;
+                tempVertex.Pos.z = (temp.yPos * header.yScaleFactor) + header.yOffset;
+                tempVertex.Color = glm::vec3(1.f,1.f,1.f);
+                PointData.push_back(tempVertex);
+            }
+        }
+        else if (header.pointDataRecordFormat == 2) {
+            for (int i = 0; i < header.legacyNumberPointsRecords; ++i) {
+
+                lasPointData2 temp;
+                inf.read((char*)&temp.xPos, sizeof(temp.xPos));
+                inf.read((char*)&temp.yPos, sizeof(temp.yPos));
+                inf.read((char*)&temp.zPos, sizeof(temp.zPos));
+                inf.read((char*)&temp.intensity, sizeof(temp.intensity));
+                inf.read((char*)&temp.flags, sizeof(temp.flags));
+                inf.read((char*)&temp.classificaton, sizeof(temp.classificaton));
+                inf.read((char*)&temp.scanAngle, sizeof(temp.scanAngle));
+                inf.read((char*)&temp.userData, sizeof(temp.userData));
+                inf.read((char*)&temp.pointSourceID, sizeof(temp.pointSourceID));
+                inf.read((char*)&temp.red, sizeof(temp.red));
+                inf.read((char*)&temp.green, sizeof(temp.green));
+                inf.read((char*)&temp.blue, sizeof(temp.blue));
+
+                FLOOF::ColorVertex tempVertex{};
+                tempVertex.Pos.x = (temp.xPos * header.xScaleFactor) + header.xOffset;
+                tempVertex.Pos.y = (temp.zPos * header.zScaleFactor) + header.zOffset;
+                tempVertex.Pos.z = (temp.yPos * header.yScaleFactor) + header.yOffset;
+                tempVertex.Color = glm::vec3(temp.red * 0.00001,temp.green * 0.00001,temp.blue * 0.00001);
+                PointData.push_back(tempVertex);
+            }
+        }
     }
-    std::string line;
-    FLOOF::ColorVertex tempVertex{};
-
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        ss >> tempVertex.Pos.x;
-        ss >> tempVertex.Pos.z;
-        ss >> tempVertex.Pos.y;
-        tempVertex.Color = glm::vec3(1.f,1.f,1.f);
-        PointData.push_back(tempVertex);
-    }
-
 }
