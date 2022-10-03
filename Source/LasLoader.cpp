@@ -88,7 +88,7 @@ void LasLoader::Triangulate() {
         // Instead of push back, add height and increment
         heightmap[zPos][xPos].count++;
         heightmap[zPos][xPos].sum += vertex.Pos.y;
-        heightmap[zPos][xPos].color = vertex.Color;
+        heightmap[zPos][xPos].color += vertex.Color;
     }
 
     std::vector<std::pair<int, int>> noHeight;
@@ -105,7 +105,7 @@ void LasLoader::Triangulate() {
             } else {
             	//y = (average / count) - max.y;
                 y = heightmap[z][x].sum / heightmap[z][x].count - max.y;
-                color = heightmap[z][x].color;
+                color = heightmap[z][x].color / glm::vec3(heightmap[z][x].count);
             }
             FLOOF::MeshVertex temp{};
             FLOOF::ColorNormalVertex temp2{};
