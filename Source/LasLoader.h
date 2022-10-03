@@ -103,9 +103,9 @@ struct lasPointData1 {
 
 // Can't use struct directly because of padding of the size of the struct
 struct lasPointData2 {
-    long xPos;
-    long yPos;
-    long zPos;
+    int32_t xPos;
+    int32_t yPos;
+    int32_t zPos;
     unsigned short intensity;
     signed char flags;
     unsigned char classificaton;
