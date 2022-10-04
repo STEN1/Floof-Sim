@@ -20,9 +20,9 @@ void FLOOF::Simulate::CalculateCollision(CollisionObject *obj1, CollisionObject 
     auto elasticity = collidingBall2.Elasticity * collidingBall1.Elasticity;
     auto relVelocity = collidingVelocity2.Velocity - collidingVelocity1.Velocity;
 
-    float moveangle = glm::dot(relVelocity, contactNormal);
-    float j = -(1.f + elasticity) * moveangle / (1.f / combinedMass);
-    if (moveangle >= 0.f) { // moves opposite dirrections;
+    float angularComponent = glm::dot(relVelocity, contactNormal);
+    float j = -(1.f + elasticity) * angularComponent / (1.f / combinedMass);
+    if (angularComponent >= 0.f) { // moves opposite dirrections;
         j = 0.f;
     }
     const glm::vec3 vecImpulse = j * contactNormal;
