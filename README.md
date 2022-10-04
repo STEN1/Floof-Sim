@@ -1,5 +1,5 @@
 # Floof, en multiplatform Vulkan fysikkmotor
-![Floof example image](Assets/FloofHeaderRain.png)
+![Floof example image](Assets/FloofHeaderRainColor.png)
 
 ### Testet på Windows, Linux og macOS
  * Apple Silicon M1
