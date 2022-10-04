@@ -352,7 +352,8 @@ namespace FLOOF {
 						if (m_BDebugLines[DebugLine::BSpline]) {
 							std::vector<ColorVertex> vBuffer(m_MaxBSplineLines);
 							float deltaT = (bSpline.TMax - bSpline.TMin) / (float)m_MaxBSplineLines;
-							glm::vec3 color{ 0.2f, 0.7f, 1.f };
+							glm::vec3 color{ 0.05f, 0.1f, 0.8f };
+							//glm::vec3 color{4,  Math::RandFloat(0.f,1.f),  Math::RandFloat(0.f,1.f) };
 							float currentT = bSpline.TMin;
 							for (auto& vertex : vBuffer) {
 								vertex.Pos = bSpline.EvaluateBSpline(currentT);
