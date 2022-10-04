@@ -11,7 +11,7 @@ layout(push_constant) uniform PushConstants {
 
 
 void main() {
-    gl_PointSize = 2.0;
+    gl_PointSize = 1.0;
     gl_Position = pushConstants.MVP * vec4(pos, 1.0);
     fragColor = vec4(color, 1.0);
 }
