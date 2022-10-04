@@ -19,7 +19,6 @@ LasLoader::LasLoader(const std::string &path) : PointData{} {
 
     CalcCenter();
     UpdatePoints();
-
     Triangulate();
 }
 
@@ -65,10 +64,7 @@ void LasLoader::UpdatePoints() {
     for (auto& vertex : PointData) {
         if (middle != glm::vec3(0.f))
             vertex.Pos -= offset;
-        vertex.Pos *= scale;
     }
-    min *= scale;
-    max *= scale;
 }
 
 void LasLoader::Triangulate() {
@@ -88,12 +84,11 @@ void LasLoader::Triangulate() {
             || zPos < 0.f || zPos > zSquares-1) {
             continue;
         }
-        //heightmap[zPos][xPos].push_back(vertex.Pos.y);
 
         // Instead of push back, add height and increment
         heightmap[zPos][xPos].count++;
         heightmap[zPos][xPos].sum += vertex.Pos.y;
-        heightmap[zPos][xPos].color = vertex.Color;
+        heightmap[zPos][xPos].color += vertex.Color;
     }
 
     std::vector<std::pair<int, int>> noHeight;
@@ -101,23 +96,17 @@ void LasLoader::Triangulate() {
     // Calculate average height for each vertex and push
     for (int z = 0; z < zSquares; ++z) {
         for (int x = 0; x < xSquares; ++x) {
-//            float average{ 0.f };
-//            int count{ 0 };
-//
-//            for (auto& height : heightmap[z][x]) {
-//                average += height;
-//                count++;
-//            }
             float y;
             glm::vec3 color{};
             if (heightmap[z][x].count == 0)
             {
                 y = -max.y;
                 noHeight.push_back(std::make_pair(x,z));
+                color = glm::vec3(1.f);
             } else {
             	//y = (average / count) - max.y;
-                y = heightmap[z][x].sum/heightmap[z][x].count - max.y;
-                color = heightmap[z][x].color;
+                y = heightmap[z][x].sum / heightmap[z][x].count - max.y;
+                color = heightmap[z][x].color / glm::vec3(heightmap[z][x].count);
             }
             FLOOF::MeshVertex temp{};
             FLOOF::ColorNormalVertex temp2{};
@@ -313,7 +302,7 @@ void LasLoader::ReadTxt(const std::string &path) {
         ss >> tempVertex.Pos.x;
         ss >> tempVertex.Pos.z;
         ss >> tempVertex.Pos.y;
-        tempVertex.Color = glm::vec3(1.f,1.f,1.f);
+        tempVertex.Color = glm::vec3(0.f, 1.f, 0.f);
         PointData.push_back(tempVertex);
     }
 }
@@ -331,7 +320,7 @@ void LasLoader::ReadBin(const std::string &path) {
         tempVertex.Pos.x = point.x;
         tempVertex.Pos.y = point.z;
         tempVertex.Pos.z = point.y;
-        tempVertex.Color = glm::vec3(1.f,1.f,1.f);
+        tempVertex.Color = glm::vec3(0.f, 1.f, 0.f);
         PointData.push_back(tempVertex);
     }
 }
@@ -339,11 +328,10 @@ void LasLoader::ReadBin(const std::string &path) {
 void LasLoader::ReadLas(const std::string &path) {
     lasHeader header;
     std::ifstream inf(path, std::ios::binary | std::ios::ate);
-    if (inf.is_open())
-    {
+    if (inf.is_open()){
 
-        auto size = inf.tellg();
-        inf.seekg(0);
+        // Read Header
+    	inf.seekg(0);
         inf.read((char*)&header.fileSignature, sizeof(header.fileSignature));
         inf.read((char*)&header.sourceID, sizeof(header.sourceID));
         inf.read((char*)&header.globalEncoding, sizeof(header.globalEncoding));
@@ -377,9 +365,21 @@ void LasLoader::ReadLas(const std::string &path) {
         inf.read((char*)&header.maxZ, sizeof(header.maxZ));
         inf.read((char*)&header.minZ, sizeof(header.minZ));
 
-        //PointData.reserve(header.legacyNumberPointsRecords);
+        // Save max and min from header (so that we don't need to calculate it later)
+        min.x = header.minX;
+        min.y = header.minZ;
+        min.z = header.minY;
+        max.x = header.maxX;
+        max.y = header.maxZ;
+        max.z = header.maxY;
 
+        // Read pointdata
         inf.seekg(header.offsetToPointData);
+
+        // Only format 1 and 2 supported
+        ASSERT(header.pointDataRecordFormat == 1 || header.pointDataRecordFormat == 2);
+
+        // Read format 1
         if (header.pointDataRecordFormat == 1) {
             for (int i = 0; i < header.legacyNumberPointsRecords; ++i) {
                 lasPointData1 temp;
@@ -389,16 +389,17 @@ void LasLoader::ReadLas(const std::string &path) {
                 inf.read((char*)&temp.zPos, sizeof(temp.zPos));
 
                 FLOOF::ColorVertex tempVertex{};
+                // Final position = (pos * scale factor) + offset
                 tempVertex.Pos.x = (temp.xPos * header.xScaleFactor) + header.xOffset;
                 tempVertex.Pos.y = (temp.zPos * header.zScaleFactor) + header.zOffset;
                 tempVertex.Pos.z = (temp.yPos * header.yScaleFactor) + header.yOffset;
-                tempVertex.Color = glm::vec3(1.f,1.f,1.f);
+                tempVertex.Color = glm::vec3(0.f,1.f,0.f);
                 PointData.push_back(tempVertex);
             }
         }
+        // Read format 2
         else if (header.pointDataRecordFormat == 2) {
             for (int i = 0; i < header.legacyNumberPointsRecords; ++i) {
-
                 lasPointData2 temp;
                 inf.read((char*)&temp.xPos, sizeof(temp.xPos));
                 inf.read((char*)&temp.yPos, sizeof(temp.yPos));

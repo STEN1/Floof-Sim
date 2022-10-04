@@ -233,9 +233,9 @@ namespace FLOOF {
 				const auto& camera = m_Registry.get<CameraComponent>(m_CameraEntity);
 				SpawnBall(camera.Position, 2.f, 200.f, 0.9f,"Assets/BallTexture.png");
 			}
-            if(ImGui::Button("DrawNormals")){
+            /*if(ImGui::Button("DrawNormals")){
                 DebugToggleDrawNormals();
-            }
+            }*/
             ImGui::SliderFloat("Deltatime Modifer",&m_DeltaTimeModifier, 0.f, 1.f);
             ImGui::SliderFloat("Camera Speed", &m_CameraSpeed, 50, 300);
 			ImGui::End();
