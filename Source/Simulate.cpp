@@ -37,10 +37,9 @@ void FLOOF::Simulate::BallBallOverlap(FLOOF::CollisionObject *obj1, FLOOF::Colli
     auto contactNormal = Physics::GetContactNormal(collidingTransform1.Position,collidingTransform2.Position);
 
     float dist = glm::length(collidingTransform1.Position-collidingTransform2.Position);
-    if(dist < (collidingBall1.Radius+collidingBall2.Radius)) {
-        collidingTransform2.Position += contactNormal * ((collidingBall1.Radius + collidingBall2.Radius) - dist);
-        collidingBall2.CollisionSphere.pos = collidingTransform2.Position;
-    }
+    collidingTransform2.Position += contactNormal * ((collidingBall1.Radius + collidingBall2.Radius) - dist);
+    collidingBall2.CollisionSphere.pos = collidingTransform2.Position;
+
 }
 
 void FLOOF::Simulate::CalculateCollision(FLOOF::CollisionObject *obj, FLOOF::Triangle &triangle, TimeComponent& time, glm::vec3 & friction) {
