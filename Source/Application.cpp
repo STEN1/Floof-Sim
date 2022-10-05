@@ -79,16 +79,16 @@ namespace FLOOF {
 		DebugInit();
 
         {
-			LasLoader france("Assets/jotun.las");
-			auto [vData, iData] = france.GetIndexedColorNormalVertexData();
-			auto terrainData = france.GetTerrainData();
+			LasLoader mapData("Assets/jotun.las");
+			auto [vData, iData] = mapData.GetIndexedColorNormalVertexData();
+			auto terrainData = mapData.GetTerrainData();
 
 			m_TerrainEntity = m_Registry.create();
-            m_Registry.emplace<PointCloudComponent>(m_TerrainEntity, france.GetPointData());
+            m_Registry.emplace<PointCloudComponent>(m_TerrainEntity, mapData.GetPointData());
 			m_Registry.emplace<MeshComponent>(m_TerrainEntity, vData, iData);
 			m_Registry.emplace<TransformComponent>(m_TerrainEntity);
             auto& terrain = m_Registry.emplace<TerrainComponent>(m_TerrainEntity, terrainData);
-            terrain.MinY = france.GetMinY();
+            terrain.MinY = mapData.GetMinY();
         }
 
 		{
