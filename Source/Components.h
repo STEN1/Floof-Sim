@@ -7,7 +7,6 @@
 #include <chrono>
 
 namespace FLOOF {
-
 	struct TransformComponent {
 		inline static constexpr bool in_place_delete = true;
 

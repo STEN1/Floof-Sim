@@ -146,6 +146,7 @@ namespace FLOOF {
 
 		return 0;
 	}
+
 	void Application::Update(double deltaTime) {
         // World axis
         if (m_BDebugLines[DebugLine::WorldAxis]) {
@@ -395,7 +396,6 @@ namespace FLOOF {
             }
 		}
 	}
-
 
 	void Application::Draw() {
 		auto commandBuffer = m_Renderer->StartRecording();
@@ -762,5 +762,3 @@ namespace FLOOF {
     }
 
 }
-
-//test

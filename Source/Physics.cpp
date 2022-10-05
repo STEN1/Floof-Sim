@@ -37,6 +37,7 @@ namespace FLOOF {
             contactNormal = glm::normalize(pos2 - pos1);
         return contactNormal;
     }
+
 /*
     void Physics::CalculateCollision(Octree::CollisionObject *obj1, Octree::CollisionObject *obj2) {
 
@@ -64,6 +65,7 @@ namespace FLOOF {
 
     }
 */
+
     float CollisionShape::DistanceFromPointToPlane(const glm::vec3& point, const glm::vec3& planePos, const glm::vec3& planeNormal) {
 		return glm::dot(point - planePos, planeNormal);
 	}
@@ -356,9 +358,11 @@ namespace FLOOF {
 	void Frustum::SetCamera(CameraComponent& camera) {
 		m_Camera = camera;
 	}
+
 	Triangle::Triangle() {
 		shape = Shape::Triangle;
 	}
+
 	bool Triangle::Intersect(CollisionShape* shape) {
 		switch (shape->shape) {
 		case Shape::AABB:

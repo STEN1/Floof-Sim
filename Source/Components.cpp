@@ -122,24 +122,28 @@ namespace FLOOF {
 
 		s_TextureDataCache[path] = Data;
 	}
+
 	TextureComponent::~TextureComponent() {
 	}
+
 	void TextureComponent::Bind(VkCommandBuffer commandBuffer) {
 		auto renderer = VulkanRenderer::Get();
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->GetPipelineLayout(RenderPipelineKeys::Basic),
 			0, 1, &Data.DesctriptorSet, 0, 0);
 	}
+
 	void TextureComponent::ClearTextureDataCache() {
 		auto renderer = VulkanRenderer::Get();
 
-		for (auto& [key ,data] : s_TextureDataCache) {
+		for (auto& [key, data] : s_TextureDataCache) {
 			renderer->FreeTextureDescriptorSet(data.DesctriptorSet);
 			vkDestroyImageView(renderer->m_LogicalDevice, data.CombinedTextureSampler.ImageView, nullptr);
 			vmaDestroyImage(renderer->m_Allocator, data.CombinedTextureSampler.Image, data.CombinedTextureSampler.Allocation);
 			vkDestroySampler(renderer->m_LogicalDevice, data.CombinedTextureSampler.Sampler, nullptr);
 		}
 	}
+
 	MeshComponent::MeshComponent(const std::string& path) {
 		auto* renderer = VulkanRenderer::Get();
 
@@ -156,6 +160,7 @@ namespace FLOOF {
 		}
 		m_IsCachedMesh = true;
 	}
+
 	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData, const std::vector<uint32_t>& indexData) {
 		auto* renderer = VulkanRenderer::Get();
 
@@ -164,6 +169,7 @@ namespace FLOOF {
 		Data.VertexCount = vertexData.size();
 		Data.IndexCount = indexData.size();
 	}
+
 	MeshComponent::MeshComponent(const std::vector<ColorNormalVertex>& vertexData, const std::vector<uint32_t>& indexData) {
 		auto* renderer = VulkanRenderer::Get();
 
@@ -172,12 +178,14 @@ namespace FLOOF {
 		Data.VertexCount = vertexData.size();
 		Data.IndexCount = indexData.size();
 	}
+
 	MeshComponent::MeshComponent(const std::vector<MeshVertex>& vertexData) {
 		auto* renderer = VulkanRenderer::Get();
 
 		Data.VertexBuffer = renderer->CreateVertexBuffer(vertexData);
 		Data.VertexCount = vertexData.size();
 	}
+
 	MeshComponent::~MeshComponent() {
 		if (m_IsCachedMesh == false) {
 			auto* renderer = VulkanRenderer::Get();
@@ -185,6 +193,7 @@ namespace FLOOF {
 			vmaDestroyBuffer(renderer->m_Allocator, Data.VertexBuffer.Buffer, Data.VertexBuffer.Allocation);
 		}
 	}
+
 	void MeshComponent::Draw(VkCommandBuffer commandBuffer) {
 		VkDeviceSize offset{ 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &Data.VertexBuffer.Buffer, &offset);
@@ -196,6 +205,7 @@ namespace FLOOF {
 			vkCmdDraw(commandBuffer, Data.VertexCount, 1, 0, 0);
 		}
 	}
+
 	void MeshComponent::ClearMeshDataCache() {
 		auto* renderer = VulkanRenderer::Get();
 		for (auto& [key, data] : s_MeshDataCache) {
@@ -203,6 +213,7 @@ namespace FLOOF {
 			vmaDestroyBuffer(renderer->m_Allocator, data.VertexBuffer.Buffer, data.VertexBuffer.Allocation);
 		}
 	}
+
 	LineMeshComponent::LineMeshComponent(const std::vector<ColorVertex>& vertexData) {
 		auto renderer = VulkanRenderer::Get();
 
@@ -223,11 +234,13 @@ namespace FLOOF {
 		// Buffer is already mapped. You can access its memory.
 		memcpy(VertexBuffer.AllocationInfo.pMappedData, vertexData.data(), sizeof(ColorVertex) * VertexCount);
 	}
+
 	LineMeshComponent::~LineMeshComponent() {
 		auto renderer = VulkanRenderer::Get();
 		if (VertexBuffer.Buffer != VK_NULL_HANDLE)
 			vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
 	}
+
 	void LineMeshComponent::Draw(VkCommandBuffer commandBuffer) {
 		if (VertexCount == 0)
 			return;
@@ -236,6 +249,7 @@ namespace FLOOF {
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VertexBuffer.Buffer, &offset);
 		vkCmdDraw(commandBuffer, VertexCount, 1, 0, 0);
 	}
+
 	void LineMeshComponent::UpdateBuffer(const std::vector<ColorVertex>& vertexData) {
 		VertexCount = vertexData.size();
 		if (VertexCount > MaxVertexCount) {
@@ -244,11 +258,13 @@ namespace FLOOF {
 		// Buffer is already mapped. You can access its memory.
 		memcpy(VertexBuffer.AllocationInfo.pMappedData, vertexData.data(), sizeof(ColorVertex) * VertexCount);
 	}
+
 	CameraComponent::CameraComponent(glm::vec3 position) : Position{ position } {
 		Up = glm::vec3(0.f, -1.f, 0.f);
 		Forward = glm::vec3(0.f, 0.f, 1.f);
 		Right = glm::normalize(glm::cross(Forward, Up));
 	}
+
 	glm::mat4 CameraComponent::GetVP(float fov, float aspect, float near, float far) {
 		FOV = fov;
 		Aspect = aspect;
@@ -258,32 +274,36 @@ namespace FLOOF {
 		glm::mat4 projection = glm::perspective(fov, aspect, near, far);
 		return projection * view;
 	}
+
 	void CameraComponent::MoveForward(float amount) {
 		Position += Forward * amount;
 	}
+
 	void CameraComponent::MoveRight(float amount) {
 		glm::vec3 right = glm::normalize(glm::cross(Forward, Up));
 		Position += right * amount;
 	}
+
 	void CameraComponent::Pitch(float amount) {
 		if (amount == 0.f) return;
 		glm::vec3 right = glm::normalize(glm::cross(Forward, Up));
 		glm::mat4 rotation = glm::rotate(amount, right);
 		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
 	}
+
 	void CameraComponent::Yaw(float amount) {
 		if (amount == 0.f) return;
 		glm::mat4 rotation = glm::rotate(-amount, Up);
 		Forward = glm::normalize(glm::vec3(rotation * glm::vec4(Forward, 1.f)));
 	}
 
-    void CameraComponent::MoveUp(float amount) {
-        if (amount == 0.f) return;
-        Position.y += amount;
+	void CameraComponent::MoveUp(float amount) {
+		if (amount == 0.f) return;
+		Position.y += amount;
 
-    }
+	}
 
-    TerrainComponent::TerrainComponent(std::vector<std::vector<std::pair<Triangle, Triangle>>>& rectangles) {
+	TerrainComponent::TerrainComponent(std::vector<std::vector<std::pair<Triangle, Triangle>>>& rectangles) {
 		Rectangles = rectangles;
 
 		Height = rectangles.size();
@@ -299,6 +319,7 @@ namespace FLOOF {
 			}
 		}
 	}
+
 	void TerrainComponent::PrintTriangleData() {
 		uint32_t triangleId = 0;
 		for (auto& triangle : Triangles) {
@@ -310,47 +331,49 @@ namespace FLOOF {
 		}
 	}
 
-    std::vector<Triangle *> TerrainComponent::GetOverlappingTriangles(CollisionShape *shape) {
-       std::vector<Triangle*> overlapping;
+	std::vector<Triangle*> TerrainComponent::GetOverlappingTriangles(CollisionShape* shape) {
+		std::vector<Triangle*> overlapping;
 
-	   int xPos = shape->pos.x;
-	   int zPos = shape->pos.z;
+		int xPos = shape->pos.x;
+		int zPos = shape->pos.z;
 
-	   int extent = 1;
-	   if (shape->shape == CollisionShape::Shape::Sphere)
-		   extent += (int)reinterpret_cast<Sphere*>(shape)->radius;
+		int extent = 1;
+		if (shape->shape == CollisionShape::Shape::Sphere)
+			extent += (int)reinterpret_cast<Sphere*>(shape)->radius;
 
-	   int xMin = xPos - extent;
-	   int xMax = xPos + extent;
+		int xMin = xPos - extent;
+		int xMax = xPos + extent;
 
-	   int zMin = zPos - extent;
-	   int zMax = zPos + extent;
+		int zMin = zPos - extent;
+		int zMax = zPos + extent;
 
-	   for (int z = zMin; z <= zMax; z++) {
-		   for (int x = xMin; x <= xMax; x++) {
-			   if (x < 0.f || x > (Width - 1)
-				   || z < 0.f || z > (Height - 1)) {
-				   continue;
-			   }
-			   overlapping.push_back(&Rectangles[z][x].first);
-			   overlapping.push_back(&Rectangles[z][x].second);
-		   }
-	   }
+		for (int z = zMin; z <= zMax; z++) {
+			for (int x = xMin; x <= xMax; x++) {
+				if (x < 0.f || x >(Width - 1)
+					|| z < 0.f || z >(Height - 1)) {
+					continue;
+				}
+				overlapping.push_back(&Rectangles[z][x].first);
+				overlapping.push_back(&Rectangles[z][x].second);
+			}
+		}
 
-       return overlapping;
-    }
+		return overlapping;
+	}
 
-    PointCloudComponent::PointCloudComponent(const std::vector<ColorVertex>& vertexData) {
+	PointCloudComponent::PointCloudComponent(const std::vector<ColorVertex>& vertexData) {
 		auto renderer = VulkanRenderer::Get();
 
 		VertexBuffer = renderer->CreateVertexBuffer(vertexData);
 		VertexCount = vertexData.size();
 	}
+
 	PointCloudComponent::~PointCloudComponent() {
 		auto renderer = VulkanRenderer::Get();
 
 		vmaDestroyBuffer(renderer->m_Allocator, VertexBuffer.Buffer, VertexBuffer.Allocation);
 	}
+
 	void PointCloudComponent::Draw(VkCommandBuffer commandBuffer) {
 		auto renderer = VulkanRenderer::Get();
 
@@ -427,13 +450,12 @@ namespace FLOOF {
 		return a[0];
 	}
 
-    BSplineComponent::BSplineComponent() {
+	BSplineComponent::BSplineComponent() {
 
-    }
+	}
 
-    bool BSplineComponent::Isvalid() {
+	bool BSplineComponent::Isvalid() {
 
-        return ControllPoints.size() > (D+1);
-    }
-
+		return ControllPoints.size() > (D + 1);
+	}
 }

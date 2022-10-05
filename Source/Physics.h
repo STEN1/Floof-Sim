@@ -13,8 +13,6 @@ namespace FLOOF {
 	class Frustum;
     class CameraComponent;
 
-
-
 	class Physics {
 	public:
 		Physics() = delete;
