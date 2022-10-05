@@ -320,7 +320,7 @@ void LasLoader::ReadBin(const std::string &path) {
         tempVertex.Pos.x = point.x;
         tempVertex.Pos.y = point.z;
         tempVertex.Pos.z = point.y;
-        tempVertex.Color = glm::vec3(0.f, 1.f, 0.f);
+        tempVertex.Color = glm::vec3(1.f, 1.f, 1.f);
         PointData.push_back(tempVertex);
     }
 }
