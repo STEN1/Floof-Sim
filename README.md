@@ -1,8 +1,8 @@
 # Floof, en multiplatform Vulkan fysikkmotor
 ![Floof example image](Assets/FloofHeaderRainColor.png)
 
-## NB Terreng data for stor for github
-* jotun.las på google drive
+## NB. Terrengdatafilen er for stor for github
+* Last ned jotun.las fra google drive
 	* put filen i /Assets/ mappen til prosjektet
 * https://bit.ly/3M7KHBX
 
