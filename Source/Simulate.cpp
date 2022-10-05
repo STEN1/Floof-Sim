@@ -20,9 +20,9 @@ void FLOOF::Simulate::CalculateCollision(CollisionObject *obj1, CollisionObject 
     auto elasticity = collidingBall2.Elasticity * collidingBall1.Elasticity;
     auto relVelocity = collidingVelocity2.Velocity - collidingVelocity1.Velocity;
 
-    float moveangle = glm::dot(relVelocity, contactNormal);
-    float j = -(1.f + elasticity) * moveangle / (1.f / combinedMass);
-    if (moveangle >= 0.f) { // moves opposite dirrections;
+    float angularComponent = glm::dot(relVelocity, contactNormal);
+    float j = -(1.f + elasticity) * angularComponent / (1.f / combinedMass);
+    if (angularComponent >= 0.f) { // moves opposite dirrections;
         j = 0.f;
     }
     const glm::vec3 vecImpulse = j * contactNormal;
@@ -37,10 +37,9 @@ void FLOOF::Simulate::BallBallOverlap(FLOOF::CollisionObject *obj1, FLOOF::Colli
     auto contactNormal = Physics::GetContactNormal(collidingTransform1.Position,collidingTransform2.Position);
 
     float dist = glm::length(collidingTransform1.Position-collidingTransform2.Position);
-    if(dist < (collidingBall1.Radius+collidingBall2.Radius)) {
-        collidingTransform2.Position += contactNormal * ((collidingBall1.Radius + collidingBall2.Radius) - dist);
-        collidingBall2.CollisionSphere.pos = collidingTransform2.Position;
-    }
+    collidingTransform2.Position += contactNormal * ((collidingBall1.Radius + collidingBall2.Radius) - dist);
+    collidingBall2.CollisionSphere.pos = collidingTransform2.Position;
+
 }
 
 void FLOOF::Simulate::CalculateCollision(FLOOF::CollisionObject *obj, FLOOF::Triangle &triangle, TimeComponent& time, glm::vec3 & friction) {

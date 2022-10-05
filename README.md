@@ -1,5 +1,10 @@
 # Floof, en multiplatform Vulkan fysikkmotor
-![Floof example image](Assets/FloofHeaderRain.png)
+![Floof example image](Assets/FloofHeaderRainColor.png)
+
+## NB. Terrengdatafilen er for stor for github
+* Last ned jotun.las fra google drive
+	* put filen i /Assets/ mappen til prosjektet
+* https://bit.ly/3M7KHBX
 
 ### Testet på Windows, Linux og macOS
  * Apple Silicon M1
@@ -11,6 +16,7 @@
 | Beskrivelse           | Knapp          | 
 |-----------------------|----------------|
 | Styring av kamera     | WASD           | 
+| Hev / senk kamera     | E / Q          | 
 | Rotering av kamera    | LCtrl / RMouse | 
 
 

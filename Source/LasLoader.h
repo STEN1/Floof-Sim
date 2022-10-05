@@ -61,10 +61,10 @@ struct lasHeader {
     uint16_t creationDay;
     uint16_t creationYear;
     uint16_t headerSize;
-    uint32_t offsetToPointData; // The actual number of bytes from the beginning of the file to the first field of the first point record.
-    uint32_t numberVariableLengthRecords; // Length of VLR
-    uint8_t pointDataRecordFormat; // Format
-    uint16_t pointDataRecordLength; // The size, in bytes, of the Point Data Record
+    uint32_t offsetToPointData;
+    uint32_t numberVariableLengthRecords; 
+    uint8_t pointDataRecordFormat; 
+    uint16_t pointDataRecordLength; 
     int32_t legacyNumberPointsRecords;
     int32_t legacyNumberPointReturn[5];
     double xScaleFactor, yScaleFactor, zScaleFactor;

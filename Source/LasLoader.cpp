@@ -74,7 +74,6 @@ void LasLoader::Triangulate() {
     zSquares = (max.z - min.z);
 
     // Save all height data for each vertex
-    //std::vector<std::vector<std::vector<float>>> heightmap(zSquares, std::vector<std::vector<float>>(xSquares));
     std::vector<std::vector<HeightAndColor>> heightmap(zSquares, std::vector<HeightAndColor>(xSquares));
     for (auto &vertex: PointData) {
         int xPos = vertex.Pos.x;
@@ -320,7 +319,7 @@ void LasLoader::ReadBin(const std::string &path) {
         tempVertex.Pos.x = point.x;
         tempVertex.Pos.y = point.z;
         tempVertex.Pos.z = point.y;
-        tempVertex.Color = glm::vec3(0.f, 1.f, 0.f);
+        tempVertex.Color = glm::vec3(1.f, 1.f, 1.f);
         PointData.push_back(tempVertex);
     }
 }
