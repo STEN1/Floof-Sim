@@ -4,7 +4,7 @@
 ## NB Terreng data for stor for github
 * jotun.las på google drive
 	* put filen i /Assets/ mappen til prosjektet
-* https://drive.google.com/file/d/1oiKce80IVRXvdv2PPsITcMj1vkjXLej5/view?usp=sharing
+* https://bit.ly/3M7KHBX
 
 ### Testet på Windows, Linux og macOS
  * Apple Silicon M1
