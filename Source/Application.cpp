@@ -285,10 +285,11 @@ namespace FLOOF {
 				octree.Insert(std::make_shared<CollisionObject>(&ball.CollisionSphere, transform, velocity, ball));
 			}
 
-			std::vector<Octree*> leafNodes;
-			octree.GetActiveLeafNodes(leafNodes);
 
             if(m_BDebugLines[DebugLine::OctTree]){
+				std::vector<Octree*> leafNodes;
+				octree.GetActiveLeafNodes(leafNodes);
+
                 for (auto& node : leafNodes) {
                     auto aabb = node->GetAABB();
                     DebugDrawAABB(aabb.pos, aabb.extent);
