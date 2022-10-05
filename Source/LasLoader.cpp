@@ -74,7 +74,6 @@ void LasLoader::Triangulate() {
     zSquares = (max.z - min.z);
 
     // Save all height data for each vertex
-    //std::vector<std::vector<std::vector<float>>> heightmap(zSquares, std::vector<std::vector<float>>(xSquares));
     std::vector<std::vector<HeightAndColor>> heightmap(zSquares, std::vector<HeightAndColor>(xSquares));
     for (auto &vertex: PointData) {
         int xPos = vertex.Pos.x;
