@@ -1,6 +1,10 @@
 # Floof, en multiplatform Vulkan fysikkmotor
 ![Floof example image](Assets/FloofHeaderRainColor.png)
 
+# NB Terreng data for stor for github
+* jotun.las på google drive
+* https://drive.google.com/file/d/1oiKce80IVRXvdv2PPsITcMj1vkjXLej5/view?usp=sharing
+
 ### Testet på Windows, Linux og macOS
  * Apple Silicon M1
  * AMD Graphics
