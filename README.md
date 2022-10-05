@@ -16,6 +16,7 @@
 | Beskrivelse           | Knapp          | 
 |-----------------------|----------------|
 | Styring av kamera     | WASD           | 
+| Hev / senk kamera     | E / Q          | 
 | Rotering av kamera    | LCtrl / RMouse | 
 
 
