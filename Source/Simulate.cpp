@@ -51,8 +51,8 @@ void FLOOF::Simulate::CalculateCollision(FLOOF::CollisionObject *obj, FLOOF::Tri
 
     glm::vec3 norm = glm::normalize(CollisionShape::ClosestPointToPointOnTriangle(transform.Position, triangle)-transform.Position);
 
-    float moveangle = glm::dot(velocity.Velocity,norm);
-    float j = -(1.f+ball.Elasticity) * moveangle / (1.f/ball.Mass);
+    float angularComponent = glm::dot(velocity.Velocity, norm);
+    float j = -(1.f+ball.Elasticity) * angularComponent / (1.f / ball.Mass);
     const glm::vec3 vecImpulse = j*norm;
     velocity.Velocity += vecImpulse / ball.Mass;
 
