@@ -13,7 +13,7 @@ public:
     std::vector<FLOOF::MeshVertex> GetVertexData();
     std::pair<std::vector<FLOOF::ColorNormalVertex>, std::vector<uint32_t>> GetIndexedColorNormalVertexData();
     std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> GetTerrainData();
-    float GetMinY(){return -max.y;}
+    float GetMinY() { return -max.y; }
 private:
     std::vector<FLOOF::ColorVertex> PointData;
     std::vector<FLOOF::MeshVertex> VertexData;
@@ -31,17 +31,17 @@ private:
     void UpdatePoints();
     void Triangulate();
 
-    glm::vec3 min{0.f};
-    glm::vec3 max{0.f};
-    glm::vec3 middle{0.f};
+    glm::vec3 min{ 0.f };
+    glm::vec3 max{ 0.f };
+    glm::vec3 middle{ 0.f };
     glm::vec3 offset{ 0.f };
     int xSquares{ 0 };
     int zSquares{ 0 };
 };
 
 struct HeightAndColor {
-    int count{0};
-    float sum{0.f};
+    int count{ 0 };
+    float sum{ 0.f };
     glm::vec3 color{ 0.f };
 };
 
@@ -62,9 +62,9 @@ struct lasHeader {
     uint16_t creationYear;
     uint16_t headerSize;
     uint32_t offsetToPointData;
-    uint32_t numberVariableLengthRecords; 
-    uint8_t pointDataRecordFormat; 
-    uint16_t pointDataRecordLength; 
+    uint32_t numberVariableLengthRecords;
+    uint8_t pointDataRecordFormat;
+    uint16_t pointDataRecordLength;
     int32_t legacyNumberPointsRecords;
     int32_t legacyNumberPointReturn[5];
     double xScaleFactor, yScaleFactor, zScaleFactor;
@@ -75,7 +75,7 @@ struct lasHeader {
 };
 
 // Not needed
-struct lasVariableLengthRecords{
+struct lasVariableLengthRecords {
     // Variable Length Records
     uint16_t lasReserved;
     char UserID[16];

@@ -14,7 +14,7 @@ namespace FLOOF {
 
         static void CalculateCollision(CollisionObject* obj1, CollisionObject* obj2);
         static void BallBallOverlap(CollisionObject* obj1, CollisionObject* obj2);
-        static void CalculateCollision(CollisionObject* obj, Triangle& triangle, TimeComponent& time, glm::vec3 & friction);
+        static void CalculateCollision(CollisionObject* obj, Triangle& triangle, TimeComponent& time, glm::vec3& friction);
 
     };
 }

@@ -3,11 +3,11 @@
 #include <sstream>
 #include <limits>
 #include <stdio.h>
-LasLoader::LasLoader(const std::string &path) : PointData{} {
+LasLoader::LasLoader(const std::string& path) : PointData{} {
 
-    std::string txt (".txt");
-    std::string lasbin (".lasbin");
-    std::string las (".las");
+    std::string txt(".txt");
+    std::string lasbin(".lasbin");
+    std::string las(".las");
 
     if (path.find(txt) != std::string::npos)
         ReadTxt(path);
@@ -30,19 +30,16 @@ std::vector<FLOOF::ColorVertex> LasLoader::GetPointData() {
 void LasLoader::FindMinMax() {
 
     // Check if min/max already found
-    if (max != glm::vec3(0.f)){
+    if (max != glm::vec3(0.f)) {
         return;
     }
     min = glm::vec3(std::numeric_limits<float>::max());
     max = glm::vec3(std::numeric_limits<float>::min());
 
     for (auto& vertex : PointData) {
-        if (min.x > vertex.Pos.x) {min.x = vertex.Pos.x;}
-        else if (max.x < vertex.Pos.x) {max.x = vertex.Pos.x;}
-        if (min.z > vertex.Pos.z) {min.z = vertex.Pos.z;}
-        else if (max.z < vertex.Pos.z) {max.z = vertex.Pos.z;}
-        if (min.y > vertex.Pos.y) {min.y = vertex.Pos.y;}
-        else if (max.y < vertex.Pos.y) {max.y = vertex.Pos.y;}
+        if (min.x > vertex.Pos.x) { min.x = vertex.Pos.x; } else if (max.x < vertex.Pos.x) { max.x = vertex.Pos.x; }
+        if (min.z > vertex.Pos.z) { min.z = vertex.Pos.z; } else if (max.z < vertex.Pos.z) { max.z = vertex.Pos.z; }
+        if (min.y > vertex.Pos.y) { min.y = vertex.Pos.y; } else if (max.y < vertex.Pos.y) { max.y = vertex.Pos.y; }
     }
 }
 
@@ -51,10 +48,10 @@ void LasLoader::CalcCenter() {
     FindMinMax();
 
     // Find middle
-    middle = min + (max-min)/2.f;
+    middle = min + (max - min) / 2.f;
     offset = min;
 
-	// Update min/max
+    // Update min/max
     min -= offset;
     max -= offset;
 }
@@ -75,12 +72,12 @@ void LasLoader::Triangulate() {
 
     // Save all height data for each vertex
     std::vector<std::vector<HeightAndColor>> heightmap(zSquares, std::vector<HeightAndColor>(xSquares));
-    for (auto &vertex: PointData) {
+    for (auto& vertex : PointData) {
         int xPos = vertex.Pos.x;
         int zPos = vertex.Pos.z;
 
-        if (xPos < 0.f || xPos > xSquares-1
-            || zPos < 0.f || zPos > zSquares-1) {
+        if (xPos < 0.f || xPos > xSquares - 1
+            || zPos < 0.f || zPos > zSquares - 1) {
             continue;
         }
 
@@ -97,13 +94,12 @@ void LasLoader::Triangulate() {
         for (int x = 0; x < xSquares; ++x) {
             float y;
             glm::vec3 color{};
-            if (heightmap[z][x].count == 0)
-            {
+            if (heightmap[z][x].count == 0) {
                 y = -max.y;
-                noHeight.push_back(std::make_pair(x,z));
+                noHeight.push_back(std::make_pair(x, z));
                 color = glm::vec3(1.f);
             } else {
-            	//y = (average / count) - max.y;
+                //y = (average / count) - max.y;
                 y = heightmap[z][x].sum / heightmap[z][x].count - max.y;
                 color = heightmap[z][x].color / glm::vec3(heightmap[z][x].count);
             }
@@ -118,16 +114,12 @@ void LasLoader::Triangulate() {
     }
 
     // Calculate average height if no height
-    for (auto& vertex : noHeight)
-    {
+    for (auto& vertex : noHeight) {
         int x = vertex.first;
         int z = vertex.second;
-        if (x <= 0 || x >= xSquares-1 || z <= 0 || z >= zSquares-1)
-        {
+        if (x <= 0 || x >= xSquares - 1 || z <= 0 || z >= zSquares - 1) {
             continue;
-        }
-        else
-        {
+        } else {
             float averageHeight{ 0.f };
             averageHeight += VertexData[(x - 1) + (z * xSquares)].Pos.y;
             averageHeight += VertexData[(x - 1) + ((z - 1) * xSquares)].Pos.y;
@@ -173,12 +165,9 @@ void LasLoader::Triangulate() {
     // Normals for rest
     for (int z = zmin; z < zmax; z++) {
         for (int x = xmin; x < xmax; x++) {
-	        if (z == zmin || z == zmax-1 || x == xmin || x == xmax-1)
-	        {
+            if (z == zmin || z == zmax - 1 || x == xmin || x == xmax - 1) {
                 VertexData[x + (xmax * z)].Normal = glm::vec3(0.f, 1.f, 0.f);
-	        }
-            else
-            {
+            } else {
                 glm::vec3 a(VertexData[x + (xmax * z)].Pos);
                 glm::vec3 b(VertexData[x + 1 + (xmax * z)].Pos);
                 glm::vec3 c(VertexData[x + 1 + (xmax * (z + 1))].Pos);
@@ -206,11 +195,10 @@ void LasLoader::Triangulate() {
 
 
 std::pair<std::vector<FLOOF::MeshVertex>, std::vector<uint32_t>> LasLoader::GetIndexedData() {
-    return {LasLoader::VertexData, LasLoader::IndexData};
+    return { LasLoader::VertexData, LasLoader::IndexData };
 }
 
-std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData()
-{
+std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData() {
     std::vector<FLOOF::MeshVertex> out;
     int i = 0;
     while (i != IndexData.size()) {
@@ -249,7 +237,7 @@ std::vector<FLOOF::MeshVertex> LasLoader::GetVertexData()
 }
 
 std::pair<std::vector<FLOOF::ColorNormalVertex>, std::vector<uint32_t>> LasLoader::GetIndexedColorNormalVertexData() {
-    return {ColorNormalVertexData, IndexData};
+    return { ColorNormalVertexData, IndexData };
 }
 
 std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader::GetTerrainData() {
@@ -287,10 +275,10 @@ std::vector<std::vector<std::pair<FLOOF::Triangle, FLOOF::Triangle>>> LasLoader:
     return out;
 }
 
-void LasLoader::ReadTxt(const std::string &path) {
+void LasLoader::ReadTxt(const std::string& path) {
     std::ifstream file(path);
 
-    if (!file.is_open()){
+    if (!file.is_open()) {
         std::cout << "Cant open file: " << path << std::endl;
         return;
     }
@@ -306,13 +294,13 @@ void LasLoader::ReadTxt(const std::string &path) {
     }
 }
 
-void LasLoader::ReadBin(const std::string &path) {
+void LasLoader::ReadBin(const std::string& path) {
 
     std::ifstream is(path, std::ios::binary | std::ios::ate);
     auto size = is.tellg();
     std::vector<glm::vec3> lasDataPoints(size / sizeof(glm::vec3));
     is.seekg(0);
-    is.read(reinterpret_cast<char *>(lasDataPoints.data()), size);
+    is.read(reinterpret_cast<char*>(lasDataPoints.data()), size);
 
     for (auto& point : lasDataPoints) {
         FLOOF::ColorVertex tempVertex{};
@@ -324,13 +312,13 @@ void LasLoader::ReadBin(const std::string &path) {
     }
 }
 
-void LasLoader::ReadLas(const std::string &path) {
+void LasLoader::ReadLas(const std::string& path) {
     lasHeader header;
     std::ifstream inf(path, std::ios::binary | std::ios::ate);
-    if (inf.is_open()){
+    if (inf.is_open()) {
 
         // Read Header
-    	inf.seekg(0);
+        inf.seekg(0);
         inf.read((char*)&header.fileSignature, sizeof(header.fileSignature));
         inf.read((char*)&header.sourceID, sizeof(header.sourceID));
         inf.read((char*)&header.globalEncoding, sizeof(header.globalEncoding));
@@ -392,7 +380,7 @@ void LasLoader::ReadLas(const std::string &path) {
                 tempVertex.Pos.x = (temp.xPos * header.xScaleFactor) + header.xOffset;
                 tempVertex.Pos.y = (temp.zPos * header.zScaleFactor) + header.zOffset;
                 tempVertex.Pos.z = (temp.yPos * header.yScaleFactor) + header.yOffset;
-                tempVertex.Color = glm::vec3(0.f,1.f,0.f);
+                tempVertex.Color = glm::vec3(0.f, 1.f, 0.f);
                 PointData.push_back(tempVertex);
             }
         }
@@ -417,7 +405,7 @@ void LasLoader::ReadLas(const std::string &path) {
                 tempVertex.Pos.x = (temp.xPos * header.xScaleFactor) + header.xOffset;
                 tempVertex.Pos.y = (temp.zPos * header.zScaleFactor) + header.zOffset;
                 tempVertex.Pos.z = (temp.yPos * header.yScaleFactor) + header.yOffset;
-                tempVertex.Color = glm::vec3(temp.red * 0.00001,temp.green * 0.00001,temp.blue * 0.00001);
+                tempVertex.Color = glm::vec3(temp.red * 0.00001, temp.green * 0.00001, temp.blue * 0.00001);
                 PointData.push_back(tempVertex);
             }
         }

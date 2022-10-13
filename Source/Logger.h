@@ -8,19 +8,19 @@ namespace FLOOF {
         public:
             inline static Logger* s_Logger = nullptr;
             Logger(const char* logfile);
-           ~Logger();
-           enum LogType{
-               INFO = 0,
-               WARNING,
-               ERROR,
-               CRITICAL,
-               };
+            ~Logger();
+            enum LogType {
+                INFO = 0,
+                WARNING,
+                ERROR,
+                CRITICAL,
+            };
 
-           void log(LogType logtype, const char* message);
-           void log(LogType logtype, const glm::vec3 vec);
-           void log(LogType logtype, const char* message,const glm::vec3 vec);
+            void log(LogType logtype, const char* message);
+            void log(LogType logtype, const glm::vec3 vec);
+            void log(LogType logtype, const char* message, const glm::vec3 vec);
         private:
-           const char* m_LogPath;
+            const char* m_LogPath;
         };
     }
 }
