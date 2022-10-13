@@ -336,6 +336,14 @@ namespace FLOOF {
 
 		int xPos = shape->pos.x;
 		int zPos = shape->pos.z;
+		if (xPos < 0.f || xPos >(Width - 1)
+			|| zPos < 0.f || zPos >(Height - 1)) {
+			return overlapping;
+		}
+		overlapping.push_back(&Rectangles[zPos][xPos].first);
+		overlapping.push_back(&Rectangles[zPos][xPos].second);
+		return overlapping;
+
 
 		int extent = 1;
 		if (shape->shape == CollisionShape::Shape::Sphere)

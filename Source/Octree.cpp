@@ -77,6 +77,7 @@ namespace FLOOF {
 						continue;
 					}
 
+					std::scoped_lock lock(m_CollisionObjects[i]->OverlappingMutex, m_CollisionObjects[j]->OverlappingMutex);
 					// Look for j in i. i should then also be in j so dont need to check.
 					auto it = std::find(m_CollisionObjects[i]->OverlappingShapes.begin(),
 						m_CollisionObjects[i]->OverlappingShapes.end(), m_CollisionObjects[i]->Shape);

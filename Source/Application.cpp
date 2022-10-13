@@ -10,6 +10,7 @@
 #include "LasLoader.h"
 #include "Octree.h"
 #include "Simulate.h"
+#include <future>
 
 namespace FLOOF {
 	Application::Application() {
@@ -301,7 +302,22 @@ namespace FLOOF {
 		{	// Calculate ball
 
 			std::vector<std::pair<CollisionObject*, CollisionObject*>> collisionPairs;
-			octree.GetCollisionPairs(collisionPairs);
+
+			std::vector<Octree*> leafNodes;
+			octree.GetActiveLeafNodes(leafNodes);
+			std::vector<std::future<void>> futures(leafNodes.size());
+			std::vector<std::vector<std::pair<CollisionObject*, CollisionObject*>>> threadCollisionPairs(leafNodes.size());
+			for (uint32_t i = 0; i < leafNodes.size(); i++) {
+				futures[i] = std::async(std::launch::async, &Octree::GetCollisionPairs, leafNodes[i], std::ref(threadCollisionPairs[i]));
+			}
+			for (auto& fut : futures) {
+				fut.get();
+			}
+			for (auto& tColPairs : threadCollisionPairs) {
+				collisionPairs.insert(collisionPairs.end(), tColPairs.begin(), tColPairs.end());
+			}
+
+			//octree.GetCollisionPairs(collisionPairs);
 
 			for (auto& [obj1, obj2] : collisionPairs) {
                 Simulate::CalculateCollision(obj1,obj2);

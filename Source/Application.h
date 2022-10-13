@@ -91,7 +91,7 @@ namespace FLOOF {
 		bool m_DebugDraw = true;
 		bool m_DrawNormals = false;
 		bool m_ShowImguiDemo = false;
-		uint32_t m_DebugLineSpace = 10000000;
+		uint32_t m_DebugLineSpace = 9000000;
 
         float m_CameraSpeed{100.f};
 	};

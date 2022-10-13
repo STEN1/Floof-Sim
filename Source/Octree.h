@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "Components.h"
+#include <mutex>
 
 
 namespace FLOOF {
@@ -13,6 +14,8 @@ namespace FLOOF {
 		TransformComponent& Transform;
 		VelocityComponent& Velocity;
 		BallComponent& Ball;
+
+		std::mutex OverlappingMutex;
 		std::vector<CollisionShape*> OverlappingShapes;
 
 		bool operator == (const CollisionObject& other) const {
@@ -36,7 +39,7 @@ namespace FLOOF {
 		bool IsLeaf();
 		std::vector<std::unique_ptr<Octree>> m_ChildNodes;
 		std::vector<std::shared_ptr<CollisionObject>> m_CollisionObjects;
-		inline static uint32_t s_MaxObjects = 20;
+		inline static uint32_t s_MaxObjects = 200;
 		inline static float s_MinExtent = 4.f;
 	};
 }
